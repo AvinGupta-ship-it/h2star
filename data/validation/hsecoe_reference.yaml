@@ -1,0 +1,20 @@
+citation: "Thornton, M.; Simpson, L. — System Design, Analysis, and Modeling Activities Supporting the DOE HSECoE. NREL/TP-5400-73571, 2019."
+url: "https://docs.nrel.gov/docs/fy19osti/73571.pdf"
+date_accessed: "2026-06-16"
+adsorbent: "MOF-5"
+case_label: "Press-FCHX"
+phase: "Phase 1"
+drive_cycle_case: "Case 1 (UDDS/HWFET)"
+operating_envelope:   # HSECoE cryo-adsorption design basis
+  fill:      {temperature_K: 77,  pressure_bar: 100}
+  discharge: {temperature_K: 160, pressure_bar: 5}
+reference_results:
+  system_gravimetric_capacity_wt_percent: 4.6   # CHANGE to the exact value in your chosen row
+  system_volumetric_capacity_gH2_per_L:   25.3    # CHANGE to the exact value in your chosen row
+notes: >
+  Gate V3 anchor: the best-performing MOF-5 system case in the HSECoE final modeling report
+  (highest gravimetric wt% across the Phase 1/2/3 adsorbent results tables). Recorded the exact
+  design name and phase so the choice is reproducible. Ignored all metal-hydride, chemical-hydride,
+  and compressed-gas rows (different storage physics) and all cost/GHG tables (out of scope).
+  These numbers come from HSECoE drive-cycle system simulations; my H2STAR model is a simpler
+  state-point packed-powder model, so the +/-15% Gate V3 band accounts for the design differences.

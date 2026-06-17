@@ -1,0 +1,37 @@
+name: "AX-21"
+citation: "Richard, M.-A.; Benard, P.; Chahine, R. Adsorption 2009, 15. DOI:10.1007/s10450-009-9149-x"
+date_accessed: "2026-06-16"
+model: "modified Dubinin-Astakhov (supercritical)"
+parameters:        # HYDROGEN row of Table 3 (p. 48). Global fit (all isotherms, 30-293 K). Paper's native units kept.
+     n_max: {value: 71.6, unit: "mol/kg"}        # equal to mmol/g
+     alpha: {value: 3080, unit: "J/mol"}         # J, NOT kJ
+     beta:  {value: 18.9, unit: "J/(mol*K)"}
+     p0:    {value: 1470, unit: "MPa"}           # MPa, NOT Pa
+     v_a:   {value: 0.00143, unit: "m3/kg"}      # fitted adsorbed-phase volume (Table 3); used in excess = abs - rho_g*v_a
+valid_range:
+     temperature_K: [30, 293]   # abstract/intro/conclusions; Table 1 lists upper T as 298 K
+     pressure_MPa:  [0, 6]
+symbol_map: "paper -> manual: nmax -> n_max; alpha -> alpha; beta -> beta; P0 -> p0; eps = alpha + beta*T -> the (alpha + beta*T) characteristic-energy term; m = 2 (distribution exponent, fixed) -> the square in exp[-(...)^2 * ln^2(P0/P)]. Paper uses the same Greek letters as the manual, so the mapping is 1:1."
+material_anchors:   # reality checks, NOT fitted parameters
+     bulk_density_kg_per_m3: 300       # Table 1: 0.30 g/cm3 -> 300 kg/m3
+     bet_area_m2_per_g: "~2800-3000"   # Table 1: 2800 m2/g
+     max_excess_uptake_wt_percent_near_77K: "~5"
+notes: >
+     Parameter values transcribed from the HYDROGEN entry for AX-21 in Table 3.
+     Chose the GLOBAL fit: the first H2 column, fitted simultaneously to ALL isotherms
+     over 30-293 K. Did NOT use the reduced H2 column (Table 3 footnote a) fitted from
+     only the 77 K and 298 K isotherms, whose values are nmax 65.4 mol/kg, alpha 3310 J/mol,
+     beta 16.8 J/(mol*K), P0 1090 MPa. Ignored the N2 and CH4 columns entirely (wrong gas).
+
+     These are the Gate V2 anchor. Convert to SI inside the code in Week 2, never here:
+     alpha is J/mol (not kJ/mol), P0 is MPa (not Pa).
+
+     Working model (Eq. 13, absolute term): na = nmax * exp[ -(R*T/(alpha + beta*T))^2 * ln^2(P0/P) ].
+
+     Valid range stated as 30-293 K, 0-6 MPa in the abstract, intro, and conclusions; Table 1
+     instead lists the upper temperature as 298 K (minor internal discrepancy) -- used 293 K.
+
+     Excess-isotherm figure to digitize in Week 2: Fig. 1, panel (a) (hydrogen/AX-21, full fit).
+     Fig. 1(b) is the two-isotherm fit; Fig. 2 is ABSOLUTE adsorption, not excess.
+
+     Adsorption volume Va for this fit = 0.00143 m^3/kg (Table 3; not in template but recorded here).

@@ -1,0 +1,24 @@
+source:
+     title: "Technical System Targets: Onboard Hydrogen Storage for Light-Duty Fuel Cell Vehicles"
+     publisher: "U.S. DRIVE Partnership / DOE Hydrogen and Fuel Cell Technologies Office"
+     url: "https://www.energy.gov/eere/fuelcells/doe-technical-targets-onboard-hydrogen-storage-light-duty-vehicles"
+     version: "updated May 2017"
+     date_accessed: "2026-06-16"
+   targets:
+     gravimetric_capacity_kgH2_per_kg_system:   # usable, system-level
+       "2020": 0.045
+       "2025": 0.055
+       ultimate: 0.065
+     volumetric_capacity_kgH2_per_L_system:     # usable, system-level
+       "2020": 0.030
+       "2025": 0.040
+       ultimate: 0.050
+     min_delivery_pressure_bar: 5
+     max_delivery_pressure_bar: 12
+     min_delivery_temperature_C: -40
+     max_delivery_temperature_C: 85
+     cycle_life_quarter_to_full: 1500
+   notes: >
+     Capacities are SYSTEM-level and USABLE (net useful energy / max system mass or volume),
+     including tank, media, and all components, measured at end of service life. NOT material-level
+     uptake. Energy-unit forms (ignored here): grav 1.5/1.8/2.2 kWh/kg; vol 1.0/1.3/1.7 kWh/L.
