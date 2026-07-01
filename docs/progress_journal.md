@@ -311,3 +311,36 @@ Week 1 — Foundations and the EOS layer (Gate V1). Ref: manual §5.4.
 - (1) isotherm.py (n_absolute, n_excess, pressure_at_loading) + heats.py; completion = round-trip P→n→P to 1e-6 and the 77 K excess-maximum test both green.
 - (2) Gate V2: overlay my AX-21 curve on the digitized paper points; completion = RMSE below the tolerance I pre-register before running, plus the overlay committed as F2-draft.
 - (3) fitting.py refit with covariance and tag v0.1-isotherms; completion = recovered params within stated tolerance of published values, table in notebook 02, green CI on the tag.
+
+## 2026-07-01
+### Hours worked
+2.5
+### Objectives
+Implement the isotherm layer (Material + ModifiedDA) and heats.py via CC-3; write the D-A
+derivation and isotherm assumptions; digitize the 77 K AX-21 excess curve; eyeball the
+reproduction. Set up Gate V2 without closing it.
+### Work completed
+- docs/model_derivations.md (sec. 1-3) and docs/assumptions.md (A-ISO-1..4) written and committed (<hash1>).
+- src/h2star/isotherm.py, src/h2star/heats.py, tests/test_isotherm.py, tests/test_heats.py via CC-3 (<hash2>).
+- data/validation/ax21_digitized.csv: 14 points off Fig. 1(a) 77 K (x markers), MPa/mol-kg, provenance header.
+- Overlay /tmp/ax21_day6_overlay.png: model excess through the points, both peaking ~26 mol/kg near 35 bar.
+### Gates/tests advanced
+- test_isotherm.py: low-P excess≈absolute, interior excess maximum at 77 K, P->n->P round-trip 1e-6,
+  citation-required — all red->green. test_heats.py: positive q_st at low coverage, step-size stable at dT=1 K.
+  Understanding the interior-max needed: excess only rolls over because n_excess subtracts *molar* gas density.
+### Problems encountered
+- from_yaml first assumed flat SI keys; my ax21.yaml is nested {value, unit} with p0 in MPa. Fixed by parsing
+  parameters[k]['value'] and converting p0 x1e6 -> 1.47e9 Pa in from_yaml. Caught the citation-guard order too.
+### AI tools used
+- Claude Code (Opus 4.8) for the CC-3 implementation. Verified: read the full diff, checked the D-A equation,
+  the MPa->Pa conversion, the p0 clamp / no-NaN guards, molar density in n_excess, the -R sign in q_st;
+  ran all six tests and ruff myself. See docs/ai_usage_log.md.
+### Lessons learned
+- p0 is ~14,700 bar, far above the envelope, so absolute adsorption stays on its rising branch across 1-200 bar
+  and the excess maximum comes entirely from the gas-subtraction term, not from n_abs peaking.
+### Next actions
+- 1. Build F2 (data + published fit + residuals) in notebook 02.
+- 2. Compute Gate V2 RMSE over the 0-6 MPa range vs the pre-registered threshold.
+- 3. Promote the excess-maximum test to the @pytest.mark.validation gate.
+### Open questions
+- Confirm the RMSE threshold I pre-registered is defensible against the paper's 2.2% deviation at 77 K.
