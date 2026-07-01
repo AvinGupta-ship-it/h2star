@@ -25,3 +25,8 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+    "validation: EOS validation tests against external NIST reference data.",
+]

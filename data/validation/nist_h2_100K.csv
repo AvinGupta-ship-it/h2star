@@ -1,0 +1,47 @@
+# H2STAR EOS validation data - NIST Chemistry WebBook, SRD 69
+# Fluid: Hydrogen (normal). Data type: isothermal properties.
+# Reference EOS: Leachman, Jacobsen, Penoncello, Lemmon (2009).
+# Source: https://webbook.nist.gov/chemistry/fluid/ (accessed 2026-06-30)
+# Fixed temperature: 100 K. Units: pressure in bar, density in kg/m3.
+pressure_bar,density_kg_m3
+1,0.24251
+6,1.4563
+11,2.6716
+16,3.8871
+21,5.1014
+26,6.313
+31,7.5202
+36,8.7215
+41,9.9153
+46,11.1
+51,12.274
+56,13.436
+61,14.585
+66,15.72
+71,16.839
+76,17.943
+81,19.029
+86,20.098
+91,21.149
+96,22.182
+101,23.195
+106,24.19
+111,25.166
+116,26.123
+121,27.061
+126,27.98
+131,28.88
+136,29.761
+141,30.624
+146,31.468
+151,32.295
+156,33.104
+161,33.896
+166,34.671
+171,35.429
+176,36.172
+181,36.898
+186,37.61
+191,38.306
+196,38.988
+201,39.656
