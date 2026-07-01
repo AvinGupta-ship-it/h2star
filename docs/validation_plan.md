@@ -16,6 +16,16 @@
    Pass (quantitative): RMSE of excess uptake < 0.3 wt% absolute across the digitized points.
    Refit check: refitting the digitized points recovers each parameter within 20% of the paper.
    Physical check: the 77 K excess isotherm shows an interior maximum between 1 and 200 bar.
+   ### Gate V2 (isotherm) — part 1: excess-RMSE threshold  [PRE-REGISTERED]
+- Date declared: 2026-07-01
+- Metric: RMSE between modified-D–A excess at the PUBLISHED AX-21 parameters and my
+  digitized 77 K excess points (data/validation/ax21_digitized.csv), evaluated at the
+  digitized pressures over the 0–6 MPa data range, in mol/kg.
+- Pre-registered threshold: RMSE < 1.5 mol/kg. PASS if below; FAIL if at or above.
+- Rationale: Set at 1.5 mol/kg ≈ 2× the paper's reported H2 standard error of estimate (0.79 mol/kg). My digitized points carry the original fit residual plus digitization scatter (~0.3–0.6 mol/kg), so doubling σ_est is a principled allowance for the latter; at ~6% of the ~27 mol/kg peak the bar still fails a units error, an excess/absolute confusion, or a wrong-figure error, so it tests reproduction rather than rubber-stamping it.
+- Declared BEFORE the RMSE was computed; the commit adding this line precedes the commit
+  recording the measured RMSE (git log is the proof).
+- Author: Avin (Class-A).
 
    ## Gate V3 — System model
    Target: my system GC and VC reproduce the published MOF-5 cryo-adsorbent system (HSECoE/NREL).
