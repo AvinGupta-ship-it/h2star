@@ -39,3 +39,171 @@ case; pre-register V1-V4 tolerances before any model output exists.
 - Day 2: confirm the Richard et al. PDF is fully downloaded for the Week-2 digitization.
 ### Open questions
 - Confirm exactly which figure in Richard et al. I'll digitize in Week 2 (the 77 K excess panel). Not blocking.
+
+## 2026-06-30
+### Hours worked
+2.5
+### Objectives
+Work through the first four §5.3 concepts and write a half-page summary of each;
+derive the excess/absolute relation by hand and check it against §3.4C.
+### Work completed
+- Four concept summaries written below (supercritical adsorption; excess vs. absolute;
+  real-gas EOS; isosteric heat & Clausius–Clapeyron).
+- Excess/absolute relation derived on paper from the definition of excess uptake;
+  verified against §3.4C. [photo: docs/derivations/excess_absolute_2026-06-30.jpg]
+- No code this session (Day 2 is a concept day per §5.4).
+#### Concept 1 — Supercritical adsorption
+Every fluid has a critical temperature above which no pressure will condense it into a
+liquid. For hydrogen that's ≈ 33 K, and every temperature I'll ever store at — even
+cryogenic 77 K — is more than double that, so hydrogen in the tank is always
+supercritical. That kills the classical picture of adsorption as gas condensing into a
+liquid film that fills the pores: there is no liquid phase to form. What actually happens
+is a density enhancement — the carbon's attractive potential pulls gas into a near-surface
+layer denser than the bulk, but that layer never becomes a true condensed phase. "Thicker
+air near the wall," not "a puddle in the pore."
+
+Two consequences follow. First, I can't use a real saturation/vapor pressure in the
+isotherm, because above the critical point condensation never happens and no vapor pressure
+exists — which is exactly why the modified Dubinin–Astakhov form uses a pseudo-saturation
+pressure P₀ as a fitted parameter, not a looked-up constant. My Day-1 AX-21 fit gave
+P₀ = 1470 MPa; that's not a pressure the tank ever sees, it's a curvature-setting fitting
+constant, and being supercritical is why that's fine. Second, because hydrogen binds weakly
+on carbon, room-temperature physisorption capacities are intrinsically small — the whole
+reason this technology needs cryogenic operation, and why my operating-envelope floor sits
+at 60 K, safely above the critical region. The trap I have to avoid is treating P₀ as a
+physical pressure — trying to look it up or being alarmed that 1470 MPa is "unphysical."
+#### Concept 2 — Excess vs. absolute adsorption
+This is the most important idea in the project and the field's most common fatal error
+(FM1). There are two ways to count "how much hydrogen is adsorbed." Absolute adsorption
+(n_abs) is everything in the dense near-surface layer — the model's natural variable.
+Excess adsorption (n_exc) is the surplus over what the same volume would hold at bulk gas
+density, and it's what an instrument actually measures, because a sorption apparatus can
+only detect the gas present beyond the compressed gas that would be there anyway. They're
+bridged by n_exc = n_abs − ρ_gas · V_a, where the subtracted term is the gas that would
+fill the adsorbed-phase volume at bulk density with no surface attraction.
+
+The pressure dependence is the whole point. At low pressure ρ_gas is tiny, the correction
+vanishes, and excess ≈ absolute. At high pressure the bulk density grows, the subtracted
+term grows, and excess rises, peaks (≈ 30–40 bar at 77 K), and falls — even though absolute
+keeps climbing toward n_max. That hump is the signature of a correct high-pressure excess
+isotherm; any code path that gives a monotonically increasing excess isotherm at 77 K to
+200 bar is wrong, and the usual cause is v_a being zero or in the wrong units. Practically:
+a reported 5 wt% is usually excess and understates the tank inventory (the tank cares about
+absolute — the total in the bed), and comparing an excess measurement to an absolute model
+is meaningless. I guard FM1 structurally two ways: a unit test that fails if the 77 K excess
+isotherm has no interior maximum (CC-3 test b), and a dual-bookkeeping invariant in tank.py
+where total H₂ counted as "absolute + void gas" must equal "excess + all-pore-and-void gas"
+to 1e-9 (CC-5).
+#### Concept 3 — Real-gas equations of state
+An equation of state relates pressure, temperature, and density. The ideal-gas law is the
+simplest, but it assumes molecules have zero volume and don't interact — only true at low
+density. At cryogenic temperature and high pressure, hydrogen molecules are packed close
+enough that their finite size and mutual forces matter, and the ideal law fails badly: at
+77 K and 100 bar it gives ρ = PM/RT ≈ 31.5 kg/m³ against a real value of ≈ 25 kg/m³, a
+~26% overestimate. Since I count compressed gas in the tank's void space, that error would
+propagate into every system-capacity number — using ideal gas here is the classic amateur
+error this project has to visibly avoid (Assumption 4).
+
+So I never assume ideal gas. I route every gas-density call through a reference
+multiparameter EOS (CoolProp) — a fit to decades of precise data that's the accepted
+standard. My job isn't to implement the physics; it's to wrap CoolProp without unit errors
+and prove the wrapper against NIST tables. The subtle point I have to be able to defend:
+Gate V1 validates the wrapper to <0.1% vs NIST, but CoolProp and NIST implement the *same*
+reference equation — so Gate V1 isn't testing the physics, it's testing my wrapper and unit
+handling, which is where real errors actually live. The bugs to catch are passing bar where
+pascals are expected (a factor of 1e5), confusing mol/L with kg/m³ in the NIST parser, and
+accidentally selecting parahydrogen (a ~0.3% mismatch). I model normal hydrogen and check
+ortho/para as a sensitivity using CoolProp's parahydrogen fluid.
+#### Concept 4 — Isosteric heat & Clausius–Clapeyron
+The isosteric heat of adsorption q_st is the differential enthalpy released when a little
+more hydrogen adsorbs at fixed coverage ("iso-steric" = the same amount is already on the
+surface). It's the thermodynamic, tank-scale meaning of binding energy. I don't measure it
+directly; I extract it from how the isotherms shift with temperature via Clausius–Clapeyron:
+q_st = R · d(ln P)/d(1/T) at constant n. In words, I hold the adsorbed amount fixed and ask
+what pressure maintains that loading at each temperature; the slope of ln P versus 1/T,
+times R, is q_st.
+
+The sign is the trap, so I have to be clean about it: adsorption is exothermic, so the
+enthalpy of adsorption is negative and q_st is reported as a positive magnitude. Physically,
+raising T drives gas off, so to hold coverage fixed I must raise P, which means ln P falls
+as 1/T rises and the raw derivative is negative — I report its magnitude, which for carbons
+at low coverage should be 4–7 kJ/mol. That band is my built-in sanity anchor: 50 or
+0.5 kJ/mol means something is broken. q_st matters because it sets the thermal-management
+load during filling — every mole adsorbed dumps q_st of heat that must be removed, or the
+bed warms and capacity drops. It also cross-checks my D–A parameters, since the analytic
+D–A limit predicts q_st ∝ α · √(ln(n_max/n)), so the numerical and analytic routes should
+agree. In code, heats.py computes it by centered finite differences on ln P vs 1/T at fixed
+n using the inverted isotherm pressure_at_loading(n,T), with a one-time step-size sweep to
+confirm the step converges without drowning in floating-point noise; Figure F3 plots it
+against the 4–7 kJ/mol band, and the low-coverage check is part of Gate V2.
+#### Derivation — excess vs. absolute
+Goal: derive n_exc = n_abs − ρ_gas · V_a from the definition of excess uptake, then verify
+against §3.4C.
+
+- Step 0 — Setup: sorbent mass m_s in a chamber; gas-accessible (void) volume V_void,
+  measured by a helium dead-volume calibration. Split V_void into a thin adsorbed-phase
+  shell V_a (denser than bulk, hugging the surface) and a bulk region (V_void − V_a) at bulk
+  density ρ_gas. Define n_abs = total moles in the shell. V_a's boundary is a modeling choice
+  (the Gibbs dividing surface), which is why §3.4C calls V_a "fitted or estimated."
+- Step 1 — Actual total gas as shell + bulk: N_total = n_abs + ρ_gas (V_void − V_a). Pure
+  bookkeeping, no approximation.
+- Step 2 — Operational definition of excess (what the instrument reports):
+  n_exc ≡ N_total − ρ_gas · V_void. Take the gas actually present and subtract what the
+  *entire* accessible volume would hold at uniform bulk density.
+- Step 3 — Substitute Step 1 into Step 2:
+  n_exc = [n_abs + ρ_gas (V_void − V_a)] − ρ_gas · V_void.
+- Step 4 — Expand: n_exc = n_abs + ρ_gas·V_void − ρ_gas·V_a − ρ_gas·V_void.
+- Step 5 — Cancel (the crux): the +ρ_gas·V_void and −ρ_gas·V_void terms cancel exactly,
+  leaving n_exc = n_abs − ρ_gas · V_a. The entire bulk-gas background drops out — excess
+  depends only on the surplus inside the adsorbed-phase volume, which is why instruments can
+  measure it cleanly.
+- Step 6 — Specific form + unit check: divide by m_s so n is in mol/kg and V_a in m³/kg →
+  n_exc(P,T) = n_abs(P,T) − ρ_gas(P,T) · V_a. Units: ρ_gas [mol/m³] × V_a [m³/kg] = mol/kg ✓.
+  If it doesn't reduce to mol/kg, I used mass density (kg/m³) instead of molar density.
+- Step 7 — Limits: low P, ρ_gas → 0 so n_exc → n_abs (CC-3 test a); high P, ρ_gas grows
+  while n_abs saturates toward n_max, so n_exc peaks then declines — the 77 K maximum
+  (CC-3 test b).
+- Step 8 — Order-of-magnitude check on V_a: estimate V_a ≈ n_max × liquid-like molar volume
+  of H₂ ≈ 71.6 × 2.85e-5 ≈ 2.0e-3 m³/kg; my fitted v_a was 1.43e-3 m³/kg — agreement within
+  ~1.4×, exactly what's expected when V_a is fitted/estimated.
+
+Verification against §3.4C: final form identical (n_exc = n_abs − ρ_g · V_a) ✓; V_a in
+m³/kg ✓; V_a estimate matches "n_max × liquid-like molar volume of hydrogen" ✓; sign is
+minus, not plus ✓. Load-bearing move is the Step 5 cancellation; the only common failure is
+getting the Step 2 excess definition backwards (a + sign), which makes excess depend on the
+whole dead volume instead of just V_a.
+### Gates/tests advanced
+None (no code today). Conceptual readiness advanced: can now explain all four §5.3
+concepts and the excess/absolute conversion unaided. Sets up Gate V1 (EOS) on Day 3–4.
+### Problems encountered
+The isosteric-heat sign convention took the most care — adsorption is exothermic, so the
+enthalpy is negative, yet q_st is reported as a positive magnitude. I worked through the
+physical chain (warming drives gas off → pressure must rise to hold coverage fixed → ln P
+falls as 1/T rises → raw derivative negative) until I could justify reporting the magnitude
+rather than just memorizing it. Also briefly read P₀ = 1470 MPa as a physical pressure
+before re-reading §3.4B and confirming it's a supercritical fitting constant that only sets
+curvature.
+### AI tools used
+Claude (chat) — taught the four concepts and walked the excess/absolute derivation;
+provided journal templates. I authored all summaries and the derivation myself and
+cross-checked the key claims against the project manual (§§3.3–3.14, 5.3, 5.4).
+See docs/ai_usage_log.md.
+### Lessons learned
+- Excess vs. absolute is the load-bearing distinction, not a footnote: most reported wt%
+  values are excess and understate tank inventory, and the 77 K excess maximum is a
+  correctness signature rather than a curiosity.
+- The 0.1% NIST validation isn't testing the physics — CoolProp and NIST share the same
+  reference EOS — it's testing my wrapper and units; the real bugs live in bar-vs-pascal
+  (×1e5) and mol/L-vs-kg/m³, not the equation.
+- P₀ in the modified D–A form is a fitting constant, not a pressure — a direct consequence
+  of hydrogen being supercritical at every storage temperature, which is also why
+  room-temperature carbon capacities are intrinsically small.
+### Next actions
+1. Day 3: download NIST WebBook H2 isotherm tables (77/100/160/298 K, 1–200 bar)
+   into data/validation/.
+2. Day 3: run Prompt CC-2 to implement eos.py + tests/test_eos.py; review unit handling.
+3. Day 4: run notebook 01, confirm Gate V1 <0.1%, produce F1.
+### Open questions
+How sensitive are the final system-capacity numbers to the V_a choice — fitted v_a =
+1.43e-3 vs the ~2.0e-3 m³/kg estimate from n_max × liquid-like molar volume? Worth a quick
+sensitivity check once tank.py is up (and it ties into the FM1 dual-bookkeeping guard).
