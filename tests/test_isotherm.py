@@ -9,7 +9,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from h2star.isotherm import Material, ModifiedDA
+from h2star.isotherm import Material, ModifiedDA, rmse
 
 AX21_YAML = Path(__file__).resolve().parents[1] / "data" / "materials" / "ax21.yaml"
 
@@ -28,6 +28,7 @@ def test_excess_approaches_absolute_at_low_P(da):
     assert n_exc == pytest.approx(n_abs, rel=0.05)
 
 
+@pytest.mark.validation
 def test_excess_has_interior_maximum_77K(da):
     P = np.linspace(1e5, 2e7, 400)
     n_exc = da.n_excess(P, 77.0)
@@ -57,3 +58,16 @@ def test_from_yaml_requires_citation(tmp_path):
     )
     with pytest.raises(ValueError):
         Material.from_yaml(bad)
+
+
+def test_rmse_known_value():
+    assert rmse([1.0, 2.0, 3.0], [1.0, 2.0, 5.0]) == pytest.approx(1.1547005, abs=1e-6)
+
+
+def test_rmse_identical_arrays_is_zero():
+    assert rmse([1.0, 2.0, 3.0], [1.0, 2.0, 3.0]) == 0.0
+
+
+def test_rmse_shape_mismatch_raises():
+    with pytest.raises(ValueError):
+        rmse([1.0, 2.0, 3.0], [1.0, 2.0])

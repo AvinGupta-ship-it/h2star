@@ -16,6 +16,19 @@ from .constants import R
 from .eos import molar_density
 
 
+def rmse(predicted, observed):
+    """Root-mean-square error between two 1-D arrays.
+
+    predicted, observed : array-like, SAME physical units (e.g. mol/kg),
+    SAME shape. Returns a float in those units.
+    """
+    predicted = np.asarray(predicted, dtype=float)
+    observed = np.asarray(observed, dtype=float)
+    if predicted.shape != observed.shape:
+        raise ValueError(f"rmse: shape mismatch {predicted.shape} vs {observed.shape}")
+    return float(np.sqrt(np.mean((predicted - observed) ** 2)))
+
+
 @dataclass(frozen=True)
 class Material:
     """Immutable container for a material's modified D-A parameters (SI units).

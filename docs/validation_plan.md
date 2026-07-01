@@ -26,6 +26,12 @@
 - Declared BEFORE the RMSE was computed; the commit adding this line precedes the commit
   recording the measured RMSE (git log is the proof).
 - Author: Avin (Class-A).
+  ### Gate V2 (isotherm) — part 1: VERDICT
+- Date: 2026-07-01
+- Pre-registered threshold (UNCHANGED): RMSE < 1.5 mol/kg
+- Measured: RMSE = 1.11 mol/kg -> PASS
+- Excess-maximum gated test (tests/test_isotherm.py, @pytest.mark.validation): green via `pytest -m validation`
+- Author: Avin (Class-A).
 
    ## Gate V3 — System model
    Target: my system GC and VC reproduce the published MOF-5 cryo-adsorbent system (HSECoE/NREL).
