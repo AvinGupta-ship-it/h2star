@@ -344,3 +344,62 @@ reproduction. Set up Gate V2 without closing it.
 - 3. Promote the excess-maximum test to the @pytest.mark.validation gate.
 ### Open questions
 - Confirm the RMSE threshold I pre-registered is defensible against the paper's 2.2% deviation at 77 K.
+
+## 2026-07-01
+### Hours worked
+2.0
+
+### Objectives
+Close Gate V2 part 1: pre-register the excess-RMSE threshold, build F2 (digitized
+data + published-parameter model + residuals), compute the RMSE, promote the
+excess-maximum test to a validation gate, and record the verdict.
+
+### Work completed
+- [<SHA-A>] Pre-registered the Gate V2 excess-RMSE threshold (RMSE < 1.5 mol/kg)
+  in docs/validation_plan.md, committed before computing the RMSE.
+- [<SHA-B>] Added rmse() + 3 unit tests to isotherm.py/test_isotherm.py; promoted
+  the 77 K excess-maximum test to @pytest.mark.validation; added plot_ax21_isotherm()
+  to viz.py; created notebooks/02_isotherm_fit_ax21.ipynb; saved figures/F2_ax21_isotherm.png;
+  recorded the Gate V2 part-1 verdict.
+- [<SHA-C>] Journal + ai_usage_log.
+- Measured RMSE = <X.XX> mol/kg vs the 1.5 threshold -> PASS.
+
+### Gates/tests advanced
+- Excess-maximum test (test_isotherm.py) moved from a plain test to a CI-certified
+  gate (@pytest.mark.validation); it now runs in `pytest -m validation` alongside
+  Gate V1. Gate V2 part 1 (RMSE) recorded as PASS.
+- The fix required understanding that the 77 K excess maximum comes entirely from
+  the rho_gas*v_a subtraction, not from n_abs saturating (n_abs is still rising
+  because p0 ~ 14,700 bar >> 200 bar). That's what the gated test protects.
+
+### Problems encountered
+- Cell 2 failed with "no field of name pressure_mpa". Cause: blank lines between the
+  CSV comment block and the header; np.genfromtxt with names=True consumed a blank
+  line as the header row. Fixed by pre-filtering comment/blank lines in Python before
+  parsing. Not a data problem — the file was correct.
+- Found a stray ~/Documents/research/figures/ folder. Investigated; it predated today
+  (a notebook run from the wrong cwd on an earlier day), was empty, removed it. Confirmed
+  the repo uses h2star/figures/ and the notebook cwd is the repo root.
+
+### AI tools used
+- Claude Code (Session D7-implementer): rmse() helper, F2 plot function, test promotion.
+  Verified: read the full diff (no edits to n_absolute/n_excess/pressure_at_loading, F1,
+  or any docs/ file); ran `pytest -q` and `pytest -m validation -v` myself; hand-checked
+  the rmse pin (1.15470 for [1,2,3] vs [1,2,5]). Cross-ref: docs/ai_usage_log.md.
+- Claude (chat): Day 7 planning, RMSE-threshold recommendation, loader fix.
+
+### Lessons learned
+- Pre-registration lives in the commit order: declaring 1.5 mol/kg and committing it
+  before the notebook ran is what lets me answer "did you tune it?" with a git log.
+- RMSE and residual structure are different evidence. A passing RMSE with a sloped
+  residual panel would still signal a form error, so I read both, not just the number.
+
+### Next actions
+1. Day 8 (CC-4): fitting.py — refit the digitized data, recover parameters + covariance;
+   add the "your fit" line to F2; table of recovered vs published values.
+2. Prep Day 9 isosteric-heat validation: confirm the 4-7 kJ/mol low-coverage anchor plan.
+3. Check whether the residual panel shows any structure the refit should remove.
+
+### Open questions
+- Do the current residuals hint at a systematic misfit near the peak, or is it all
+  digitization noise? Revisit after the Day 8 refit shrinks them.

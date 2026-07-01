@@ -43,3 +43,17 @@ What I verified: Ran every QC command myself and read each result; confirmed CI 
   authored the weekly review and this log in my own words; checked both concept explanations against
   §5.3 and §3.4C, not the chat's summary alone.
 What I changed: none
+
+## 2026-07-01 — Gate V2 part 1: RMSE metric, F2, gated excess-maximum
+Tool: Claude Code (Session D7-implementer)
+Purpose: Add a pure rmse() helper and its tests to isotherm.py; add the F2 plotting
+  function to viz.py; promote the 77 K excess-maximum test to @pytest.mark.validation.
+What I provided: Exact function signatures, the rmse body, the F2 panel spec, and the
+  instruction to mark only the excess-maximum test — all from my Day 7 plan.
+What it produced: rmse() + 3 tests; plot_ax21_isotherm(); the @pytest.mark.validation
+  decorator on the excess-maximum test.
+What I verified: Read the full diff; confirmed no edits to n_absolute/n_excess/pressure_at_loading,
+  to the F1 function, or to any docs/ file; ran `python3 -m pytest -q` and
+  `python3 -m pytest -m validation -v` myself — all green; confirmed the rmse hand value
+  (1.15470 for [1,2,3] vs [1,2,5]).
+What I changed: None
