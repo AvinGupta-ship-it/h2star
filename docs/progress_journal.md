@@ -207,3 +207,68 @@ See docs/ai_usage_log.md.
 How sensitive are the final system-capacity numbers to the V_a choice — fitted v_a =
 1.43e-3 vs the ~2.0e-3 m³/kg estimate from n_max × liquid-like molar volume? Worth a quick
 sensitivity check once tank.py is up (and it ties into the FM1 dual-bookkeeping guard).
+
+## 2026-06-30
+
+### Hours worked
+3.0
+
+### Objectives
+Build the EOS layer (Day 3): download NIST H2 isothermal tables; implement eos.py +
+test_eos.py via Claude Code (CC-2); review units; get the EOS validation tests green.
+
+### Work completed
+- Downloaded NIST WebBook isothermal tables (normal hydrogen) at 77/100/160/298 K,
+  1-201 bar; wrote a converter (dedupes on pressure, stamps provenance) that produced
+  data/validation/nist_h2_*.csv. Sanity densities at ~100 bar: 31.56 / 23.20 / 14.18 /
+  7.75 kg/m3, each ~5% below ideal gas and decreasing with T.
+- Claude Code (CC-2, fresh implementer session) implemented src/h2star/eos.py,
+  tests/test_eos.py, notebooks/01_eos_validation.ipynb, and a parity function in viz.py.
+  Reviewed both eos.py and test_eos.py line by line before running.
+- EOS validation tests: PASS.
+
+### Gates/tests advanced
+[After re-running: e.g. "Gate V1 tests moved red->green - eos.density reproduces NIST
+normal-hydrogen density to a max relative error of 0.005% (< the 0.1% pre-registered floor)
+across all four isotherms. The physical point the review drilled: the test must convert
+NIST bar->Pa before calling density because PropsSI expects pascals, and since NIST and
+CoolProp both implement Leachman 2009, any error above 0.1% could only be a unit/parsing
+bug on my side, not physics."]
+
+### Problems encountered
+- CoolProp import failed, then pytest failed to import h2star. Root cause: this shell had
+  the RAMANUQ venv active the whole session (pytest header showed
+  .../research/ramanuq/.venv/bin/python3), even though the prompt read (.venv). So the
+  earlier CoolProp install and the 31.30 kg/m3 check landed in ramanuq's env, not h2star's.
+  Fix: activated ~/Documents/research/h2star/.venv, confirmed with `which python3`, then
+  `pip install -e .` + CoolProp into the correct env. Lesson logged below.
+- Two earlier false alarms I chased (both my mis-reads, not data bugs): (a) triple-counted
+  16-bar row in the raw NIST table (NIST prints the ~13 bar critical-pressure point once as
+  vapor + twice as supercritical) - fixed by deduping in the converter; (b) I briefly
+  thought 31.5 kg/m3 at 77 K/100 bar was too high vs a remembered "~25", but ~31.5 is the
+  correct value (near hydrogen's critical density; ideal gas is 31.49).
+
+### AI tools used
+Claude Code (implementer session) - CC-2 to implement eos.py/test_eos.py/notebook/viz
+parity fn to my specification. I reviewed every line focusing on unit handling (bar->Pa in
+the test, P/T argument order, 'D' vs 'Dmolar' key, 'Hydrogen' species), and ran the tests
+myself. Claude (chat) - planning + the NIST converter script; also caught the wrong-venv
+diagnosis. See docs/ai_usage_log.md.
+
+### Lessons learned
+- Always confirm the active environment with `which python3` at the start of a session -
+  the shell prompt showing (.venv) does not guarantee it is THIS repo's venv. A cross-repo
+  venv leak silently broke both CoolProp and the h2star import today.
+- Gate V1 validates the wrapper, not the EOS: NIST and CoolProp share the Leachman 2009
+  equation, so the 0.1% tolerance is really a units-and-parsing check.
+- My Day-0 journal recorded the CoolProp 77 K/100 bar check as ~25 kg/m3; the correct value
+  is ~31.5. That entry needs a correction (real value), since the ~25 was wrong.
+
+### Next actions
+1. Re-run the validation tests in the correct h2star venv; confirm 4 passed; commit code + data.
+2. Day 4: run notebook 01, produce figures/F1_eos_parity.png.
+3. Day 4: record the Gate V1 verdict (measured max error vs <0.1%) in docs/validation_plan.md.
+
+### Open questions
+- Does h2star/.venv actually exist from Day 0, or was it never created (Case B)? Resolve
+  while fixing the venv, and note which, so the environment state is documented.
