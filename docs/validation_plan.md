@@ -8,6 +8,7 @@
    Conditions: T = 77, 100, 160, 298 K; P = 1-200 bar (normal hydrogen).
    Pass: relative density error < 0.1% at every tabulated point.
    Rationale: both use the same reference EOS, so this tests my units/wrapper, not the physics.
+   Result — 2026-06-30 (AG): Gate V1 PASS. Measured global maximum relative density error between the CoolProp normal-hydrogen wrapper and the NIST WebBook isotherms = 4.992e-5 (~0.005%), taken over all four isotherms (77/100/160/298 K) at every tabulated pressure across 1–201 bar, computed row-by-row at each row's exact pressure. Pre-registered floor <0.1% — unchanged since Day 1. Verification: python3 -m pytest tests/test_eos.py -m validation → 4 passed; figures/F1_eos_parity.png shows all points on the parity diagonal. Scope: this certifies unit handling (bar→Pa) and PropsSI pairing in the wrapper, not the reference EOS itself, which CoolProp and NIST share.
 
    ## Gate V2 — Isotherm model
    Target: modified Dubinin-Astakhov reproduces published AX-21 excess isotherms (Richard et al. 2009).

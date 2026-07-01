@@ -272,3 +272,13 @@ diagnosis. See docs/ai_usage_log.md.
 ### Open questions
 - Does h2star/.venv actually exist from Day 0, or was it never created (Case B)? Resolve
   while fixing the venv, and note which, so the environment state is documented.
+
+  ## 2026-06-30
+### Work completed
+Registered a named Jupyter kernel bound to h2star/.venv; set jupyter.notebookFileRoot to the workspace root; ran notebook 01_eos_validation end-to-end; produced figures/F1_eos_parity.png (commit <hash>); appended the Gate V1 result to validation_plan.md.
+### Gates/tests advanced
+Gate V1 (EOS) moved red→green. Measured global max relative density error 0.031% vs the pre-registered <0.1% floor, across 77/100/160/298 K over 1–201 bar. The understanding it required: this gate validates my wrapper, not the EOS — CoolProp and NIST both implement Leachman et al., so near-exact agreement is expected and the real thing under test is my bar→Pa conversion and PropsSI pairing. Verified the ideal-gas anchor (31.49 kg/m³ at 100 bar/77 K) so I'd recognize a unit blow-up as units, not physics.
+#### Problems encountered
+First Run All threw FileNotFoundError on the NIST CSVs — the notebook's CWD was notebooks/, not the repo root. Fixed by setting notebookFileRoot to the workspace folder and restarting the kernel. Also corrected my Day-0 entry, which had logged the 77 K/100 bar density as ~25 kg/m³; the correct value is ≈31.3.
+#### Lessons learned
+The kernel picker will offer other projects' venvs; a named kernelspec removes that ambiguity permanently. Pre-registration only counts if the tolerance predates the result in git — I appended the verdict rather than editing the threshold, and the diff proves it.
