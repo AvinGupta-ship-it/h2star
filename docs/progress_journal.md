@@ -275,10 +275,39 @@ diagnosis. See docs/ai_usage_log.md.
 
   ## 2026-06-30
 ### Work completed
-Registered a named Jupyter kernel bound to h2star/.venv; set jupyter.notebookFileRoot to the workspace root; ran notebook 01_eos_validation end-to-end; produced figures/F1_eos_parity.png (commit <hash>); appended the Gate V1 result to validation_plan.md.
+Registered a named Jupyter kernel bound to h2star/.venv; set jupyter.notebookFileRoot to the workspace root; ran notebook 01_eos_validation end-to-end; produced figures/F1_eos_parity.png; appended the Gate V1 result to validation_plan.md.
 ### Gates/tests advanced
 Gate V1 (EOS) moved red→green. Measured global max relative density error 0.031% vs the pre-registered <0.1% floor, across 77/100/160/298 K over 1–201 bar. The understanding it required: this gate validates my wrapper, not the EOS — CoolProp and NIST both implement Leachman et al., so near-exact agreement is expected and the real thing under test is my bar→Pa conversion and PropsSI pairing. Verified the ideal-gas anchor (31.49 kg/m³ at 100 bar/77 K) so I'd recognize a unit blow-up as units, not physics.
 #### Problems encountered
 First Run All threw FileNotFoundError on the NIST CSVs — the notebook's CWD was notebooks/, not the repo root. Fixed by setting notebookFileRoot to the workspace folder and restarting the kernel. Also corrected my Day-0 entry, which had logged the 77 K/100 bar density as ~25 kg/m³; the correct value is ≈31.3.
 #### Lessons learned
 The kernel picker will offer other projects' venvs; a named kernelspec removes that ambiguity permanently. Pre-registration only counts if the tolerance predates the result in git — I appended the verdict rather than editing the threshold, and the diff proves it.
+
+## Week of 2026-06-28
+### Phase
+Week 1 — Foundations and the EOS layer (Gate V1). Ref: manual §5.4.
+### Hours this week
+~11.5 focused hours across Days 1–5 (reading/anchors 3, concepts 2, EOS wrapper 2.5, Gate V1 2, review 2).
+### Phase deliverables completed
+- eos.py: CoolProp wrapper for normal hydrogen — density(P,T), molar_density(P,T), enthalpy/entropy per kg, isothermal_compression_work(P1,P2,T); SI-in guards (P>0, T≥33.2 K). Reviewed line by line. [commit <SHA>]
+- data/validation/nist_h2_{77,100,160,298}K.csv — four isotherms, ~41 rows each, 1–201 bar, deduped, `#` provenance headers; raw exports kept as raw_nist_*.txt. [commit <SHA>]
+- tests/test_eos.py: loads CSVs, bar→Pa ×1e5, asserts relative density error <0.1% per row, parametrized over four isotherms, @pytest.mark.validation. [commit <SHA>]
+- Gate V1 CLOSED: measured max relative density error [X.XXX%] vs the pre-registered <0.1% floor → PASS. Recorded in validation_plan.md beside the unchanged floor (diff = addition only). [commit <SHA>]
+- F1 parity figure via viz.py parity function; all four isotherms on the y=x diagonal. figures/F1_eos_parity.png. [commit <SHA>]
+### Phase deliverables remaining
+- Week 2: isotherm.py (modified D–A: absolute, excess, inverse), heats.py, fitting.py with covariance, Gate V2, tag v0.1-isotherms.
+- Weeks 3–8: tank/vessel/system + Gate V3; forward + inverse maps; UQ + Sobol + Gate V4; CNT case study; report; v1.0 + DOI.
+### Gates/tests advanced this week
+- Gate V1 red→green. Understanding it required: the wrapper and NIST call the same reference EOS, so any >0.1% gap is a wrapper/unit error, not physics — the test is really a unit-handling test, and the live failure mode is forgetting the ×1e5 bar→Pa conversion. Confirmed four-isotherm parity across 1–201 bar.
+### Figures or analyses produced
+- figures/F1_eos_parity.png (model-vs-NIST parity, four isotherms).
+### Key decisions made
+- Fluid = normal hydrogen (not para): the envelope floor is 60 K, above the deep-cryo regime where para-enrichment dominates; the ortho/para density difference will be a later sensitivity check (assumptions.md), not modeled as kinetics. Reasoning: matches how the reference data and HSECoE screening are framed.
+- Pre-registered the Gate V1 tolerance (<0.1%) on Day 1, before any output — the diff (declaration commit precedes verdict commit) is the pre-registration proof.
+- Kept raw NIST exports in-repo alongside parsed CSVs so the parse step is auditable.
+### Slip from plan
+- None; Week 1 on the §5.4 schedule. Process note: ruff flagged leftover diagnostic cells in notebook 01 on Day 4 and reddened CI; removing them fixed it. Lesson banked: run `python3 -m ruff check .` and strip throwaway cells before every push.
+### Plan for next week
+- (1) isotherm.py (n_absolute, n_excess, pressure_at_loading) + heats.py; completion = round-trip P→n→P to 1e-6 and the 77 K excess-maximum test both green.
+- (2) Gate V2: overlay my AX-21 curve on the digitized paper points; completion = RMSE below the tolerance I pre-register before running, plus the overlay committed as F2-draft.
+- (3) fitting.py refit with covariance and tag v0.1-isotherms; completion = recovered params within stated tolerance of published values, table in notebook 02, green CI on the tag.

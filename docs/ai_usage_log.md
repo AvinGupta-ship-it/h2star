@@ -32,3 +32,14 @@ What it produced: Paste-ready terminal commands, a .vscode/settings.json fix, a 
 What I verified: Ran every command in my own h2star venv; confirmed pytest -m validation → 4 passed and the measured max error (0.031%) independently via the script; eye-checked F1 against the parity line; cross-checked the ideal-gas density anchor (31.49 kg/m³) by hand. The Gate V1 verdict, its tolerance, and all interpretive prose are mine.
 What I changed: Wrote the validation_plan verdict, journal entry, and Day-0 correction in my own words; no AI text was pasted into any provenance file.
 
+## 2026-07-01 — Day 5 (Week 1 review) planning
+Tool: Claude (chat; Opus 4.8)
+Purpose: Turn manual §5.4/§5.7 into a step-by-step Day-5 review checklist; rehearse §5.3 concepts
+  (supercritical adsorption; excess vs. absolute) for the spoken self-check.
+What I provided: The H2STAR manual, the Days 0–4 state, and my required instruction style.
+What it produced: The Day-5 task sequence, the §5.7 QC status-table structure, concept rehearsal
+  rubrics, and journal/log templates. No code; no scientific decisions.
+What I verified: Ran every QC command myself and read each result; confirmed CI green on GitHub;
+  authored the weekly review and this log in my own words; checked both concept explanations against
+  §5.3 and §3.4C, not the chat's summary alone.
+What I changed: none
