@@ -48,6 +48,19 @@ def test_noise_free_recovery():
     assert abs(result.popt[idx["log10_p0"]] - np.log10(1.47e9)) < 1e-3
 
 
+def test_fixed_p0_noise_free_recovery():
+    data = ModifiedDA(TRUTH).n_excess(P, T)
+    # Perturb the init as in the other tests, but keep p0 pinned at truth.
+    init = replace(_perturbed_init(), p0=TRUTH.p0)
+    result = fit_modified_da(P, T, data, init, fix_p0=True)
+    idx = {name: i for i, name in enumerate(result.param_names)}
+
+    assert result.param_names == ("n_max", "alpha", "v_a")
+    assert abs(result.popt[idx["n_max"]] - TRUTH.n_max) / TRUTH.n_max < 1e-3
+    assert abs(result.popt[idx["alpha"]] - TRUTH.alpha) / TRUTH.alpha < 1e-3
+    assert abs(result.popt[idx["v_a"]] - TRUTH.v_a) / TRUTH.v_a < 1e-3
+
+
 def test_noisy_recovery_within_2sigma():
     # Seed fixed for determinism; this checks covariance calibration.
     rng = np.random.default_rng(0)

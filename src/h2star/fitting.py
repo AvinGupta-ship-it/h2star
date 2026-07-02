@@ -43,7 +43,8 @@ class FitResult:
     n_points : int
         Number of data points used in the fit.
     dof : int
-        Degrees of freedom ``n_points - 4``.
+        Degrees of freedom ``n_points - len(param_names)`` (4 for the full fit,
+        3 when ``fix_p0=True`` holds ``log10 p0`` fixed).
     condition_number : float
         Condition number of ``J^T J`` (conditioning diagnostic).
     success : bool
@@ -66,7 +67,7 @@ class FitResult:
     message: str
 
 
-def fit_modified_da(P, T, n_excess_data, material_init):
+def fit_modified_da(P, T, n_excess_data, material_init, *, fix_p0=False):
     """Refit the modified D-A isotherm to excess data at a single temperature.
 
     Parameters
@@ -81,6 +82,14 @@ def fit_modified_da(P, T, n_excess_data, material_init):
     material_init : Material
         Supplies the initial parameter values, the FIXED ``beta``, and the
         metadata (``name``, ``citation``, densities) carried into the result.
+    fix_p0 : bool, keyword-only, optional
+        If ``True``, hold ``log10 p0`` fixed at ``np.log10(material_init.p0)``
+        and fit only ``theta = (n_max, alpha, v_a)`` (``dof = len(P) - 3``).
+        This is a post-hoc identifiability diagnostic: ``p0`` is only weakly
+        identified from single-temperature far-tail data (see
+        docs/model_derivations.md Sec. 4.4), so pinning it isolates how much of
+        the other parameters' uncertainty rides on that trade-off. Default
+        ``False`` fits the full four-parameter vector.
 
     Returns
     -------
@@ -123,27 +132,46 @@ def fit_modified_da(P, T, n_excess_data, material_init):
     if T <= 0.0:
         raise ValueError(f"Temperature T must be strictly positive (K); got {T}.")
 
-    param_names = ("n_max", "alpha", "log10_p0", "v_a")
+    log10_p0_init = float(np.log10(material_init.p0))
 
-    x0 = [
-        material_init.n_max,
-        material_init.alpha,
-        np.log10(material_init.p0),
-        material_init.v_a,
-    ]
-    # log10_p0 >= 7 keeps p0 >= 10 MPa, above the data ceiling.
-    bounds = ([1.0, 100.0, 7.0, 1e-5], [300.0, 20000.0, 11.0, 1e-2])
-    x_scale = [70.0, 3000.0, 1.0, 1.5e-3]
+    if fix_p0:
+        # Post-hoc diagnostic: p0 pinned, fit theta = (n_max, alpha, v_a).
+        param_names = ("n_max", "alpha", "v_a")
+        x0 = [material_init.n_max, material_init.alpha, material_init.v_a]
+        # Slices of the full-fit bounds / x_scale, dropping the log10_p0 column.
+        bounds = ([1.0, 100.0, 1e-5], [300.0, 20000.0, 1e-2])
+        x_scale = [70.0, 3000.0, 1.5e-3]
 
-    def _material_at(theta):
-        return replace(
-            material_init,
-            name=material_init.name + " (refit)",
-            n_max=theta[0],
-            alpha=theta[1],
-            p0=10.0 ** theta[2],
-            v_a=theta[3],
-        )
+        def _material_at(theta):
+            return replace(
+                material_init,
+                name=material_init.name + " (refit)",
+                n_max=theta[0],
+                alpha=theta[1],
+                p0=10.0 ** log10_p0_init,
+                v_a=theta[2],
+            )
+    else:
+        param_names = ("n_max", "alpha", "log10_p0", "v_a")
+        x0 = [
+            material_init.n_max,
+            material_init.alpha,
+            log10_p0_init,
+            material_init.v_a,
+        ]
+        # log10_p0 >= 7 keeps p0 >= 10 MPa, above the data ceiling.
+        bounds = ([1.0, 100.0, 7.0, 1e-5], [300.0, 20000.0, 11.0, 1e-2])
+        x_scale = [70.0, 3000.0, 1.0, 1.5e-3]
+
+        def _material_at(theta):
+            return replace(
+                material_init,
+                name=material_init.name + " (refit)",
+                n_max=theta[0],
+                alpha=theta[1],
+                p0=10.0 ** theta[2],
+                v_a=theta[3],
+            )
 
     def residual(theta):
         m = _material_at(theta)
@@ -152,7 +180,7 @@ def fit_modified_da(P, T, n_excess_data, material_init):
     res = least_squares(residual, x0, bounds=bounds, x_scale=x_scale, method="trf")
 
     r = res.fun
-    dof = len(P) - 4
+    dof = len(P) - len(param_names)
     s2 = float(r @ r) / dof
 
     # Covariance s^2 * (J^T J)^-1, computed from the SVD of J rather than by
@@ -225,12 +253,14 @@ def fit_report(result, material_published):
     n_max_err = perr[idx["n_max"]]
     alpha_fit = popt[idx["alpha"]]
     alpha_err = perr[idx["alpha"]]
-    log10_p0_fit = popt[idx["log10_p0"]]
-    log10_p0_err = perr[idx["log10_p0"]]
     v_a_fit = popt[idx["v_a"]]
     v_a_err = perr[idx["v_a"]]
 
-    p0_fit = 10.0 ** log10_p0_fit
+    p0_fitted = "log10_p0" in idx
+    if p0_fitted:
+        log10_p0_fit = popt[idx["log10_p0"]]
+        log10_p0_err = perr[idx["log10_p0"]]
+        p0_fit = 10.0 ** log10_p0_fit
 
     def _pct(fit, pub):
         if pub == 0.0:
@@ -262,14 +292,23 @@ def fit_report(result, material_published):
         f"{f'{material_published.beta:.4g}':>16}"
         f"{'--':>16}"
     )
-    # p0: fitted value in Pa, 1-sigma in decades of log10, diff as delta-log10.
-    delta_log10 = log10_p0_fit - math.log10(material_published.p0)
-    lines.append(
-        f"{'p0':<10}"
-        f"{f'{p0_fit:.4g} Pa (+/- {log10_p0_err:.2g} dex)':>28}"
-        f"{f'{material_published.p0:.4g}':>16}"
-        f"{f'{delta_log10:+.3f} dex':>16}"
-    )
+    if p0_fitted:
+        # p0: fitted value in Pa, 1-sigma in decades of log10, diff as
+        # delta-log10.
+        delta_log10 = log10_p0_fit - math.log10(material_published.p0)
+        lines.append(
+            f"{'p0':<10}"
+            f"{f'{p0_fit:.4g} Pa (+/- {log10_p0_err:.2g} dex)':>28}"
+            f"{f'{material_published.p0:.4g}':>16}"
+            f"{f'{delta_log10:+.3f} dex':>16}"
+        )
+    else:
+        lines.append(
+            f"{'p0':<10}"
+            f"{'fixed (post-hoc identifiability diagnostic)':>28}"
+            f"{f'{material_published.p0:.4g}':>16}"
+            f"{'--':>16}"
+        )
     lines.append(
         f"{'v_a':<10}"
         f"{f'{v_a_fit:.4g} +/- {v_a_err:.2g}':>28}"
