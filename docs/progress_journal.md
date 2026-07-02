@@ -403,3 +403,72 @@ excess-maximum test to a validation gate, and record the verdict.
 ### Open questions
 - Do the current residuals hint at a systematic misfit near the peak, or is it all
   digitization noise? Revisit after the Day 8 refit shrinks them.
+
+## 2026-07-02
+
+### Hours worked
+3
+
+### Objectives
+Day 8 (Week 2 Day 3): pre-register the Gate V2 parameter-recovery tolerance, implement
+fitting.py with Jacobian covariance, refit the digitized 77 K AX-21 isotherm, complete
+F2, record the recovery verdict.
+
+### Work completed
+- Pre-registered recovery bands and identifiability decision (beta fixed at 18.9) in
+  validation_plan.md; wrote model_derivations.md §4 (least squares, covariance,
+  alpha-beta degeneracy, conditioning). Committed before any refit ran.
+- fitting.py implemented via Claude Code (Session D8): fit_modified_da over
+  (n_max, alpha, log10 p0, v_a), covariance via SVD of the Jacobian, fit_report;
+  4 unit tests. Ratified CC's proposal to replace pinv(JᵀJ) with the SVD route after
+  verifying they are analytically identical and that curve_fit uses the same method.
+- Notebook 02 extended: refit, band check, completed F2 (data + published + refit +
+  dual residuals), fixed-p0 diagnostic section. Figure F2 regenerated.
+- Added fix_p0 option + 1 test via Session D8b for the post-hoc diagnostic (1e68ae9).
+- Gate V2 recovery verdict recorded: FAIL, with diagnosis (94f8d14).
+
+### Gates/tests advanced
+Gate V2 parameter-recovery half → FAIL, explained. All four parameters landed outside
+the pre-registered bands: the optimizer descended the single-isotherm identifiability
+ridge (correlations 0.91–0.99, cond(JᵀJ) ≈ 1e14) to a corner solution with log10 p0
+pinned at the fit's lower bound (7.000), n_max collapsed to 29.9 mol/kg, buying only
+~0.3 mol/kg of RMSE (0.802 vs 1.109). The physical understanding the verdict required:
+a converged fit is not an identified fit — the curve is identifiable from one isotherm
+(part 1 PASS; refit RMSE ≤ published as it structurally must be), the parameter vector
+is not. Post-hoc diagnostic confirmed the mechanism: with p0 also pinned at published,
+n_max, alpha, v_a return to −5.3%, +6.0%, −0.5% of published. 19 unit tests green;
+pytest -m validation green (5 passed).
+
+### Problems encountered
+- CC flagged that the prescribed cov = s²·pinv(JᵀJ) failed the noisy-recovery test at
+  7σ: forming JᵀJ squares the condition number and destroys the small singular values.
+  Resolution: SVD-of-J covariance; the 2σ test then passed unmodified.
+- Cell E returned OUT on all four bands with log10 p0 exactly at the bound —
+  bound-hugging, so diagnosed before any verdict. Also confirmed the loader drops no
+  rows (11 data points is the true file count, not the ~14 I remembered).
+- Stale-kernel TypeError on fix_p0 — Run All doesn't reload the package; Restart
+  kernel + Run All does.
+
+### AI tools used
+Claude Code, two sessions (D8: fitting implementation; D8b: fix_p0 diagnostic option).
+I reviewed both diffs, ran ruff and the full test suite myself, and made the SVD
+ratification and the FAIL diagnosis. Entries in docs/ai_usage_log.md.
+
+### Lessons learned
+- Pre-registration did its job in the failure direction: because the bands were
+  committed first, the honest outcome was a documented FAIL with a mechanism, not a
+  quietly widened tolerance. The FAIL is itself a finding — individual D-A parameters
+  are practically non-identifiable from a single isotherm even with beta fixed.
+- A covariance estimate is only as good as its numerics: same formula, two evaluation
+  routes, one loses 7 decades of conditioning. Also: 1σ values are invalid at an
+  active bound.
+
+### Next actions
+1. Day 9: isosteric heat via Clausius–Clapeyron, 4–7 kJ/mol low-coverage anchor.
+2. Figure F3 + step-size convergence check.
+3. Close the remainder of Gate V2.
+
+### Open questions
+- Week 5 (blocker when reached): what seeds the material-parameter Monte Carlo now
+  that the single-isotherm covariance is a ridge — fixed-p0 conditional covariance,
+  or published multi-temperature information?

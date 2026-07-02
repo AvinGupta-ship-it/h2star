@@ -57,3 +57,41 @@ What I verified: Read the full diff; confirmed no edits to n_absolute/n_excess/p
   `python3 -m pytest -m validation -v` myself — all green; confirmed the rmse hand value
   (1.15470 for [1,2,3] vs [1,2,5]).
 What I changed: None
+
+## 2026-07-02 — Isotherm refit implementation (Session D8)
+Tool: Claude Code
+Purpose: Implement fitting.py (least-squares refit of the modified D-A excess isotherm
+with parameter covariance), extend plot_ax21_isotherm for the refit curve, and write
+the fitting unit tests, against my specification.
+What I provided: The full spec from the day plan — theta = (n_max, alpha, log10 p0,
+v_a) with beta fixed at 18.9 (my identifiability decision, D1), bounds, x_scale,
+covariance definition, fit_report layout, and the four tests. The recovery bands were
+mine, pre-registered and committed before this session ran.
+What it produced: src/h2star/fitting.py (fit_modified_da, FitResult, fit_report),
+the plot_ax21_isotherm extension in viz.py, tests/test_fitting.py (4 tests).
+What I verified: Read the full diff — s² = SSR/dof factor present, p0 reconstructed
+via 10**log10_p0, beta absent from the fit vector, no validation marker on the tests,
+no files touched in docs/, data/, or notebooks/. Ran ruff and the full pytest suite
+myself (all green, +4 tests).
+What I changed: Ratified CC's proposal to replace my prescribed cov = s²·pinv(JᵀJ)
+with the SVD-of-J route after it showed the pinv form failed the noisy-recovery test
+at 7σ. I verified the two are analytically identical ((JᵀJ)⁻¹ = V S⁻² Vᵀ), that
+forming JᵀJ squares the condition number, and that scipy's curve_fit uses the same
+SVD method, then required the 2σ test pass unmodified — it did.
+
+## 2026-07-02 — Fixed-p0 identifiability diagnostic (Session D8b)
+Tool: Claude Code
+Purpose: Add a fix_p0 option to fit_modified_da for a post-hoc diagnostic, after the
+real-data refit failed the pre-registered Gate V2 recovery bands at a corner solution
+(log10 p0 pinned at the fit bound).
+What I provided: The FAIL diagnosis (identifiability ridge, corner solution) and the
+decision to run a fixed-p0 refit as a labeled post-hoc diagnostic, not a gate — both
+mine. Exact spec: 3-parameter theta, sliced bounds/x_scale, dof = N−3, default path
+byte-for-byte unchanged, one noise-free recovery test.
+What it produced: fix_p0 keyword in fitting.py, dual-case fit_report, one new test.
+What I verified: Diff showed only fitting.py and test_fitting.py touched; 3-parameter
+dof branch present; ran the full suite myself (19 passed) and pytest -m validation
+(5 passed). Ran the diagnostic in notebook 02 and interpreted the result myself
+(n_max −5.3%, alpha +6.0%, v_a −0.5% of published, supporting the ridge explanation).
+What I changed: Nothing in the code; the Gate V2 FAIL verdict and its interpretation
+in validation_plan.md are my own.
