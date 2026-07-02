@@ -31,14 +31,36 @@
 - Pre-registered threshold (UNCHANGED): RMSE < 1.5 mol/kg
 - Measured: RMSE = 1.11 mol/kg -> PASS
 - Excess-maximum gated test (tests/test_isotherm.py, @pytest.mark.validation): green via `pytest -m validation`
-- Author: Avin (Class-A).
+  ### Gate V2 — parameter recovery (pre-registered 2026-07-02). 
+  Beta fixed at 18.9 J/(mol·K) (single-T: alpha, beta enter only as alpha+beta·T). PASS iff n_max in 53.7–89.5 mol/kg, alpha in 2156–4004 J/mol, v_a in 9.30e-4–1.93e-3 m³/kg, log10(p0/Pa) in 8.467–9.867, and refit RMSE ≤ Day 7 published-parameter RMSE. 
+  Verdict (2026-07-02): FAIL. Recovered n_max 29.9 mol/kg (band 53.7–89.5), alpha 1705 J/mol
+(band 2156–4004), log10(p0/Pa) 7.000 — the imposed lower fit bound (band 8.467–9.867),
+v_a 3.83e-4 m³/kg (band 9.30e-4–1.93e-3): all four outside the pre-registered bands. The
+RMSE criterion alone passed (0.802 ≤ 1.109 mol/kg). Bands unchanged.
+Interpretation: implementation error is excluded — synthetic-data tests recover known
+parameters within 2σ, and the refit RMSE improves on the published-parameter RMSE as it
+structurally must. The failure is a property of the data: with 11 points on a single 77 K
+isotherm the four-parameter likelihood is a ridge (pairwise correlations 0.91–0.99,
+cond(JᵀJ) ≈ 1e14, anticipated in model_derivations §4.4), and the optimizer, started at
+the published values, descended it to a corner solution at the p0 bound, gaining
+~0.3 mol/kg RMSE mostly at the low-pressure knee. Reported 1σ values are additionally
+invalid at an active bound. The gate establishes practical non-identifiability of the
+individual parameters from one isotherm; the curve is identifiable (part 1 PASS), the
+parameter vector is not.
+Post-hoc diagnostic (labeled, no band applied): with p0 also fixed at the published
+1.47e9 Pa, the refit recovers n_max 67.8 mol/kg (−5.3%), alpha 3266 J/mol (+6.0%),
+v_a 1.42e-3 m³/kg (−0.5%), RMSE 0.907 mol/kg — supporting the ridge explanation: pin the
+flattest direction and the remaining parameters return to near-published values.
+Consequence logged for Week 5: this single-isotherm covariance cannot naively seed the
+material-parameter Monte Carlo; candidate resolutions (fixed-p0 conditional covariance,
+published multi-temperature information) recorded as an open question.
 
-   ## Gate V3 — System model
+  ## Gate V3 — System model
    Target: my system GC and VC reproduce the published MOF-5 cryo-adsorbent system (HSECoE/NREL).
    Envelope: fill 77 K / 100 bar, discharge 160 K / 5 bar; 5.6 kg usable H2 basis.
    Pass: |my GC - published GC| / published GC <= 15%  AND  the same for VC.
    Rationale: system models legitimately differ in balance-of-plant detail; 15% is the agreement band.
 
-   ## Gate V4 — Uncertainty & sensitivity machinery
+  ## Gate V4 — Uncertainty & sensitivity machinery
    Target 1: Monte Carlo reproduces an analytic linear-Gaussian propagation within Monte Carlo error.
    Target 2: Sobol indices on the Ishigami test function match published values within 5%.
