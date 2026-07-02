@@ -66,7 +66,9 @@ def eos_parity_plot(isotherms, savepath=None):
 
 def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
                        n_absolute_curve, residuals, rmse_value=None,
-                       threshold=None, savepath=None):
+                       threshold=None, savepath=None, *,
+                       n_excess_fit=None, residuals_fit=None, rmse_fit=None,
+                       fit_label="Refit (this work)"):
     """Two-panel AX-21 isotherm figure (F2): overlay and residuals.
 
     All physics is done by the caller; this function only draws the arrays it
@@ -90,6 +92,17 @@ def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
     savepath : str or pathlib.Path, optional
         If given, the figure is saved here at 300 dpi; the parent directory is
         created if needed.
+    n_excess_fit : array-like, optional
+        Refitted model excess (mol/kg) on ``P_curve_mpa``. If given, drawn in
+        the top panel as a dash-dot line in a distinct color and added to the
+        legend.
+    residuals_fit : array-like, optional
+        Refit model-minus-data residuals (mol/kg) at ``P_data_mpa``. If given,
+        drawn in the bottom panel as triangles with its own legend entry.
+    rmse_fit : float, optional
+        If given, the refit RMSE (mol/kg) appended to the top-panel annotation.
+    fit_label : str, optional
+        Legend label for the refit curve and residuals.
 
     Returns
     -------
@@ -108,6 +121,9 @@ def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
                 label="Excess (published params)")
     ax_top.scatter(P_data_mpa, n_excess_data, color="k", marker="x",
                    label="Digitized excess (77 K, Fig. 1a)", zorder=3)
+    if n_excess_fit is not None:
+        ax_top.plot(P_curve_mpa, n_excess_fit, color="tab:green",
+                    linestyle="-.", label=fit_label)
     ax_top.set_ylabel("Uptake (mol kg$^{-1}$)")
     ax_top.set_title("AX-21 H$_2$ excess isotherm at 77 K")
     ax_top.legend(frameon=False)
@@ -117,6 +133,8 @@ def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
         text = f"RMSE = {rmse_value:.3g} mol kg$^{{-1}}$"
         if threshold is not None:
             text += f"\nthreshold = {threshold:.3g} mol kg$^{{-1}}$"
+        if rmse_fit is not None:
+            text += f"\n{fit_label} RMSE = {rmse_fit:.3g} mol kg$^{{-1}}$"
         ax_top.annotate(
             text, xy=(0.98, 0.02), xycoords="axes fraction",
             ha="right", va="bottom",
@@ -125,7 +143,12 @@ def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
 
     # Bottom panel: residuals.
     ax_bot.axhline(0.0, color="k", linewidth=1)
-    ax_bot.scatter(P_data_mpa, residuals, color="tab:red", marker="o", zorder=3)
+    ax_bot.scatter(P_data_mpa, residuals, color="tab:red", marker="o", zorder=3,
+                   label="Published params")
+    if residuals_fit is not None:
+        ax_bot.scatter(P_data_mpa, residuals_fit, color="tab:green",
+                       marker="^", zorder=3, label=fit_label)
+        ax_bot.legend(frameon=False)
     ax_bot.set_xlabel("Pressure (MPa)")
     ax_bot.set_ylabel("Residual (mol kg$^{-1}$)")
     ax_bot.grid(True, alpha=0.3)
