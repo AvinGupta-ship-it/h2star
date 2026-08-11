@@ -472,3 +472,54 @@ ratification and the FAIL diagnosis. Entries in docs/ai_usage_log.md.
 - Week 5 (blocker when reached): what seeds the material-parameter Monte Carlo now
   that the single-isotherm covariance is a ridge — fixed-p0 conditional covariance,
   or published multi-temperature information?
+
+## 2026-08-10
+
+### Hours worked
+~2 h.
+
+### Objectives
+Close the isosteric-heat clause of Gate V2: compute q_st by numerical Clausius–Clapeyron,
+validate against the 4–7 kJ/mol carbon anchor and the analytic D–A limit, produce F3.
+
+### Work completed
+- Pre-registered the Gate V2 isosteric-heat clause in validation_plan.md before any
+  computation (commit e099f77): anchor window n/n_max ∈ [0.05, 0.15] within 4–7 kJ/mol,
+  monotonic decrease, analytic cross-check ≤ 1e-4 rel at n/n_max = 0.10.
+- Confirmed heats.py signatures and used isosteric_heat(da, n, T) as-is (built Day 6);
+  no isotherm/heats code changed.
+- Added two tests to test_heats.py: analytic cross-check (machinery) and the low-coverage
+  anchor (@pytest.mark.validation). validation set now 6, all green.
+- Fixed the validation marker description in pyproject.toml to cover analytic-limit gates.
+- Built notebooks/03_isosteric_heat.ipynb (narrative + figure calls only); produced
+  figures/F3_isosteric_heat.png.
+- Wrote the Gate V2-close verdict; Gate V2 now CLOSED overall.
+
+### Gates/tests advanced
+- Gate V2 isosteric-heat clause: RED → GREEN (PASS). q_st = 5.33 / 4.67 / 4.24 kJ/mol at
+  n/n_max = 0.05 / 0.10 / 0.15, all inside [4,7], monotonic.
+- Understanding the fix required: the D–A ln P is exactly affine in 1/T at fixed coverage,
+  so the centered difference is exact (numerical matches analytic to ~1e-15), beta cancels,
+  and q_st is temperature-independent.
+
+### Problems encountered
+- None blocking. Noted the D–A √ln divergence as n → 0 is a functional-form artifact, not
+  physical; handled by evaluating the anchor at finite low coverage and truncating F3 at 0.02.
+
+### AI tools used
+- Claude Code, two sessions: (1) add plot_isosteric_heat to viz.py + two heats tests;
+  (2) scaffold notebook 03. Verified: read every diff before accepting, ran pytest and ruff
+  myself, confirmed no non-Avin git author. See ai_usage_log.md.
+
+### Lessons learned
+- The step-size sweep on this model confirms a flat plateau (differences are exact); the only
+  real risk is floating-point cancellation at very small dT, not truncation error.
+
+### Next actions
+1. Day 10 (Week 2 review): weekly QC checklist, confirm CI green with SHA matching HEAD.
+2. Tag v0.1-isotherms.
+3. Re-read the excess/absolute and isosteric-heat concepts aloud, unaided, for interview prep.
+
+### Open questions
+- None new. Week-5 blocker still stands: the single-isotherm covariance ridge cannot naively
+  seed the material-parameter Monte Carlo.

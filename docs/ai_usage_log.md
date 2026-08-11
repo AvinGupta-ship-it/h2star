@@ -95,3 +95,37 @@ dof branch present; ran the full suite myself (19 passed) and pytest -m validati
 (n_max −5.3%, alpha +6.0%, v_a −0.5% of published, supporting the ridge explanation).
 What I changed: Nothing in the code; the Gate V2 FAIL verdict and its interpretation
 in validation_plan.md are my own.
+
+## 2026-08-10 — Isosteric heat: F3 plotting function, tests, notebook 03
+
+Tool: Claude Code (two sessions)
+
+### Session 1 — viz function + heats tests
+Purpose: Add a pure-plotting F3 function and two Gate-V2 tests, from my specification.
+What I provided: Explicit MAY/MUST-NOT file lists (viz.py and test_heats.py only), the
+  function signature and behavior, and the pre-registered anchor bounds from
+  validation_plan.md.
+What it produced: plot_isosteric_heat(...) in viz.py (numerical q_st curve + analytic
+  D–A overlay + shaded 4–7 kJ/mol band, no physics beyond the alpha·sqrt(ln) overlay);
+  test_isosteric_heat_matches_da_analytic (machinery) and
+  test_isosteric_heat_low_coverage_anchor (@pytest.mark.validation).
+What I verified: Read the full diff before accepting; confirmed only the two permitted
+  files changed; ran `python3 -m pytest tests/test_heats.py -v` (4 passed) and
+  `python3 -m pytest -m validation -q` (6 passed) myself; confirmed no non-Avin git author.
+What I changed: Nothing in the generated code. Separately fixed the validation marker
+  description in pyproject.toml (my edit, not the AI's).
+
+### Session 2 — notebook 03 scaffold
+Purpose: Create notebooks/03_isosteric_heat.ipynb as narrative + figure calls only.
+What I provided: MAY-create-only-this-file constraint, the exact cell list, and the
+  no-physics-in-notebooks rule.
+What it produced: A six-cell notebook (imports + repo-root check, model build, F3 save)
+  with three markdown placeholders left for me to write.
+What I verified: Read the cell plan; confirmed no physics in the notebook and that the
+  package entry points matched; ran it myself on the .venv kernel (Restart + Run All) and
+  produced F3; confirmed no commit was made in-session.
+What I changed: Wrote all three markdown cells (intro, method note, verdict) myself in my
+  own words; ran ruff clean over the repo.
+
+Scientific decisions (mine alone): the pre-registered anchor window and band, the pass/fail
+criteria, the verdict, and all interpretation prose.

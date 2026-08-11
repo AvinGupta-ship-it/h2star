@@ -87,4 +87,19 @@ Note (limitation): the D–A form gives q_st → ∞ as n → 0 (sqrt-ln diverge
 artifact of the functional form, not physical. The anchor is therefore evaluated at
 finite low coverage, and F3 is plotted over n/n_max ∈ [0.02, 0.60]. Feeds §3.13.
 
-Verdict: [to be recorded after computation]
+Verdict: PASS (2026-08-10). Numerical q_st across the pre-registered window
+n/n_max ∈ [0.05, 0.15] at 77 K: 5.33, 4.67, 4.24 kJ/mol — all inside [4.0, 7.0].
+Monotonically decreasing in n. Numerical matches the analytic D–A limit
+q_st = alpha·sqrt(ln(n_max/n)) to ~1e-15 relative (machine precision), consistent
+with ln P being exactly affine in 1/T at fixed coverage for this model. F3
+(figures/F3_isosteric_heat.png) shows numerical and analytic curves coincident and
+the anchor window within the 4–7 kJ/mol carbon band. The √ln rise toward zero
+coverage is a D–A functional-form artifact (not a physical zero-coverage heat);
+anchor evaluated at finite low coverage, divergence noted as a limitation (§3.13).
+
+Gate V2 — overall status (2026-08-10): CLOSED.
+  Part 1 (curve, excess-RMSE < 1.5 mol/kg): PASS, 1.109 mol/kg (Day 7).
+  Part 2 (single-isotherm parameter recovery): FAIL by design — likelihood ridge /
+    practical non-identifiability, diagnosed Day 8; the curve is identifiable, the
+    individual parameters are not.
+  Part 3 (isosteric heat): PASS (this entry).
