@@ -523,3 +523,50 @@ validate against the 4–7 kJ/mol carbon anchor and the analytic D–A limit, pr
 ### Open questions
 - None new. Week-5 blocker still stands: the single-isotherm covariance ridge cannot naively
   seed the material-parameter Monte Carlo.
+
+## Week of [2026-08-03]
+
+### Phase
+Week 2 — Isotherm Layer (modified Dubinin–Astakhov; excess/absolute; isosteric heat). Gate V2.
+
+### Hours this week
+10
+
+### Phase deliverables completed
+- isotherm.py: ModifiedDA (n_absolute, n_excess, pressure_at_loading) plus module-level rmse(), on the frozen Material dataclass with required-citation guard.
+- heats.py: isosteric_heat by centered Clausius–Clapeyron on the inverted isotherm, plus a step-size convergence helper.
+- fitting.py: fit_modified_da (least_squares on excess residuals, SVD-Jacobian covariance, beta fixed, optional fix_p0), FitResult, fit_report().
+- data/validation/ax21_digitized.csv: 11 points off Fig. 1(a) (excess) of Richard–Bénard–Chahine Part 1, with provenance header.
+- Notebooks 02 (isotherm fit + refit + RMSE, F2) and 03 (isosteric heat, F3), narrative and figure calls only.
+- docs/model_derivations.md §1–3 and docs/assumptions.md A-ISO-1…4, authored before implementation.
+- validation_plan.md: RMSE threshold and the isosteric-heat clause both pre-registered (committed before measuring); Gate V2 verdicts recorded; Gate V2 CLOSED.
+- Suite at 21 tests, 6 validation; CI green on Ubuntu/macOS × 3.11/3.12; ruff pinned at 0.15.17.
+
+### Phase deliverables remaining
+None for Week 2. Tagging v0.1-isotherms today closes the layer. tank.py / vessel.py / system.py and Gate V3 begin Week 3.
+
+### Gates/tests advanced this week
+- Gate V1 (EOS): closed Week 1; re-certified green, unchanged.
+- Gate V2 part 1 (curve): RED → GREEN. Excess-RMSE 1.109 mol/kg against the pre-registered < 1.5 threshold. Physical understanding: the 77 K excess maximum is real and comes from the −ρ_gas·V_a subtraction, not from n_abs peaking; the promoted excess-maximum test now fails loudly if that term is dropped or mis-united.
+- Gate V2 part 2 (parameter recovery): RED → recorded FAIL by design. The single-isotherm refit does not recover the published (n_max, alpha, beta, p0, v_a): the likelihood is a ridge (pairwise correlations 0.91–0.99, cond(JᵀJ) ≈ 1e14) and the optimizer slides to a corner (log10_p0 at fit-bound 7.000, n_max collapsed to 29.9, buying ~0.3 mol/kg RMSE). Physical understanding: at one temperature only E₇₇ = alpha + beta·77 is identifiable, so alpha and beta are individually non-identifiable; the curve is identifiable even though its parameters are not. Implementation error excluded (synthetic-data recovery within 2σ; fixed-p0 diagnostic returned n_max −5.3%, alpha +6.0%, v_a −0.5% of published).
+- Gate V2 part 3 (isosteric heat): RED → GREEN. q_st = 5.33 / 4.67 / 4.24 kJ/mol at n/n_max = 0.05 / 0.10 / 0.15, monotonic, inside the 4–7 kJ/mol carbon band. Physical understanding: in the analytic D–A limit q_st = alpha·√(ln(n_max/n)), β cancels, so q_st is temperature-independent in this model and ln P is exactly affine in 1/T at fixed coverage; the centered finite difference is therefore exact, and numerical matched analytic to ~1e-15. The √ln divergence as n→0 is a D–A functional-form artifact, not physical (logged as a limitation feeding §3.13).
+- Gate V2 overall: CLOSED (part 1 PASS, part 2 FAIL-by-design, part 3 PASS).
+- Tooling: traced a CI-vs-local ruff disagreement to an unpinned version and fixed it by pinning ruff==0.15.17 in the dev extra; local ruff now predicts CI.
+
+### Figures or analyses produced
+- figures/F2_ax21_isotherm.png (data, published-parameter curve, refit, residuals; excess).
+- figures/F3_isosteric_heat.png (numerical q_st + analytic D–A overlay + shaded 4–7 kJ/mol band).
+
+### Key decisions made
+- Beta fixed at the published 18.9 J/(mol·K) for the refit. Reasoning: alpha and beta are degenerate at a single temperature, only E₇₇ = alpha + beta·77 is identifiable, so freeing both invites the ridge. Pre-registered before the refit.
+- Gate V2 parameter-recovery bands sized to catch implementation errors, not to assert that a single-isotherm refit reproduces a multi-temperature global fit. Reasoning: the target is code correctness, not a claim the physics doesn't support. Pre-registered.
+- Isosteric-heat anchor window [0.05, 0.15] n/n_max, band [4.0, 7.0] kJ/mol, monotonicity and analytic-agreement clauses; F3 plotted window [0.02, 0.60]. Pre-registered in validation_plan.md (commit e099f77) before computing q_st.
+- Tag today's commit v0.1-isotherms as an intermediate isotherm-layer milestone, reserving plain v0.1 for after Gate V3. Reasoning: honors both the §5.5 Day-5 line and the §4.5 release ladder without overloading one name.
+
+### Slip from plan
+On plan. Week 2's one surprise was the parameter-recovery FAIL, which is a scientific finding rather than a slip, so it was recorded and interpreted rather than "fixed." Open item carried forward: the single-isotherm covariance ridge cannot naively seed the Week-5 material-parameter Monte Carlo (logged for Week 5).
+
+### Plan for next week
+1. Implement tank.py and the dual-bookkeeping invariant (absolute + void gas ≡ excess + total-pore-and-void gas). Completion criterion: bookkeeping test green to 1e-9 across a (P,T) grid.
+2. Implement vessel.py and system.py (GC/VC, usable-capacity swing). Completion criterion: budget components positive, GC ∈ (0,1), the two vessel estimates agree within 30% on the reference case.
+3. Reproduce the HSECoE AX-21 reference case within the pre-registered ±15% band on GC and VC (Gate V3). Completion criterion: Gate V3 verdict recorded in validation_plan.md and F4 rendered.
