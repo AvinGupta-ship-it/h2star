@@ -64,3 +64,27 @@ published multi-temperature information) recorded as an open question.
   ## Gate V4 — Uncertainty & sensitivity machinery
    Target 1: Monte Carlo reproduces an analytic linear-Gaussian propagation within Monte Carlo error.
    Target 2: Sobol indices on the Ishigami test function match published values within 5%.
+
+### Gate V2 — isosteric-heat clause (pre-registered 2026-08-10, before computation)
+
+Rationale. The isosteric heat q_st is the thermodynamic binding energy at tank
+scale. For hydrogen on carbons the accepted low-coverage range is 4–7 kJ/mol
+(§3.4D, §5.3). This clause tests that the D–A implementation, using the published
+AX-21 parameters, reproduces that physical range and behaves correctly with coverage.
+
+PASS requires all three:
+  (1) Anchor band. q_st evaluated across n/n_max ∈ [0.05, 0.15] lies within
+      [4.0, 7.0] kJ/mol. Reference point n/n_max = 0.10.
+  (2) Monotonic decrease. q_st decreases monotonically in n over the evaluated
+      window (strong sites fill first).
+  (3) Analytic agreement. Numerical q_st matches the closed-form D–A limit
+      q_st = alpha·sqrt(ln(n_max/n)) to ≤ 1e-4 relative at n/n_max = 0.10.
+
+Evaluation temperature: 77 K (q_st is T-independent in this model; 77 K matches
+the digitized isotherm).
+
+Note (limitation): the D–A form gives q_st → ∞ as n → 0 (sqrt-ln divergence), an
+artifact of the functional form, not physical. The anchor is therefore evaluated at
+finite low coverage, and F3 is plotted over n/n_max ∈ [0.02, 0.60]. Feeds §3.13.
+
+Verdict: [to be recorded after computation]
