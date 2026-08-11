@@ -141,7 +141,7 @@ def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
         ax_top.annotate(
             text, xy=(0.98, 0.02), xycoords="axes fraction",
             ha="right", va="bottom",
-            bbox=dict(boxstyle="round", facecolor="white", edgecolor="grey"),
+            bbox={"boxstyle": "round", "facecolor": "white", "edgecolor": "grey"},
         )
 
     # Bottom panel: residuals.

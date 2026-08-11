@@ -188,7 +188,7 @@ def fit_modified_da(P, T, n_excess_data, material_init, *, fix_p0=False):
     # can push a well-scaled but ill-conditioned direction below the pinv
     # truncation threshold, which would silently zero its variance and
     # understate perr. The SVD of J is scale-robust (matches scipy.curve_fit).
-    U, s, Vt = np.linalg.svd(res.jac, full_matrices=False)
+    _, s, Vt = np.linalg.svd(res.jac, full_matrices=False)
     thresh = np.finfo(float).eps * max(res.jac.shape) * s[0]
     n_trunc = int(np.sum(s <= thresh))
     if n_trunc:
