@@ -129,3 +129,42 @@ What I changed: Wrote all three markdown cells (intro, method note, verdict) mys
 
 Scientific decisions (mine alone): the pre-registered anchor window and band, the pass/fail
 criteria, the verdict, and all interpretation prose.
+
+## 2026-08-17 — Tank inventory layer (tank.py)
+
+Tool: Claude Code (Opus 4.8), fresh implementer session (CC-5, modified).
+
+Purpose: Implement src/h2star/tank.py and its bookkeeping test from my
+specification, after I had sourced rho_skel and confirmed all callee
+signatures myself.
+
+What I provided: A spec giving the verified Material fields, the ModifiedDA
+method signatures (n_absolute, n_excess, both (P,T)), molar_density(P,T) ->
+mol/m^3, and M_H2 from constants; the two bookkeeping formulas (absolute route
+with V_void = V_in - m_s/rho_skel - m_s*v_a; excess route with V_gas = V_in -
+m_s/rho_skel); explicit MAY-edit / MUST-NOT-edit file lists; a ban on running
+git, tests, or CI edits; and a TODO[AVIN]-and-stop rule for any missing
+constant.
+
+What it produced: src/h2star/tank.py (total_h2_mass, total_h2_mass_via_excess,
+usable_h2, plus private guards _sorbent_mass and _check_void) and
+tests/test_tank_bookkeeping.py (dual-bookkeeping invariant marked validation,
+plus two machinery tests).
+
+What I verified: Read the full diff before accepting. Confirmed the absolute
+route uses n_absolute and the full V_void, the excess route uses n_excess and
+V_gas without the v_a term, molar_density is called (P,T), and M_H2 comes from
+constants. Ran the suite myself: 14/14 in the new file, 35/35 overall, the
+validation subset at 18, ruff clean, CI green on 0b6534c. Confirmed the
+invariant holds to 1e-9 across the P/T grid, which is the real check that the
+excess/absolute conversion is consistent. Verified every commit author is my
+identity via git log.
+
+What I changed: Nothing in the generated code. Separately (by hand, not this
+session) I made the isotherm.py loader edit and the ax21.yaml skeletal-density
+entry; the session was forbidden from touching either.
+
+Note: The session proposed guarding the excess route on V_gas - m_s*v_a (the
+same void as the absolute route) rather than on V_gas alone. I checked the
+reasoning and accepted it: the packing is inconsistent when skeleton plus
+adsorbed phase overfill the tank, independent of bookkeeping route.

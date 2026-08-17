@@ -570,3 +570,55 @@ On plan. Week 2's one surprise was the parameter-recovery FAIL, which is a scien
 1. Implement tank.py and the dual-bookkeeping invariant (absolute + void gas ≡ excess + total-pore-and-void gas). Completion criterion: bookkeeping test green to 1e-9 across a (P,T) grid.
 2. Implement vessel.py and system.py (GC/VC, usable-capacity swing). Completion criterion: budget components positive, GC ∈ (0,1), the two vessel estimates agree within 30% on the reference case.
 3. Reproduce the HSECoE AX-21 reference case within the pre-registered ±15% band on GC and VC (Gate V3). Completion criterion: Gate V3 verdict recorded in validation_plan.md and F4 rendered.
+
+## Day 11 — Week 3 Day 1: Tank inventory layer
+
+Hours: 2
+
+Objective: Stand up the tank-inventory layer (manual §3.4E–F): source the
+deferred AX-21 skeletal density, teach the loader to read it, and implement
+tank.py with the dual-bookkeeping invariant as the correctness gate. No Gate
+V3 today (that is later in Week 3).
+
+Artifacts (commit hashes):
+- a3efe38  AX-21 rho_skel + loader read-path + docstring fixes
+- 0b6534c  tank.py (total_h2_mass, total_h2_mass_via_excess, usable_h2) +
+           test_tank_bookkeeping.py
+- Tag: none today.
+
+Gates/tests advanced:
+- Dual-bookkeeping invariant went from nonexistent to green: absolute and
+  excess routes agree to 1e-9 relative across P in {0.1,1,5,10} MPa x
+  T in {80,100,160} K (12 parametrized cases, marked validation). This
+  mechanically proves the excess/absolute conversion in isotherm.py is
+  consistent with the tank bookkeeping.
+- Full suite 21 -> 35 passed. Validation subset 6 -> 18. Ruff clean. CI green
+  on 0b6534c on all platforms.
+
+Physical understanding the work required:
+- rho_skel is the pore-free framework density, distinct from the ~300 kg/m3
+  bulk packing density. I derived it from the paper's own Table 1 rather than
+  assuming graphite: Vv = 1/rho_bulk - 1/rho_skel, so
+  1/rho_skel = 1/300 - 2.9e-3 = 4.333e-4 m3/kg -> rho_skel = 2308 kg/m3, using
+  bulk 0.30 g/cm3 and the helium-measured void 2.9 cm3/g. Cross-checked with
+  the paper's compression volume Vg = Vv - Va = 14.7e-4 m3/kg (paper: 15e-4)
+  and against graphite density (~2260 kg/m3) as a sanity range.
+- The invariant is an algebraic identity: the excess route subtracts
+  rho_gas*v_a in n_excess and adds it back by counting the adsorbed-phase
+  volume as gas-filled, so the v_a term cancels against the absolute route's
+  omission of it from the void. Agreement is a plumbing check, not physics.
+
+AI tool usage: Claude Code Session 1 (implementer) wrote tank.py and its test
+against my spec (CC-5, modified). Verification: I ran the invariant myself and
+it holds to 1e-9; see ai_usage_log Day 11 entry.
+
+Problems: [anything real, or "none"].
+
+Lessons: [your words, e.g. the point about deriving rho_skel from the paper's
+own consistency identity being stronger provenance than an external assumed
+value].
+
+Next actions: vessel.py (CC-6) toward Gate V3; register the baseline envelope
+(P_full=100 bar/80 K, P_empty=5 bar/160 K) when system.py lands.
+
+Open questions: [your words, or carry forward].
