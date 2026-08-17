@@ -51,8 +51,8 @@ class Material:
         Bibliographic source of the parameters (required).
     rho_bulk : float or None
         Packed bulk density of the adsorbent, kg/m^3.
-    rho_skel : float or None
-        Skeletal (crystalline) density, kg/m^3. Absent for AX-21; the tank
+   rho_skel : float or None
+        Skeletal (framework) density of the pore-free solid, kg/m^3. The tank
         layer requires it.
     """
 
@@ -75,8 +75,9 @@ class Material:
         ``{value, unit}`` mappings for ``n_max``, ``alpha``, ``beta``, ``p0``,
         and ``v_a``. Units are converted to SI: ``p0`` from MPa (or accepted
         as Pa); the remaining four parameters are already SI and taken as-is.
-        ``rho_bulk`` is read from ``material_anchors.bulk_density_kg_per_m3``
-        when present. ``rho_skel`` is set to ``None``.
+        ```rho_bulk`` and ``rho_skel`` are read from
+        ``material_anchors.bulk_density_kg_per_m3`` and
+        ``material_anchors.skeletal_density_kg_per_m3`` when present. ``rho_skel`` is set to ``None``.
 
         Raises
         ------
@@ -124,6 +125,7 @@ class Material:
 
         anchors = data.get("material_anchors") or {}
         rho_bulk = anchors.get("bulk_density_kg_per_m3")
+        rho_skel = anchors.get("skeletal_density_kg_per_m3")
 
         return cls(
             name=name,
@@ -134,7 +136,7 @@ class Material:
             v_a=v_a,
             citation=citation,
             rho_bulk=rho_bulk,
-            rho_skel=None,
+            rho_skel=rho_skel,
         )
 
 
