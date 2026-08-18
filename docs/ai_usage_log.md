@@ -168,3 +168,69 @@ Note: The session proposed guarding the excess route on V_gas - m_s*v_a (the
 same void as the absolute route) rather than on V_gas alone. I checked the
 reasoning and accepted it: the packing is inconsistent when skeleton plus
 adsorbed phase overfill the tank, independent of bookkeeping route.
+
+## [2026-08-17] — Day 12 — Pressure-vessel layer (vessel.py)
+Tool: Claude Code (Session [N], implementer) — [model string]
+Purpose: Implement src/h2star/vessel.py and tests/test_vessel.py from my
+specification, after I had independently sourced and verified all six
+data/engineering.yaml vessel parameters myself.
+What I provided: A spec giving the six verified engineering.yaml values
+(safety_factor 2.25; sigma_allow 1.836e+9 Pa as effective composite stress
+with knockdowns already folded in and NOT to be re-applied in code;
+aspect_ratio_LR 3.0; composite_density 1609 kg/m^3; liner_areal_mass
+4.667 kg/m^2 already pressure-scaled 700->100 bar; performance_factor
+73500 Pa*m^3/kg for cross-check only); the hoop-stress sizing relations
+(t = SF*P_max*r/sigma_allow, capsule geometry radius_from_volume/surface_area);
+the PF cross-check formula; explicit MAY-edit / MUST-NOT-edit file lists; a ban
+on running git, tests, ruff, CI edits, or any shell command inside the session;
+and a TODO[AVIN]-and-stop rule for any missing constant.
+What it produced: src/h2star/vessel.py (VesselParams.from_yaml,
+radius_from_volume, surface_area, wall_thickness, vessel_mass_hoop,
+vessel_mass_performance_factor) and tests/test_vessel.py (five tests including
+the 35% hoop-vs-PF cross-check, none marked validation).
+What I verified: Read the full output before accepting. Confirmed sigma_allow is
+used as-is with no re-applied knockdowns, SF enters only in wall_thickness, and
+the loader reads the vessel: block by key. Ran the suite myself: 5/5 in the new
+file, 40/40 overall, validation subset unchanged at 18, ruff clean, CI green on
+9ef84fe. Verified every commit author is my identity via git log.
+What I changed: The cross-check first failed because the unscaled 700-bar liner
+dominated hoop mass. This was my Class-A diagnosis, not the session's: I
+pressure-scaled the liner (32.67 x 100/700 = 4.667 kg/m^2) in engineering.yaml
+by hand and widened the cross-check band 30%->35% to reflect Type III vs Type IV
+vessel classes. The session did not touch engineering.yaml or the band.
+
+## [2026-08-18] — Day 13 — System-budget layer (system.py)
+Tool: Claude Code (Session [N], implementer) — [model string]
+Purpose: Implement src/h2star/system.py and tests/test_system.py from my
+specification, after I had independently sourced and verified the insulation and
+BOP values and made every Class-A modeling call myself.
+What I provided: A spec giving the verified engineering.yaml insulation/bop
+values (mli_k_eff 5.2e-4 W/(m*K), mli_density 59.3 kg/m^3, heat_leak_budget
+5.0 W, T_env 300 K, bop_fixed 16.0 kg, bop_scaling 0.0 with TODO[AVIN]); the
+EngineeringParams and SystemDesign dataclass fields; the budget composition
+(m_sys = m_h2_full + m_s + m_vessel + m_insulation + m_bop); the insulation
+sizing by inverting Q = k_eff*A*DeltaT/t_ins for t_ins then
+m_insulation = A*t_ins*mli_density, reusing the vessel geometry; the GC/VC
+definitions with the deliberate m_usable-over-m_sys(with-m_h2_full) asymmetry;
+size_for_usable via scipy brentq on usable_h2(V) - 5.6; the verified callee
+signatures (VesselParams.from_yaml, tank.usable_h2, isotherm.ModifiedDA);
+explicit MAY-edit / MUST-NOT-edit file lists; a ban on git, tests, ruff, CI
+edits, or any shell command; and a TODO[AVIN]-and-stop rule for missing
+constants.
+What it produced: src/h2star/system.py (EngineeringParams.from_yaml,
+SystemDesign, evaluate(V_internal) returning the budget dict, module-level
+evaluate, size_for_usable) and tests/test_system.py (five machinery/sanity
+tests, none marked validation).
+What I verified: Read the full output before accepting. Confirmed the insulation
+sizing reuses the vessel's own radius->area->wall-thickness geometry rather than
+recomputing it, that the GC numerator is m_usable while m_sys carries
+m_h2_full, and that from_yaml reads the insulation/bop blocks by key with unit
+strings validated. Ran the suite myself: 5/5 in the new file, 45/45 overall,
+validation subset unchanged at 18, ruff clean, CI green on 60eb986. Drove the
+sized reference design myself and recorded the Gate V3 prior (GC ~= 0.0652,
+VC ~= 0.0260 kg/L) in the progress journal. Verified every commit author is my
+identity via git log.
+What I changed: Nothing in the generated code. The Class-A modeling choices (5 W
+HSECoE heat-leak assumption over the <7 W DOE ceiling; BOP fixed-only;
+bop_scaling left as a TODO[AVIN] rather than a placeholder number) were mine,
+made before the session and encoded in the spec.
