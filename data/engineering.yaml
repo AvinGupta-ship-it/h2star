@@ -1,5 +1,5 @@
 name: "H2STAR reference pressure vessel"
-description: "Engineering parameters for the thin-wall composite vessel mass model (src/h2star/vessel.py): composite-overwrapped, aluminum-lined, ~100 bar cryo-adsorption reference envelope. Values are stored in SI directly; each _source field records the source-native value and the conversion arithmetic (unlike ax21.yaml, which keeps native units and converts in code)."
+description: "Engineering parameters for the H2STAR system mass/volume budget (src/h2star/vessel.py and src/h2star/system.py): thin-wall composite pressure vessel, multilayer-insulation (MLI) heat-leak sizing, and balance-of-plant mass, for a composite-overwrapped, aluminum-lined, ~100 bar cryo-adsorption reference envelope. Values are stored in SI directly; each _source field records the source-native value and the conversion arithmetic (unlike ax21.yaml, which keeps native units and converts in code)."
 date_accessed: "2026-08-17"
 vessel:            # wall sized by t = SF*P_max*r/sigma_allow; shell mass = area*t*composite_density + area*liner_areal_mass; PF is the mass cross-check only
      safety_factor: {value: 2.25, unit: "dimensionless"}    # SF; the ONLY margin in this model
@@ -7,13 +7,27 @@ vessel:            # wall sized by t = SF*P_max*r/sigma_allow; shell mass = area
      sigma_allow: {value: 1.836e+9, unit: "Pa"}              # EFFECTIVE composite stress; SF applied SEPARATELY in code; do not re-apply knockdowns
      sigma_allow_source: "Hua, Ahluwalia, Peng et al., Technical Assessment of Compressed Hydrogen Storage Tank Systems for Automotive Applications, ANL-10/24 (Argonne/TIAX, 2010), Table 1 (report p.9 / PDF p.11): CF composite tensile strength 2550 MPa (Toray T700S, 60 vol% fiber), CF quality adjustment -10%, CF translation efficiency 80.0% at 700 bar. Effective = 2550 * 0.90 * 0.80 = 1836 MPa = 1.836e+9 Pa. Composite base strength with manufacturing knockdowns folded in; NOT a raw fiber UTS and NOT a value already containing the 2.25 safety factor."
      aspect_ratio_LR: {value: 3.0, unit: "dimensionless"}   # cylindrical-section length / radius, for a capsule (cylinder + 2 hemispherical caps)
-     aspect_ratio_LR_source: "Design assumption (H2STAR). Mild capsule aspect ratio representative of automotive composite-overwrapped pressure vessels; no repo default existed. Chosen to make vessel geometry data-driven; vessel mass is weakly sensitive to LR and the generous vessel-model uncertainty (manual 3.3, FM4) covers the choice."
+     aspect_ratio_LR_source: "Design assumption (H2STAR). Mild capsule aspect ratio representative of automotive composite-overwrapped pressure vessels; no repo default existed. Chosen to make vessel geometry data-driven; vessel mass is weakly sensitive to LR and the generous vessel-model uncertainty (manual 3.3, FM4)covers the choice."
      composite_density: {value: 1609, unit: "kg/m3"}        # effective CFRP overwrap density = overwrap mass / overwrap volume
      composite_density_source: "Hua et al., ANL-10/24 (2010), Appendix A, 700-bar one-tank case (PDF p.37): wound CF/epoxy structural layer mass 67.4 kg, volume 41.9 L. 67.4 / 0.0419 = 1609 kg/m3. CF/epoxy volume fractions 0.6/0.4 and mass fractions 68/32 (PDF p.52) confirm impregnated composite, not bare fiber."
      liner_areal_mass: {value: 4.667, unit: "kg/m2"}        # aluminum (Type III) liner mass per unit shell area, scaled to the ~100 bar design pressure
      liner_areal_mass_source: "Source thickness is a 700-bar Type III Al 6061-T6 liner: Hua et al., ANL-10/24 (2010), Table 1 / Type III discussion, 12.1 mm; Al 6061 density 2700 kg/m3 (Kaiser Aluminum, Technical Data Rod & Bar Alloy 6061, rev KA-RBH-6061-8.10). Full-pressure areal mass = 0.0121 * 2700 = 32.67 kg/m2 at 700 bar. A metallic liner is a gas barrier and partial load-sharer whose thickness scales ~linearly with design pressure, so it is scaled to the H2STAR ~100 bar envelope: 32.67 * (100/700) = 4.667 kg/m2. Carrying the unscaled 700-bar liner into a 100-bar vessel is a wrong-design-pressure error, not a conservative choice."
      performance_factor: {value: 73500, unit: "Pa*m3/kg"}   # = J/kg; CROSS-CHECK benchmark only (m_check = P_max*V/PF), never a sizing input
      performance_factor_source: "Newhouse, Development of Improved Composite Pressure Vessels for Hydrogen Storage, Hexagon Lincoln / DOE H2 and Fuel Cells Annual Merit Review, Project ST047 (14 May 2013), slide 14, Tank 5: Type IV carbon composite (T700/epoxy/HDPE), 100 bar, 60 L, 8.16 kg -> PV/W = 735 bar*L/kg. 735 * 100 = 73500 J/kg = 7.35e4 Pa*m3/kg (1 bar*L = 100 J)."
+insulation:        # t_ins = mli_k_eff * A * (T_env - T_full) / heat_leak_budget; m_insulation = A*t_ins*mli_density; insulation volume = A*t_ins
+     mli_k_eff: {value: 5.2e-4, unit: "W/(m*K)"}            # MLI effective (apparent) conductivity; lumps radiation + spacer + residual-gas conduction
+     mli_k_eff_source: "Ahluwalia, Hua, Peng, Papadias, Kumar, System Level Analysis of Hydrogen Storage Options, 2011 DOE Hydrogen Program Review, Project ID ST001 (2011), slide 26 (PDF p.24), MOF-5 On-Board Performance Key Assumptions, Insulation -> Effective conductivity = 5.2e-4 W/m-K. MLI = aluminized Mylar with Dacron spacer, layer density 28 cm^-1 (= 2800 m^-1), vacuum 1e-5 torr (= 1.33e-3 Pa). Design/model assumption, not a measurement; shield count and the warm/cold span for THIS value are NOT reported by the source. Accessed 2026-08-18."
+     mli_density: {value: 59.3, unit: "kg/m3"}              # MLI blanket bulk density; converts solved t_ins into insulation mass and volume
+     mli_density_source: "Ahluwalia et al., ST001 (2011), slide 26 (PDF p.24), MOF-5 Key Assumptions, Insulation -> Density = 59.3 kg/m3. Design/model assumption. Accessed 2026-08-18."
+     heat_leak_budget: {value: 5.0, unit: "W"}              # allowable total steady-state heat in-leakage; the insulation SIZING DRIVER
+     heat_leak_budget_source: "Ahluwalia et al., ST001 (2011), slide 8 (PDF p.8), Cryogenic Hydrogen Storage in MOF-5, heat-transfer-system heat in-leakage requirement = 5 W (total tank). HSECoE reference-model design assumption. Independent DOE automotive-cryo target ceiling < 7 W for a 100 L tank at 300 K warm / 78 K cold (Meneghelli, Tamburello, Fesmire, Swanger, Integrated Insulation System for Automotive Cryogenic Storage Tanks, DOE H2 & Fuel Cells Program FY2017 Annual Progress Report, Sec. IV.D.4, DE-EE0007649 (2017), pp.1-2) is recorded as a corroborating upper bound, NOT used as the budget. Accessed 2026-08-18."
+     T_env: {value: 300, unit: "K"}                         # warm-boundary (ambient) design temperature; cold boundary is operating T_full, applied in code
+     T_env_source: "Meneghelli, Tamburello, Fesmire, Swanger, Integrated Insulation System for Automotive Cryogenic Storage Tanks, DOE H2 & Fuel Cells Program FY2017 Annual Progress Report, Sec. IV.D.4, DE-EE0007649 (2017), p.2: warm boundary 300 K (cold boundary 78 K), automotive cryogenic-tank target parameters. Design boundary condition. Accessed 2026-08-18."
+bop:               # m_bop = bop_fixed + bop_scaling * (usable H2 mass, kg); scaling currently 0 (fixed-only) pending a sourced coefficient
+     bop_fixed: {value: 16.0, unit: "kg"}                   # lumped balance-of-system miscellaneous mass
+     bop_fixed_source: "Ahluwalia et al., ST001 (2011), slide 26 (PDF p.24), MOF-5 Key Assumptions, Balance of System -> Miscellaneous weight = 16 kg. HSECoE lumped Balance-of-System miscellaneous-mass design assumption; a single lumped mass, NOT a component-resolved BOP breakdown and NOT a measurement. Accessed 2026-08-18."
+     bop_scaling: {value: 0.0, unit: "kg per kg usable H2"} # NOT FOUND in sourcing; set to zero so BOP is fixed-only. TODO[AVIN]: source a size-dependence coefficient before enabling
+     bop_scaling_source: "NOT FOUND. No source-supported cryo-adsorbent BOP mass-scaling coefficient was located. Deliberately set to 0.0 (BOP modeled as fixed-only at bop_fixed); this is a modeling choice, not a measured value. Do NOT fabricate a coefficient by dividing bop_fixed by a reference capacity. The omitted size-dependence is covered by the wide BOP uncertainty band in the Week 5 UQ layer (manual 3.3, 3.9). Accessed 2026-08-18."
 notes: >
      Class framing. H2STAR's vessel is a ~100 bar cryo-adsorption composite-overwrapped
      tank, not a 700 bar automotive tank. sigma_allow and composite_density are material
@@ -32,3 +46,21 @@ notes: >
      100 bar) and the PF benchmark (plastic-lined Type IV) are slightly different vessel
      classes; the ~35% agreement band and the generous vessel-model uncertainty (manual
      3.3, FM4) absorb that gap.
+
+     Insulation & BOP class framing. The MLI conductivity (5.2e-4 W/m-K), MLI density
+     (59.3 kg/m3), 5 W heat-leak budget, and 16 kg balance-of-system mass all come from the
+     same HSECoE MOF-5 system analysis (Ahluwalia ST001, 2011). They are system/tank
+     engineering parameters, taken as sorbent-class-independent and applied to the AX-21
+     system, exactly as sigma_allow and composite_density are taken as vessel-class
+     properties. T_env = 300 K is from the later DOE automotive-cryo insulation project
+     (Meneghelli 2017), whose 78 K cold boundary matches the H2STAR T_full envelope.
+
+     Heat-leak budget choice. 5 W is the HSECoE reference-model assumption and is used as the
+     insulation sizing driver so the system layer reproduces the HSECoE reference case at
+     Gate V3. The later DOE < 7 W / 100 L target ceiling is recorded in heat_leak_budget_source
+     as an independent corroborating bound, not used for sizing.
+
+     BOP treatment. m_bop is fixed-plus-scaling per manual 3.4G, but no sourced scaling
+     coefficient was found, so bop_scaling is set to 0.0 and BOP is modeled fixed-only at
+     16 kg. The size-dependence is a TODO[AVIN]; the wide BOP uncertainty (manual 3.3, 3.9)
+     absorbs its omission for now.
