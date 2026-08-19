@@ -1,20 +1,39 @@
-citation: "Thornton, M.; Simpson, L. — System Design, Analysis, and Modeling Activities Supporting the DOE HSECoE. NREL/TP-5400-73571, 2019."
-url: "https://docs.nrel.gov/docs/fy19osti/73571.pdf"
+# HSECoE AX-21 activated-carbon full-state system anchor for Gate V3.
+# Basis: FULL-STATE system inventory (not usable swing). See docs/validation_plan.md
+# Gate V3 amendment for why the empty state is null and the basis changed.
+citation: "Tamburello, D. et al. (SRNL) — SRNL Technical Work Scope for the HSECoE: Design and Testing of Adsorbent Storage Systems. DOE Hydrogen and Fuel Cells Program 2013 Annual Merit Review, Project ID ST044, 2013."
+url: "https://www.hydrogen.energy.gov/docs/hydrogenprogramlibraries/pdfs/review13/st044_tamburello_2013_o.pdf"
 date_accessed: "2026-06-16"
-adsorbent: "MOF-5"
-case_label: "Press-FCHX"
-phase: "Phase 1"
-drive_cycle_case: "Case 1 (UDDS/HWFET)"
-operating_envelope:   # HSECoE cryo-adsorption design basis
-  fill:      {temperature_K: 77,  pressure_bar: 100}
-  discharge: {temperature_K: 160, pressure_bar: 5}
+
+adsorbent: "AX-21"
+tank_type: "Type 3"
+case_label: "End of Phase 1 Baseline - Activated Carbon"
+basis: "full_state_system_inventory"
+
+operating_full_state:
+  temperature_K: 80      # ST044 slide 19, "Full at 80K, 200 bar"
+  pressure_bar: 200      # ST044 slide 19
+
 reference_results:
-  system_gravimetric_capacity_wt_percent: 4.6   # CHANGE to the exact value in your chosen row
-  system_volumetric_capacity_gH2_per_L:   25.3    # CHANGE to the exact value in your chosen row
+  system_gravimetric_capacity_kg_per_kg:
+    value: 0.0312        # ST044 slide 18, "Gravimetric Capacity (gH2/gsys)" End-of-Phase-1 column
+    unit: "kg_H2_per_kg_system"
+    _source: "ST044 (2013) slide 18"
+  system_volumetric_capacity_kg_per_L:
+    value: 0.0194        # ST044 slide 18; slide prints "gH2/Lsys" but magnitude requires kg/L (19.4 g/L)
+    unit: "kg_H2_per_L_system"
+    _source: "ST044 (2013) slide 18; unit read as kg/L per validation_plan.md V3 triangulation"
+
+empty_state: null        # No AX-21-specific discharge state is pinned in the primary HSECoE record.
+
+bop_included: "unclear"  # ST044 waterfall includes BOP but does not tie it to the printed baseline denominator.
+
+tolerance_pct: 15        # Pre-registered in docs/validation_plan.md, unchanged from Week 1.
+
 notes: >
-  Gate V3 anchor: the best-performing MOF-5 system case in the HSECoE final modeling report
-  (highest gravimetric wt% across the Phase 1/2/3 adsorbent results tables). Recorded the exact
-  design name and phase so the choice is reproducible. Ignored all metal-hydride, chemical-hydride,
-  and compressed-gas rows (different storage physics) and all cost/GHG tables (out of scope).
-  These numbers come from HSECoE drive-cycle system simulations; my H2STAR model is a simpler
-  state-point packed-powder model, so the +/-15% Gate V3 band accounts for the design differences.
+  Gate V3 anchor for the AX-21 full-state system inventory. GC_full = m_h2_full / m_sys
+  and VC_full = m_h2_full / V_sys are compared to the values above within +/-15%.
+  No usable-swing term enters this gate. The MOF-5 case originally recorded here was
+  superseded on Day 14 as a parameter-provenance error (my system stack is AX-21);
+  see the Gate V3 amendment in docs/validation_plan.md. Corroborating AX-21 system
+  pair: Anton/SRNL FY2011 APR Table 1, 0.039 kg/kg and 0.024 kg/L.
