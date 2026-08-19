@@ -56,10 +56,53 @@ material-parameter Monte Carlo; candidate resolutions (fixed-p0 conditional cova
 published multi-temperature information) recorded as an open question.
 
   ## Gate V3 — System model
-   Target: my system GC and VC reproduce the published MOF-5 cryo-adsorbent system (HSECoE/NREL).
-   Envelope: fill 77 K / 100 bar, discharge 160 K / 5 bar; 5.6 kg usable H2 basis.
-   Pass: |my GC - published GC| / published GC <= 15%  AND  the same for VC.
-   Rationale: system models legitimately differ in balance-of-plant detail; 15% is the agreement band.
+     ### SUPERSEDED (pre-registered Week 1, retained for provenance):
+  ### Target: my system GC and VC reproduce the published MOF-5 cryo-adsorbent system (HSECoE/NREL).
+  ### Envelope: fill 77 K / 100 bar, discharge 160 K / 5 bar; 5.6 kg usable H2 basis.
+  ### Pass: |my GC - published GC| / published GC <= 15% AND the same for VC.
+  ###
+  ### AMENDED [2026-08-19], Day 14, before any Gate V3 code was run.
+  ### Reason for amendment: on sourcing the anchor I found the original block was
+  ### built on the wrong reference case. (1) Material: my entire system stack is
+  ### AX-21 activated carbon, so the MOF-5 target was a parameter-provenance error.
+  ### (2) Empty state: no primary HSECoE source I could locate (SRNL ST044 2013;
+  ### Anton FY2011 APR; Thornton et al. NREL/MP-5400-73571 2019 final report) pins
+  ### an AX-21-specific discharge state. Published AX-21 discharge assumptions vary
+  ### across the program (4 bar; ~5 bar/140 K for a Phase-2 MOF-5 design; 150 K/5 bar
+  ### in a 2015 GM report) and none is attached to the AX-21 baseline. A usable-swing
+  ### gate would therefore require me to invent an empty state and call the result a
+  ### reproduction, which overclaims (FM7). (3) Basis: HSECoE ST044 slide 18 DOES
+  ### publish AX-21 full-state system GC and VC at a documented full state, with no
+  ### empty-state dependence. I therefore validate the full-state system inventory,
+  ### which is what the reference actually specifies. The +/-15% tolerance is
+  ### unchanged from the original pre-registration.
+
+  Target: my system GC_full and VC_full reproduce the published HSECoE AX-21
+    activated-carbon full-state system capacities.
+  Reference: HSECoE End-of-Phase-1 activated-carbon (AX-21) baseline, Type-3 tank.
+    Tamburello/SRNL, DOE AMR Project ID ST044, 2013, slide 18 (capacities) and
+    slide 19 (full state). Corroborating: Anton/SRNL FY2011 APR Table 1 (0.039
+    kg/kg, 0.024 kg/L, same material class).
+  Full state: 80 K, 200 bar (ST044 slide 19).
+  Published values: GC_full = 0.0312 kg H2 / kg system; VC_full = 0.0194 kg H2 / L
+    system. The ST044 slide prints the volumetric unit as "gH2/Lsys", which is
+    dimensionally impossible for the printed magnitude (0.0194 g/L is ~1000x too
+    low for any real H2 system). I read the intended unit as kg/L (19.4 g/L),
+    triangulated against the FY2011 pair (0.024 kg/L, same material class) and
+    against H2 density limits. Recorded as a transcription-error correction, not a
+    value change to pass the gate.
+  Basis: FULL-STATE system inventory, GC_full = m_h2_full / m_sys,
+    VC_full = m_h2_full / V_sys. No usable-swing / empty-state term enters this gate.
+  Empty state: null. The primary record does not pin an AX-21 discharge state;
+    the usable-swing layer is validated separately (dual-bookkeeping invariant,
+    already green) and its empty-state sensitivity is a documented study, not a
+    reproduced published value.
+  BOP: unclear for this baseline. ST044's waterfall includes BOP but does not tie
+    it to the printed baseline denominator. Treated as a disclosed contributor to
+    the 15% band, not a claimed fact.
+  Pass: |my GC_full - 0.0312| / 0.0312 <= 15% AND |my VC_full - 0.0194| / 0.0194 <= 15%.
+  Rationale: system models legitimately differ in BOP and insulation detail and in
+    envelope definition; 15% is the pre-registered agreement band, unchanged.
 
   ## Gate V4 — Uncertainty & sensitivity machinery
    Target 1: Monte Carlo reproduces an analytic linear-Gaussian propagation within Monte Carlo error.
