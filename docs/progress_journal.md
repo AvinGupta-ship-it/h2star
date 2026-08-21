@@ -712,3 +712,47 @@ hsecoe_reference.yaml, notebook 04, test_system_validation.py (validation),
 F4; render the verdict honestly. Open a GitHub issue recording the 6.5 wt%
 observation as the Gate V3 prior.
 Open questions: [your words, or carry forward].
+
+## Day 14 — [2026-08-21] — Week 3 Day 4 — Gate V3 (system validation)
+Hours: 2
+Objectives:
+- Source a verified HSECoE AX-21 system anchor and run Gate V3 against it.
+- Diagnose the result in physics-first order; render an honest verdict.
+Artifacts:
+- fcbd6b2  docs/validation_plan.md — Gate V3 pre-registration AMENDED before any
+           gate code ran: MOF-5/swing basis superseded, AX-21 full-state basis
+           adopted, +/-15% tolerance unchanged.
+- 9fe99cf  data/validation/hsecoe_reference.yaml — anchor rewritten to the ST044
+           AX-21 full-state case (GC 0.0312 kg/kg, VC 0.0194 kg/L, 80 K/200 bar).
+- ae63594  docs/ — Day 12-13 provenance entries committed (catch-up).
+- GitHub issue #1 — Gate V3 FAIL diagnosis recorded.
+- Tag: none today.
+Gates/tests advanced:
+- Gate V3 RUN and adjudicated: FAIL (documented). GC_full 0.0777 vs 0.0312
+  (2.49x), VC_full 0.0363 vs 0.0194 (1.87x), both outside +/-15%. No code
+  committed to src/ today; the test + notebook 04 + F4 are Day 15.
+- Suite unchanged at 45 passed, validation subset 18. Tree clean.
+Physical understanding the work required:
+- The published ST044 anchor was MOF-5 and swing-based; my stack is AX-21 and
+  the primary HSECoE record pins no AX-21 discharge state. I reframed Gate V3
+  to the full-state system inventory (GC_full = m_h2_full/m_sys), which is what
+  the reference actually specifies, avoiding an invented empty state (FM7).
+- ST044 slide 18 prints VC as "gH2/Lsys" at 0.0194, dimensionally impossible;
+  I read it as kg/L (19.4 g/L), triangulated against Anton FY2011 0.024 kg/L
+  and H2 density limits. Recorded as a transcription-error read, not a value
+  change to pass.
+- The FAIL is localized, not diffuse: GC misses by more than VC, and they share
+  the numerator, so the gap is in the mass denominator. Core (sorbent+H2, 40.7
+  kg) is sound; vessel+ins+BOP would need 147.8 kg vs my 35.0 kg (4.2x). My
+  thin-wall composite vessel + fixed 16 kg BOP idealizes away most of a real
+  Type-3 200-bar tank's mass, so the model over-predicts GC. That is the
+  finding: physics core validates, engineering-mass idealization is the gap.
+Problems: [your words — e.g. the wrong pre-registered reference case, and how
+you handled it as a dated amendment rather than a silent rewrite].
+Lessons: [your words — e.g. an understood FAIL that localizes the discrepancy
+is a stronger result than a green check; and why you did not chase a PASS by
+re-sourcing the vessel after seeing the target].
+Next actions (Day 15): write test_system_validation.py asserting the +/-15%
+band, marked xfail with the issue-#1 reason; build notebook 04 and figure F4;
+write the FAIL up as a limitation; then tag v0.1 and do the Week 3 review.
+Open questions: [your words, or carry forward].

@@ -234,3 +234,32 @@ What I changed: Nothing in the generated code. The Class-A modeling choices (5 W
 HSECoE heat-leak assumption over the <7 W DOE ceiling; BOP fixed-only;
 bop_scaling left as a TODO[AVIN] rather than a placeholder number) were mine,
 made before the session and encoded in the spec.
+
+## [2026-08-21]] — Day 14 — Gate V3 anchor sourcing + validation reframe
+Tool: ChatGPT 5.6 Sol and Claude Code Opus 5
+Purpose: Source a verifiable HSECoE AX-21 system-capacity anchor for Gate V3, and
+work out an honest validation basis when the record proved incomplete.
+What I provided: Minimal-source sourcing prompts (source-to-variable map first,
+three-source cap, no invented citations, [NOT FOUND] required over guessing). For
+the reframe, I provided the Day 13 diagnostic numbers and the pre-registered V3
+block and made every scientific call myself.
+What it produced: Pass 1 returned an AX-21 system pair (0.039 kg/kg, 0.024 kg/L,
+Anton FY2011 APR Table 1) but no verifiable empty state. Pass 2 (ST044 2013)
+returned one internally consistent case: AX-21, 80 K/200 bar full, GC 0.0312,
+VC 0.0194 (unit printed "gH2/Lsys"), empty state [NOT FOUND], BOP [NOT FOUND] as
+a baseline-specific statement. Pass 3 (NREL/MP-5400-73571 2019 + SRNL final)
+returned [NOT FOUND] for any AX-21-specific discharge state. Planning assistant
+produced the reframe scaffold, the diagnostic scripts, and the provenance
+templates.
+What I verified: I opened the ST044 PDF and confirmed slides 18/19 myself before
+using the numbers. I confirmed the report number is NREL/MP-5400-73571 (not TP).
+I ran every diagnostic myself and read GC_full/VC_full and the mass breakdown off
+real output. I confirmed the core (rho_bulk 300, rho_skel 2308, m_sorbent =
+rho_bulk*V_internal, usable = 5.600 kg) before accepting the FAIL as vessel+BOP
+scope. I rejected splicing any cross-document empty state onto the AX-21 case.
+What I changed / decided (all mine): reframed Gate V3 from usable-swing MOF-5 to
+full-state AX-21 inventory; amended the pre-registration in a dated commit
+(fcbd6b2) BEFORE running gate code; read the ST044 volumetric unit as kg/L by
+triangulation and documented it; rendered Gate V3 = FAIL (documented) rather than
+chasing a PASS by re-sourcing the vessel after seeing the 147.8 kg target;
+recorded the diagnosis in issue #1.
