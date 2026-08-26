@@ -222,3 +222,100 @@ def plot_isosteric_heat(da, n_over_nmax_min=0.02, n_over_nmax_max=0.60, T=77.0,
     ax.grid(True, alpha=0.3)
 
     return ax
+
+
+def plot_system_validation(
+    gc_model, vc_model,
+    gc_anchor, vc_anchor,
+    tolerance_pct,
+    anchor_label="HSECoE AX-21 (ST044, 2013)",
+    model_label="H2STAR model",
+    savepath=None,
+):
+    """Gate V3 system-validation figure (F4): model GC/VC vs. published anchor.
+
+    Two side-by-side panels compare the model's full-state system gravimetric
+    capacity (left) and volumetric capacity (right) against a single published
+    anchor value, with the pre-registered tolerance band drawn around the
+    ANCHOR (not around the model). Model points that fall outside that band
+    therefore depict a documented FAIL of the gate.
+
+    All values are passed in by the caller as plain numbers; this function
+    performs NO physics and evaluates no model. It only draws.
+
+    Parameters
+    ----------
+    gc_model : float
+        Model system gravimetric capacity in kilograms H2 per kilogram of
+        system (kg/kg).
+    vc_model : float
+        Model system volumetric capacity in kilograms H2 per litre of system
+        (kg/L).
+    gc_anchor : float
+        Published anchor system gravimetric capacity (kg/kg).
+    vc_anchor : float
+        Published anchor system volumetric capacity (kg/L).
+    tolerance_pct : float
+        Pre-registered tolerance as a percentage (e.g. ``15`` for +/-15%). The
+        shaded band spans ``anchor * (1 - tolerance_pct / 100)`` to
+        ``anchor * (1 + tolerance_pct / 100)`` in each panel.
+    anchor_label : str, optional
+        Legend label for the anchor reference line and band source.
+    model_label : str, optional
+        Legend label for the model point.
+    savepath : str or pathlib.Path, optional
+        If given, the figure is saved here at 300 dpi with tight bounding box.
+        The parent directory must already exist; it is not created.
+
+    Returns
+    -------
+    tuple
+        ``(fig, (ax_gc, ax_vc))`` — the Matplotlib
+        :class:`~matplotlib.figure.Figure` and the gravimetric and volumetric
+        :class:`~matplotlib.axes.Axes` objects.
+    """
+    fig, (ax_gc, ax_vc) = plt.subplots(1, 2, figsize=(10, 5))
+
+    tol = tolerance_pct / 100.0
+    band_label = f"$\\pm${tolerance_pct:g}% tolerance"
+
+    panels = (
+        (ax_gc, gc_model, gc_anchor, "Gravimetric",
+         "System gravimetric capacity (kg kg$^{-1}$)"),
+        (ax_vc, vc_model, vc_anchor, "Volumetric",
+         "System volumetric capacity (kg L$^{-1}$)"),
+    )
+
+    for ax, model_value, anchor_value, title, ylabel in panels:
+        lo = anchor_value * (1.0 - tol)
+        hi = anchor_value * (1.0 + tol)
+
+        # Band is drawn around the ANCHOR, so the model point may sit outside it.
+        ax.axhspan(lo, hi, color="tab:grey", alpha=0.25, label=band_label)
+        ax.axhline(anchor_value, color="k", linewidth=1.5, label=anchor_label)
+        ax.plot([0.0], [model_value], marker="o", markersize=12,
+                color="tab:red", linestyle="none", label=model_label, zorder=3)
+
+        # Pad so both the full band and the model point stay visible.
+        y_lo = min(lo, model_value)
+        y_hi = max(hi, model_value)
+        pad = 0.1 * (y_hi - y_lo) if y_hi > y_lo else 0.1 * abs(y_hi)
+        ax.set_ylim(y_lo - pad, y_hi + pad)
+
+        ax.set_xlim(-0.5, 0.5)
+        ax.set_xticks([0.0])
+        ax.set_xticklabels(["Model result"])
+        ax.set_ylabel(ylabel)
+        ax.set_title(title)
+        ax.grid(True, alpha=0.3)
+
+    ax_gc.legend(frameon=False, loc="best")
+
+    fig.suptitle(
+        "Gate V3: system validation vs HSECoE AX-21 (full-state basis)")
+    fig.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=300, bbox_inches="tight")
+
+    return fig, (ax_gc, ax_vc)
