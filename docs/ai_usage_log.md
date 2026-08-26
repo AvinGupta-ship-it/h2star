@@ -263,3 +263,136 @@ full-state AX-21 inventory; amended the pre-registration in a dated commit
 triangulation and documented it; rendered Gate V3 = FAIL (documented) rather than
 chasing a PASS by re-sourcing the vessel after seeing the 147.8 kg target;
 recorded the diagnosis in issue #1.
+
+## 2026-08-26 — Day 15: Gate V3 artifacts (system-validation test, F4, notebook 04)
+
+Tool: Claude Code (three separate implementer sessions, one per file; fresh session each, /exit between)
+
+Purpose: Turn the Day 14 Gate V3 adjudication into committed artifacts — a marked
+validation test recording the FAIL, the F4 system-validation figure, and notebook 04
+reproducing the comparison — without any of them defining physics or touching git.
+
+What I provided: For each session, an explicit implementer prompt with a MAY-edit /
+MUST-NOT-edit file list, a hard ban on git, CI/.github edits, and running any shell,
+pytest, ruff, or python command. I supplied the real function signatures I had grepped
+myself from system.py (SystemDesign positional args, size_for_usable defaults) and
+viz.py (the per-function fig/ax style), and the real nested keys from
+hsecoe_reference.yaml. I forbade hardcoding the anchor numbers (0.0312, 0.0194, 15)
+and required a TODO[AVIN] with a stop on any missing value rather than a guess.
+
+What it produced:
+- tests/test_system_validation.py — loads the anchor from YAML at runtime, sizes the
+  AX-21 tank to 5.6 kg usable, computes GC_full = m_h2_full/m_sys and
+  VC_full = m_h2_full/(V_sys*1000) at 80 K/200 bar, asserts each within the ±15%
+  band, marked @pytest.mark.validation and @pytest.mark.xfail(strict=True) with a
+  reason string pointing at the vessel+BOP scope gap and issue #1.
+- plot_system_validation appended to src/h2star/viz.py — F4, two panels, the ±15%
+  band drawn around the anchor with the model points outside it; receives precomputed
+  numbers only, no model calls.
+- notebooks/04_system_validation_hsecoe.ipynb — drives system.py, computes the
+  full-state metrics, compares to the anchor, calls F4; calls and narrative only.
+
+What I verified: I read every generated file before running anything. I ran the new
+test alone (1 xfailed, exit 0) and the full suite (45 passed, 1 xfailed, no
+PytestUnknownMarkWarning). I ran ruff on the repo (clean). I smoke-rendered F4 with
+the Day 14 numbers and opened the PNG to confirm the band sits around the anchor and
+the model points read as a visible FAIL. I executed notebook 04 headlessly with
+nbconvert and read back its printed outputs: GC_full = 0.0777 kg/kg, VC_full = 0.0363
+kg/L, both labeled OUTSIDE the ±15% band, and the mass budget (m_sys 75.73, m_h2_full
+5.882) matching the Day 14 diagnosis exactly. I confirmed the notebook and the test
+compute the metrics identically. After each commit I confirmed the author was
+Avin Gupta <iamavingupta@gmail.com>.
+
+What I changed: I did not modify the generated code substantively. I accepted the F4
+session's judgment call to omit a redundant anchor marker (the line plus band already
+carry the anchor) after checking it read correctly in the rendered figure. The
+Gate V3 limitation write-up in docs/validation_plan.md is my own prose, not generated.
+
+## 2026-08-26 — Day 15 (Week 3, Day 5)
+
+### Hours worked
+2
+
+### Objectives
+Turn the Day 14 Gate V3 adjudication into committed artifacts and close Week 3:
+a marked validation test, the F4 figure, notebook 04, the limitation write-up,
+and the v0.1 tag.
+
+### Work completed
+- tests/test_system_validation.py — Gate V3 recorded as a strict xfail; loads the
+  anchor from YAML, sizes the AX-21 tank to 5.6 kg usable, computes GC_full and
+  VC_full at 80 K/200 bar, asserts each within the pre-registered ±15% band
+  (commit eab9923).
+- plot_system_validation (F4) appended to src/h2star/viz.py and
+  notebooks/04_system_validation_hsecoe.ipynb driving system.py and calling F4
+  (commit 5487d5d); figures/F4_system_validation.png regenerated.
+- Gate V3 result-and-limitation write-up appended to docs/validation_plan.md
+  (commit b645031).
+- Tagged and pushed v0.1 — validated forward model with Gate V3 as a documented FAIL.
+- Full suite 45 passed / 1 xfailed; ruff clean; CI green on b645031; v0.1 on origin.
+
+### Gates/tests advanced
+Gate V3 moved from a Day-14 adjudication written in prose to a recorded, executable
+result. The physical understanding the fix required: an xfail is not a way to hide a
+failure but a way to assert one — the assertion still runs against the untouched ±15%
+band, the FAIL is the expected state, and strict=True means that if a future vessel
+model ever closes the gap the test xpasses and breaks the suite on purpose, forcing me
+to re-judge the gate rather than letting it drift to green unnoticed. A skip would have
+erased the gate; the xfail keeps it on the record. This is the same shape as the Gate V2
+parameter-recovery FAIL-by-design.
+
+### Problems encountered
+- nbconvert/nbformat were not in the venv, so I couldn't execute the notebook headlessly.
+  Installed them as local dev tooling, deliberately not added to pyproject.toml since
+  they aren't a package runtime dependency.
+- The handoff described viz.py as having "a single rcParams block," but the real file
+  styles each figure function inline with no module-level rcParams. I read the actual
+  file first and had F4 match the real per-function convention rather than the handoff's
+  description — a reminder to trust the bytes over the summary.
+- [anything else that actually came up for you.]
+
+### AI tools used
+Three Claude Code implementer sessions (test file, F4 function, notebook 04), each a
+fresh session with an explicit MAY/MUST-NOT file list and a ban on git/CI/tests/ruff/shell.
+Cross-reference: docs/ai_usage_log.md, 2026-08-26 entry.
+
+### Lessons learned
+Grepping the real function signatures and the real nested YAML keys before writing any
+code is what kept the test, the notebook, and the figure consistent — the notebook and
+the test compute GC_full/VC_full with identical arithmetic because I pinned both to the
+same source bytes, and executing the notebook reproduced the Day 14 numbers to the digit
+(GC_full 0.0777, VC_full 0.0363). The larger lesson is that the localized FAIL is the
+result: the forward physics reproduces HSECoE at the inventory level, and I can name
+exactly which idealization (thin-wall vessel + fixed BOP, ~4.2× light on dead mass)
+breaks the system gate. That is a finding I can defend, not a gap I have to apologize for.
+
+### Next actions
+1. Week 4: implement envelope.py and inverse.py — forward GC/VC maps over (P_full, T_full)
+   for AX-21, then first acceptability maps in (n_max, alpha) and (n_max, rho_bulk).
+
+### Open questions
+- Would a design-level vessel-mass model (end-dome, liner, hardware beyond hoop-stress
+  wall) plus a sized BOP correlation raise the engineering-mass block toward the ~147.8 kg
+  the anchor implies, and if so would Gate V3 xpass? Track this against the strict marker.
+
+## Week of 2026-08-24 — Weekly Review (Week 3)
+
+### Phase
+Week 3 complete. Tank, vessel, and system-budget layers implemented and tested; Gate V3
+adjudicated as a documented FAIL localized to the engineering-mass block; v0.1 released
+as the validated forward model.
+
+### What advanced
+The week built the whole materials-to-system spine: tank inventory with the dual-bookkeeping
+invariant (absolute-route and excess-route totals agreeing to 1e-9), the pressure vessel
+with the liner pressure-scaling fix that resolved the hoop-mass domination, and the system
+mass/volume budget with MLI heat-leak insulation sizing. The hardest part was Gate V3: I
+found the pre-registered anchor was built on the wrong reference case (MOF-5, a usable-swing
+basis, against my AX-21 stack), and rather than invent an empty state I reframed the gate
+onto the full-state system inventory the HSECoE ST044 record actually specifies, amended the
+pre-registration in a dated commit before any gate code ran, kept the ±15% tolerance, and
+preserved the original block as superseded. The gate then failed honestly, and I localized
+the failure to the mass denominator by back-solving what m_sys would have to be.
+
+### Next week
+Week 4: forward maps and the inverse acceptability engine (envelope.py, inverse.py; F5, F6 draft).
