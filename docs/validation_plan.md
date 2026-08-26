@@ -104,6 +104,43 @@ published multi-temperature information) recorded as an open question.
   Rationale: system models legitimately differ in BOP and insulation detail and in
     envelope definition; 15% is the pre-registered agreement band, unchanged.
 
+    ### Gate V3 — Result and Limitation (Day 15, 08/26/2026)
+
+**Verdict: documented FAIL, localized to the engineering-mass block.**
+
+Run configuration: AX-21 material; tank sized to 5.6 kg usable on a
+5 bar / 160 K sizing-only baseline; full-state system inventory read at
+80 K / 200 bar (the state the HSECoE ST044 anchor specifies). Metrics on a
+full-state basis: GC_full = m_h2_full / m_sys, VC_full = m_h2_full / V_sys.
+
+Result vs. anchor (±15% pre-registered band, unchanged since Week 1):
+- GC_full = 0.0777 kg/kg vs anchor 0.0312 → 2.49× high, OUTSIDE band [0.0265, 0.0359]
+- VC_full = 0.0363 kg/L  vs anchor 0.0194 → 1.87× high, OUTSIDE band [0.0165, 0.0223]
+
+Mass budget (kg): H2 5.882, sorbent 34.827, vessel 16.685, insulation 2.333,
+BOP 16.000, system 75.726.
+
+Diagnosis (physics-first, §5.9): [in your own words —
+  1. units clean;
+  2. numerator m_h2_full sound;
+  3. the GC-vs-VC asymmetry localizes the gap to the mass DENOMINATOR;
+  4. back-solve: matching GC 0.0312 needs m_sys ≈ 188.5 kg; the well-anchored
+     core (sorbent + H2 ≈ 40.7 kg) is sound, so the vessel+insulation+BOP block
+     would need ≈ 147.8 kg vs 35.0 modeled (≈ 4.2×);
+  5. interpretation: the thin-wall composite hoop-stress vessel and fixed 16 kg
+     BOP idealize away most of a real HSECoE Type-3 200-bar tank's dead mass,
+     so the model gives an optimistic upper bound on GC.]
+
+Decision (settled): [in your own words — report the FAIL honestly rather than
+re-source the vessel after seeing the 147.8 kg target, which would be fitting to
+a known answer; the localized FAIL is the stronger, more defensible result,
+mirroring the Gate V2 FAIL-by-design. Recorded as a strict xfail
+(tests/test_system_validation.py) and in GitHub issue #1.]
+
+What would change the verdict: [your words — a design-level vessel mass model and
+a sized BOP correlation; if a future upgrade closes the gap the xfail xpasses and
+forces re-adjudication.]
+
   ## Gate V4 — Uncertainty & sensitivity machinery
    Target 1: Monte Carlo reproduces an analytic linear-Gaussian propagation within Monte Carlo error.
    Target 2: Sobol indices on the Ishigami test function match published values within 5%.
