@@ -1,0 +1,62 @@
+cff-version: 1.2.0
+message: "If you use H2STAR, please cite it using the metadata below."
+title: "H2STAR: an open, uncertainty-aware materials-to-system model for sorbent-based hydrogen storage"
+abstract: >-
+  H2STAR translates the measurable adsorption properties of carbon sorbents into
+  the system-level gravimetric and volumetric performance of a complete onboard
+  hydrogen-storage tank, and inverts that translation to derive the
+  material-property requirements implied by DOE system targets. It couples
+  real-gas hydrogen thermodynamics, a modified Dubinin-Astakhov supercritical
+  isotherm, tank inventory with a dual-bookkeeping invariant, vessel and system
+  mass budgets, Monte Carlo uncertainty propagation and Sobol global sensitivity
+  analysis, under pre-registered validation gates. Its central finding is
+  methodological: the isotherm parameters are not identifiable from the
+  single-temperature data the literature routinely publishes, so the defensible
+  deliverable is an uncertainty-quantified acceptability region rather than a
+  point prediction of the material requirement.
+type: software
+authors:
+  - given-names: Avin
+    family-names: Gupta
+    email: iamavingupta@gmail.com
+    orcid: "https://orcid.org/0009-0009-4133-2275"
+repository-code: "https://github.com/AvinGupta-ship-it/h2star"
+license: MIT
+version: 0.2.0
+date-released: "2026-10-08"
+keywords:
+  - hydrogen storage
+  - physisorption
+  - activated carbon
+  - carbon nanotubes
+  - Dubinin-Astakhov
+  - uncertainty quantification
+  - Sobol sensitivity analysis
+  - inverse design
+  - reproducibility
+references:
+  - type: article
+    authors:
+      - family-names: Richard
+        given-names: Marc-Andre
+      - family-names: Benard
+        given-names: Pierre
+      - family-names: Chahine
+        given-names: Richard
+    title: "Gas adsorption process in activated carbon over a wide temperature range above the critical point. Part 1: modified Dubinin-Astakhov model"
+    journal: Adsorption
+    volume: 15
+    year: 2009
+    doi: 10.1007/s10450-009-9149-x
+    notes: "Isotherm model and the AX-21 parameters that anchor Gate V2."
+  - type: software
+    authors:
+      - given-names: Avin
+        family-names: Gupta
+        orcid: "https://orcid.org/0009-0009-4133-2275"
+    title: "HyCAN-DB: a FAIR database of hydrogen sorption measurements in carbon nanomaterials"
+    doi: 10.5281/zenodo.23231985
+    notes: >-
+      Companion project. HyCAN-DB supplies the measurements this model converts
+      into system-level consequence; the carbon-nanotube case study is drawn
+      entirely from its corpus.
