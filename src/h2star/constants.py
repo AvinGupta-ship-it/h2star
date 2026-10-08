@@ -23,6 +23,14 @@ PA_PER_BAR = 1.0e5
 #: Pascals per megapascal (exact).
 PA_PER_MPA = 1.0e6
 
+#: Usable hydrogen a light-duty system must deliver, kg (manual 2.5). Tanks are
+#: sized to this mission rather than to a fixed volume, so that comparing two
+#: materials compares the systems they would require, not systems that happen to
+#: share a volume. Defined here, once, because both the sizing solver and the
+#: envelope layer need it and two independent 5.6 literals would be two things
+#: to keep in step.
+DEFAULT_TARGET_USABLE_KG = 5.6
+
 
 def bar_to_pa(p):
     """Convert pressure from bar to pascals (Pa).

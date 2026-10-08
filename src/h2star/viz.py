@@ -4,6 +4,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 
 from .heats import isosteric_heat
 
@@ -319,3 +321,257 @@ def plot_system_validation(
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, (ax_gc, ax_vc)
+
+
+#: Standing caption note for any figure whose axis carries an ABSOLUTE system
+#: gravimetric or volumetric capacity. Gate V3 established that the system mass
+#: denominator -- an idealized thin-wall composite vessel plus a fixed
+#: balance-of-plant mass -- is light by a factor of about 4.2 against the HSECoE
+#: AX-21 anchor, so every absolute capacity this model reports is an optimistic
+#: bound. Manual 4.2.3 requires the note on F4, F5, F6 and F8; keeping the
+#: wording in one constant stops the figures from drifting apart.
+GATE_V3_NOTE = (
+    "System mass model is an optimistic bound: Gate V3 (documented FAIL) "
+    "places the vessel + insulation + BOP block ~4.2x light vs the HSECoE "
+    "AX-21 anchor. Relative structure is robust; absolute levels are not."
+)
+
+#: Axis labels, with units, for the material parameters the maps may sweep.
+_PARAM_LABELS = {
+    "n_max": "Limiting uptake $n_{\\mathrm{max}}$ (mol kg$^{-1}$)",
+    "alpha": "Enthalpic factor $\\alpha$ (J mol$^{-1}$)",
+    "beta": "Entropic factor $\\beta$ (J mol$^{-1}$ K$^{-1}$)",
+    "p0": "Pseudo-saturation pressure $P_0$ (Pa)",
+    "v_a": "Adsorbed-phase volume $v_a$ (m$^3$ kg$^{-1}$)",
+    "rho_bulk": "Packed bulk density $\\rho_{\\mathrm{bulk}}$ (kg m$^{-3}$)",
+    "rho_skel": "Skeletal density $\\rho_{\\mathrm{skel}}$ (kg m$^{-3}$)",
+}
+
+
+def _param_label(name):
+    """Axis label with units for a swept material parameter."""
+    return _PARAM_LABELS.get(name, name)
+
+
+def plot_forward_maps(grid, targets=None, title=None, savepath=None):
+    """Forward GC and VC maps over the full state (F5).
+
+    Two filled-contour panels over full-state pressure and temperature at a
+    fixed swing endpoint, with the DOE target level drawn as a single bold
+    contour on each so the reader can see directly where the model crosses it.
+
+    Performs NO physics: ``grid`` is consumed exactly as
+    :func:`h2star.envelope.forward_map` returns it.
+
+    Parameters
+    ----------
+    grid : dict
+        Output of :func:`h2star.envelope.forward_map`, carrying ``P_full``
+        (Pa), ``T_full`` (K), ``GC`` (kg/kg) and ``VC`` (kg/L).
+    targets : object, optional
+        Anything exposing ``gc`` (kg/kg), ``vc`` (kg/L) and ``label``; the DOE
+        tier from :func:`h2star.inverse.load_doe_targets`. When given, each
+        panel gains a target contour.
+    title : str, optional
+        Figure suptitle. A default naming the swing endpoint is used if absent.
+    savepath : str or pathlib.Path, optional
+        If given, the figure is saved here at 300 dpi with a tight bounding
+        box. The parent directory must already exist.
+
+    Returns
+    -------
+    tuple
+        ``(fig, (ax_gc, ax_vc))``.
+    """
+    P_bar = np.asarray(grid["P_full"], dtype=float) / 1.0e5
+    T = np.asarray(grid["T_full"], dtype=float)
+
+    fig, (ax_gc, ax_vc) = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
+
+    panels = (
+        (ax_gc, np.asarray(grid["GC"], dtype=float), "viridis",
+         "System gravimetric capacity (kg kg$^{-1}$)",
+         None if targets is None else targets.gc),
+        (ax_vc, np.asarray(grid["VC"], dtype=float), "magma",
+         "System volumetric capacity (kg L$^{-1}$)",
+         None if targets is None else targets.vc),
+    )
+
+    for ax, field, cmap, cbar_label, target_level in panels:
+        filled = ax.contourf(P_bar, T, field, levels=18, cmap=cmap)
+        fig.colorbar(filled, ax=ax, label=cbar_label)
+
+        lines = ax.contour(P_bar, T, field, levels=8, colors="white",
+                           linewidths=0.6, alpha=0.6)
+        ax.clabel(lines, inline=True, fontsize=7, fmt="%.3f")
+
+        finite = field[np.isfinite(field)]
+        if target_level is not None and finite.size:
+            if finite.min() < target_level < finite.max():
+                ax.contour(P_bar, T, field, levels=[target_level],
+                           colors="red", linewidths=2.2)
+                # Matplotlib will not accept a ContourSet as a legend handle,
+                # so the legend entry is a proxy line drawn in the same style.
+                ax.legend(
+                    handles=[
+                        Line2D([], [], color="red", linewidth=2.2,
+                               label=f"{targets.label} target")
+                    ],
+                    loc="upper right", frameon=True, fontsize=8,
+                )
+            else:
+                side = "above" if finite.min() >= target_level else "below"
+                ax.text(
+                    0.98, 0.02,
+                    f"{targets.label} target ({target_level:g}) is {side}\n"
+                    f"the whole mapped range",
+                    transform=ax.transAxes, ha="right", va="bottom",
+                    fontsize=7, color="red",
+                )
+
+        ax.set_xlabel("Full-state pressure (bar)")
+        ax.grid(True, alpha=0.2, linestyle=":")
+
+    ax_gc.set_ylabel("Full-state temperature (K)")
+
+    fig.suptitle(title or "Forward system capacity maps (AX-21)")
+    fig.text(0.5, -0.02, GATE_V3_NOTE, ha="center", va="top", fontsize=7,
+             style="italic", wrap=True)
+    fig.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=300, bbox_inches="tight")
+
+    return fig, (ax_gc, ax_vc)
+
+
+def plot_acceptability_maps(maps, reference_points=None, title=None,
+                            savepath=None):
+    """Material acceptability maps in two parameter planes (F6).
+
+    One panel per map. The acceptable region -- where the system meets both the
+    gravimetric and the volumetric target -- is shaded, each target's own
+    boundary is drawn as a labelled contour so the reader can see which of the
+    two is binding where, and parameter combinations that are not coherent
+    materials at all are hatched rather than left blank.
+
+    This is the deterministic draft of the signature figure. The published
+    version redraws the boundary as a Monte Carlo probability band once the
+    uncertainty layer exists; a single line here asserts a sharpness the
+    underlying parameter estimates do not support (manual 4.1, 4.3).
+
+    Performs NO physics: each entry of ``maps`` is consumed exactly as
+    :func:`h2star.inverse.acceptability_map` returns it.
+
+    Parameters
+    ----------
+    maps : sequence of dict
+        One acceptability-map result per panel.
+    reference_points : dict, optional
+        ``{label: {parameter_name: value}}``. A point is plotted on a panel
+        only when both of that panel's swept parameters are present in its
+        mapping, so one dictionary can serve panels in different planes.
+    title : str, optional
+        Figure suptitle.
+    savepath : str or pathlib.Path, optional
+        If given, the figure is saved here at 300 dpi with a tight bounding
+        box.
+
+    Returns
+    -------
+    tuple
+        ``(fig, axes)`` with one axis per map.
+    """
+    maps = list(maps)
+    fig, axes = plt.subplots(1, len(maps), figsize=(6.5 * len(maps), 5.5),
+                             squeeze=False)
+    axes = list(axes[0])
+
+    for ax, result in zip(axes, maps):
+        x = np.asarray(result["x_values"], dtype=float)
+        y = np.asarray(result["y_values"], dtype=float)
+        gc = np.asarray(result["GC"], dtype=float)
+        vc = np.asarray(result["VC"], dtype=float)
+        feasible = np.asarray(result["feasible"], dtype=bool)
+        evaluable = np.asarray(result["evaluable"], dtype=bool)
+        targets = result["targets"]
+
+        # Legend handles are built as proxies: Matplotlib will not accept a
+        # ContourSet or a hatch fill as a legend handle.
+        handles = []
+
+        # Acceptable region.
+        ax.contourf(x, y, feasible.astype(float), levels=[0.5, 1.5],
+                    colors=["tab:green"], alpha=0.30)
+        handles.append(
+            Patch(facecolor="tab:green", alpha=0.30,
+                  label="Meets both targets")
+        )
+
+        # Nodes that are not coherent materials, kept visually distinct from
+        # nodes that are merely below target.
+        if not evaluable.all():
+            mask = (~evaluable).astype(float)
+            # A grey fill carries the region even where the hatch is too fine
+            # to read; the hatch distinguishes it from a low-capacity region.
+            ax.contourf(x, y, mask, levels=[0.5, 1.5],
+                        colors=["lightgrey"], alpha=0.55)
+            ax.contourf(x, y, mask, levels=[0.5, 1.5],
+                        colors=["none"], hatches=["xx"])
+            ax.contour(x, y, mask, levels=[0.5], colors="dimgrey",
+                       linewidths=0.9, linestyles=":")
+            handles.append(
+                Patch(facecolor="lightgrey", alpha=0.55, edgecolor="dimgrey",
+                      hatch="xx",
+                      label="Not a coherent material (void volume $<$ 0)")
+            )
+
+        for field, level, colour, label in (
+            (gc, targets.gc, "tab:blue", f"GC = {targets.gc:g} kg kg$^{{-1}}$"),
+            (vc, targets.vc, "tab:orange", f"VC = {targets.vc:g} kg L$^{{-1}}$"),
+        ):
+            finite = field[np.isfinite(field)]
+            if finite.size and finite.min() < level < finite.max():
+                ax.contour(x, y, field, levels=[level], colors=colour,
+                           linewidths=2.0)
+                handles.append(
+                    Line2D([], [], color=colour, linewidth=2.0, label=label)
+                )
+
+        if reference_points:
+            for label, coords in reference_points.items():
+                if result["param_x"] in coords and result["param_y"] in coords:
+                    marker, = ax.plot(
+                        coords[result["param_x"]],
+                        coords[result["param_y"]],
+                        marker="*", markersize=15, linestyle="none",
+                        markeredgecolor="k", markerfacecolor="white",
+                        zorder=5, label=label,
+                    )
+                    handles.append(marker)
+
+        ax.set_xlabel(_param_label(result["param_x"]))
+        ax.set_ylabel(_param_label(result["param_y"]))
+        point = result["operating_point"]
+        ax.set_title(
+            f"Acceptable region vs {targets.label}\n"
+            f"{point.P_full / 1e5:.0f} bar / {point.T_full:.0f} K full, "
+            f"{point.P_empty / 1e5:.0f} bar / {point.T_empty:.0f} K empty",
+            fontsize=10,
+        )
+        ax.legend(handles=handles, loc="best", fontsize=8, frameon=True)
+        ax.grid(True, alpha=0.2, linestyle=":")
+
+    fig.suptitle(
+        title
+        or "Material acceptability map (deterministic draft; "
+           "uncertainty band added at Gate V4)"
+    )
+    fig.text(0.5, -0.03, GATE_V3_NOTE, ha="center", va="top", fontsize=7,
+             style="italic", wrap=True)
+    fig.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=300, bbox_inches="tight")
+
+    return fig, axes

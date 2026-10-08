@@ -38,6 +38,7 @@ import yaml
 from scipy.optimize import brentq
 
 from . import tank, vessel
+from .constants import DEFAULT_TARGET_USABLE_KG
 
 #: Units each insulation parameter must declare in the YAML file (SI values).
 _EXPECTED_INSULATION_UNITS = {
@@ -501,7 +502,8 @@ def evaluate(design, V_internal):
 
 
 def size_for_usable(
-    design, target_usable_kg=5.6, bracket=(1.0e-3, 5.0), xtol=1.0e-12
+    design, target_usable_kg=DEFAULT_TARGET_USABLE_KG,
+    bracket=(1.0e-3, 5.0), xtol=1.0e-12
 ):
     """Solve for the internal volume delivering a target usable H2 mass.
 
