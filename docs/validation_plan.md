@@ -500,3 +500,130 @@ below_the_deterministic_requirement` pins it.
 
 Author: Avin Gupta. Tolerances unchanged since declaration earlier the same day,
 before `uq.py` and `sensitivity.py` existed; verifiable from `git log`.
+
+---
+
+## CNT case study — result and the reframing of claim C4 (2026-10-08)
+
+Not a gate. Recorded here because it revises a claim the manual states, and a
+claim revision belongs next to the evidence that forced it.
+
+### What C4 was, and why it cannot be reported as written
+
+Manual 2.12 C4: "the best credible reported CNT uptake corresponds to a system
+gravimetric capacity a quantified factor below target, decomposed by cause."
+
+That claim cannot be made honestly from this model. The model puts the
+best-provenanced CNT entry at a system GC of **0.0571 kg/kg** against the DOE
+2025 target of 0.055 — i.e. *above* it — and it puts AX-21 activated carbon at
+0.0652, also above it. Both are artifacts of the Gate V3 gap, which makes every
+absolute system GC this model reports optimistic by roughly a factor of 4.2 in
+the mass denominator (§4.2). A claim that CNTs fall short of the DOE target by
+a stated factor would be quoting a number the model is not entitled to.
+
+Stating that plainly rather than quietly reporting a flattering absolute figure
+is the point. C4 is therefore rewritten to a RELATIVE form, which survives the
+Gate V3 bias because bias in a shared denominator cancels in a ratio.
+
+### C4, rewritten
+
+**At the 100 bar / 80 K cryo-adsorption envelope, the best-provenanced reported
+carbon-nanotube uptake implies a system gravimetric capacity of 0.88x that of
+AX-21 activated carbon — a sorbent characterised in 1988. No entry in the
+corpus that passes a physical-consistency screen exceeds AX-21, and the two
+entries that appear to are the two the screen rejects.**
+
+Relative system GC at the same envelope, against AX-21 = 1.00:
+
+| entry | reported | inferred n_max | system GC | vs AX-21 | screen |
+|---|---|---|---|---|---|
+| liu2010 | 1.7 wt% @ 292 K, 12.2 MPa | 53.5 mol/kg | 0.0571 | **0.88x** | accepted |
+| takagi2004 | 1.8 wt% @ 77 K, 0.1 MPa | 57.0 mol/kg | 0.0587 | 0.90x | accepted |
+| zhou2004 | 0.175 wt% @ 233 K, 6 MPa | 6.6 mol/kg | 0.0320 | 0.49x | accepted |
+| tibbetts2001 | 0.050 wt% @ 296 K, 3.59 MPa | 4.6 mol/kg | 0.0307 | 0.47x | accepted |
+| liu1999 | 4.2 wt% @ 298 K, 10 MPa | 163.0 mol/kg | — | — | **rejected** |
+| qikun2002 | 8.0 wt% @ 298 K, 0.14 MPa | none exists | — | — | **rejected** |
+| chen1999 | 20 wt% @ 653 K, 1 atm | — | — | — | out of scope |
+
+### The physical-consistency screen, and what it independently found
+
+The screen is not a new criterion invented for this case study. It is the
+pore-volume constraint established in §V4's unanticipated finding, written
+before any CNT value was touched: the adsorbed phase has to fit inside
+`1/rho_bulk - 1/rho_skel`, which caps the limiting uptake at 104.9 mol/kg on the
+fit's own v_a-n_max correlation and 124.1 mol/kg on assumption A-ISO-4's
+liquid-hydrogen argument.
+
+Applied to the corpus it rejects exactly two entries, and they are exactly the
+two the experimental literature contests:
+
+- **liu1999** (4.2 wt%, *Science* 1999, the field's most-cited CNT claim)
+  implies n_max = 163.0 mol/kg, beyond BOTH limits. The reported uptake
+  requires a material whose adsorbed phase would exceed its own pore volume.
+- **qikun2002** (8.0 wt%) is worse: **no limiting uptake at all** reproduces
+  the reported point. 43.1 mol/kg at 0.14 MPa is outside what the modified
+  Dubinin-Astakhov form can deliver at that state for any n_max.
+
+Both rejections are independent of the experimental arguments that were made
+against those values at the time. Tibbetts et al. (2001) questioned liu1999 on
+calibration and thermal-equilibrium grounds, and Liu et al. (2010) — the same
+senior author and laboratory — stated that "our previous reported hydrogen
+storage capacities were overestimated." This model reaches the same verdict from
+a pore-volume argument that uses none of that evidence. Agreement between an
+experimental objection and an independent thermodynamic one is worth more than
+either alone, and it is the strongest validation the inverse framework has
+received.
+
+The four entries the screen accepts are the four with the strongest stated
+provenance: reversible isotherms, hydride-calibrated apparatus, and in two cases
+an explicit cross-instrument check. The screen was not tuned to produce that
+alignment.
+
+### What the case study rests on, stated as assumptions
+
+Every inferred limiting uptake above is the output of an inference chain, not a
+measurement, and the chain is as weak as its weakest link:
+
+1. The D-A functional form describes a nanotube sample. Untested: no CNT paper
+   in the corpus reports an isotherm shape.
+2. alpha, beta and p0 transfer from AX-21 to a nanotube. These set the
+   temperature and pressure dependence, so every extrapolation away from the
+   reported state depends on them. liu2010's datum is extrapolated 212 K
+   downward; takagi2004's is extrapolated two decades in pressure.
+3. v_a, rho_bulk and rho_skel transfer too. **No CNT paper in the corpus reports
+   a packed bulk density at all**, and the Stage 3 Sobol study ranks v_a as the
+   single largest contributor to system-capacity variance.
+4. The excess/absolute basis is assumed, because **none of the seven papers
+   states it**. On liu2010 that ambiguity alone moves the inferred limiting
+   uptake from 53.5 to 95.2 mol/kg, a factor of 1.78, and the system GC from
+   0.0571 to 0.0748. It is drawn as the whisker on F8's left panel because it
+   is larger than any engineering uncertainty in the cascade.
+
+### A convention determined rather than assumed
+
+One ambiguity was resolved from a primary source instead of being declared.
+"x weight percent hydrogen" may mean `m_H2/(m_H2 + m_sorbent)` or
+`m_H2/m_sorbent`. Liu 1999 reports "4.2 weight percent, or a hydrogen to carbon
+atom ratio of 0.52": the total-mass convention gives H/C = 0.5224 and the
+sorbent-mass convention gives 0.5005. The paper is on the total-mass basis, and
+that is the default in `inverse.wt_percent_to_mass_ratio`, with
+`inverse.hydrogen_to_carbon_ratio` available to run the same check on any other
+paper that reports both quantities.
+
+### The corpus finding, which is C5's mechanism in a second form
+
+Across the five physisorption entries reporting a room-temperature value, the
+reported uptake spans 0.050 to 8.0 wt% — **a factor of 160 on nominally the
+same class of material.** Two of those five are rejected by a physical screen.
+None of the seven states its measurement basis. One of seven reports a bulk
+density. Two of seven print no DOI.
+
+That is not a criticism of the papers, several of which are unusually careful
+about their own apparatus. It is a statement about what the literature, taken
+together, does and does not determine — and it is the same conclusion §V4.4
+reached from the fit covariance, arrived at from the other direction. C5's case
+for provenance-tiered, multi-temperature curation does not rest on the
+uncertainty analysis alone.
+
+Author: Avin Gupta. Claim C4 as rewritten above requires his sign-off per manual
+§5.7 before it is used anywhere outside this record.

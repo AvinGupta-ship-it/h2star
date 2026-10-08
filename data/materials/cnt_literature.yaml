@@ -1,0 +1,314 @@
+name: "Reported hydrogen uptake in carbon nanotubes and nanofibres"
+description: >
+  Representative reported uptakes for carbon-nanotube and carbon-nanofibre
+  samples, for the H2STAR CNT case study (manual 2.12 claim C4). Every entry was
+  read from the primary paper itself, not from a review or a secondary table,
+  and every number below is accompanied by the verbatim sentence or table cell
+  it came from. Where a paper does not state something, the field says so
+  rather than carrying an inferred value.
+
+  The set spans the full contested range deliberately, from 20 wt% down to
+  0.05 wt%, because the spread IS the subject. Three of the entries form a
+  closed provenance chain within this corpus: Liu 1999 reports 4.2 wt%,
+  Tibbetts 2001 questions that result by name, and Liu 2010 -- same senior
+  author, same laboratory -- states that the earlier values were overestimated.
+date_accessed: "2026-10-08"
+citation: >
+  Primary sources individually cited per entry below. Papers drawn from the
+  HyCAN-DB corpus (concept DOI 10.5281/zenodo.23231985), which is the interlock
+  manual 1.2 describes: the database supplies the measurements, this model
+  supplies their system-level consequence.
+
+# ---------------------------------------------------------------------------
+# What this file does NOT contain, and why that is the point.
+#
+# H2STAR's system model needs a full modified Dubinin-Astakhov parameter vector
+# (n_max, alpha, beta, p0, v_a) plus a packed bulk density and a skeletal
+# density. NOT ONE of the papers below reports any of those. They report a
+# single uptake at a single temperature and pressure. Converting such a point
+# into a system prediction therefore requires an inference chain, and every
+# link in it is an assumption rather than a measurement. The chain is
+# implemented in `inverse.material_from_reported_uptake` and documented there.
+#
+# Two omissions are worth naming separately because they are not incidental:
+#
+#   1. NONE of the seven papers states whether its uptake is Gibbsian excess or
+#      total/absolute adsorption. Every `basis` field below reads
+#      "not_stated". For a tank model this is the difference between the
+#      quantity the instrument measured and the quantity the model needs, and
+#      at 100 bar it is not a small difference. Manual 2.14 FM1 calls this the
+#      single most common fatal error in the literature; the literature does
+#      not record which side of it each measurement falls on.
+#
+#   2. NONE of them reports a packed bulk density, and only some report a
+#      surface area. Packing density enters the system volume directly and the
+#      Stage 3 Sobol study ranks it as a contributor; it is simply absent.
+#
+# These are findings about the corpus, recorded here so the case study's
+# uncertainty is attributable rather than mysterious.
+# ---------------------------------------------------------------------------
+
+entries:
+
+  - key: "liu1999"
+    label: "Liu 1999 (SWNT, acid + vacuum heat treated)"
+    citation: "Liu, C.; Fan, Y. Y.; Liu, M.; Cong, H. T.; Cheng, H. M.; Dresselhaus, M. S. Hydrogen Storage in Single-Walled Carbon Nanotubes at Room Temperature. Science 1999, 286 (5442), 1127-1129."
+    doi: "10.1126/science.286.5442.1127"
+    doi_source: "printed in the PDF (Science cover sheet)"
+    hycan_id: "HYC-0002"
+    material: "Single-walled carbon nanotubes, mean diameter ~1.85 nm, hydrogen arc discharge; soaked in 37% HCl for 48 h then vacuum heat-treated 2 h at 773 K (sample 3)"
+    purity_stated: "about 50 to 60 weight % SWNT"
+    uptake:
+      value: 4.2
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 298
+      pressure_MPa: 10.0
+      quote: "A hydrogen storage capacity of 4.2 weight percent, or a hydrogen to carbon atom ratio of 0.52, was achieved reproducibly at room temperature under a modestly high pressure (about 10 megapascal) for a SWNT sample of about 500 milligram weight that was soaked in hydrochloric acid and then heat-treated in vacuum."
+      quote_location: "abstract, p. 1127"
+    method: "volumetric (Sieverts-type) pressure drop, cross-checked gravimetrically"
+    stated_uncertainty: "The values reported have an error of <0.38 weight % (Table 1 caption, p. 1128)"
+    bulk_density_stated: null
+    surface_area_stated: null
+    provenance_note: >
+      INTERNAL INCONSISTENCY IN THE SOURCE: the abstract says "about 10
+      megapascal" while the Table 1 caption says the sample was "exposed to 100
+      to 120 atm of H2 at 298 K", i.e. 10.1-12.2 MPa. The lower abstract figure
+      is recorded above as the conservative reading, and the discrepancy is
+      recorded rather than resolved. The paper also reports that 21-25% of the
+      hydrogen did not desorb on return to ambient pressure, which is not
+      consistent with reversible physisorption.
+      SUPERSEDED BY THE SAME GROUP: see entry liu2010.
+    reproducibility_tier: "contested - superseded by the authors' own later work"
+
+  - key: "chen1999"
+    label: "Chen 1999 (Li-doped MWNT)"
+    citation: "Chen, P.; Wu, X.; Lin, J.; Tan, K. L. High H2 Uptake by Alkali-Doped Carbon Nanotubes under Ambient Pressure and Moderate Temperatures. Science 1999, 285 (5424), 91-93."
+    doi: "10.1126/science.285.5424.91"
+    doi_source: "printed in the PDF (Science cover sheet)"
+    hycan_id: "HYC-0062"
+    material: "Li-doped multiwalled carbon nanotubes from CH4 catalytic decomposition; >90% MWCNT, 70% in the 25-35 nm diameter range; Li/C ~1/15 by XPS"
+    purity_stated: "more than 90% of the product was in the form of multiwalled CNTs"
+    uptake:
+      value: 20.0
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 653
+      pressure_MPa: 0.101325
+      quote: "When the Li-doped CNT sample was maintained at 653 K for 2 hours, the H2 uptake reached 20 weight % H2 at ambient pressure."
+      quote_location: "p. 92"
+    method: "thermogravimetric analysis (TGA) in flowing H2, with TPD and in-situ FTIR"
+    stated_uncertainty: "none given for any uptake value; no calibration against a reference hydride reported"
+    bulk_density_stated:
+      value: 0.9
+      unit: "g/cm3"
+      quote_location: "p. 91, for Li-doped CNT"
+    surface_area_stated:
+      value: 130
+      unit: "m2/g"
+      quote_location: "p. 91, undoped CNT"
+    provenance_note: >
+      EXCLUDED FROM THE PHYSISORPTION CASE STUDY, on the paper's own account of
+      its mechanism: "the H2 uptake under the conditions used in this study
+      (ambient pressure, moderate temperatures, presence of alkali metals) is
+      actually a dissociative hydrogenation of the carbon sorbents" (p. 92),
+      with FTIR evidence for LiH and C-H formation. A chemical hydride at 653 K
+      is outside H2STAR's scope, which is reversible physisorption on a
+      cryo-adsorption envelope (manual 2.3). Retained in this file because it
+      is the upper extreme of the contested range and because excluding it
+      silently would misrepresent the spread.
+      This result was widely attributed afterwards to moisture in the gas
+      stream. On that specific question the paper itself is silent: water
+      appears once, as something removed by an 873 K H2 pretreatment before
+      TGA, and nowhere as a possible contributor to the measured mass gain. No
+      gas analysis of the desorbed species beyond "H2 being the only desorption
+      product" by TPD is reported. That silence is recorded as what the primary
+      source does and does not say; this file does not adjudicate the later
+      literature.
+    reproducibility_tier: "out of scope - chemisorption by the paper's own analysis"
+
+  - key: "qikun2002"
+    label: "Wang Qikun 2002 (CVD MWNT film on Si)"
+    citation: "Wang Qikun; Zhu Changchun; Liu Weihua; Wu Ting. Hydrogen storage by carbon nanotube and their films under ambient pressure. International Journal of Hydrogen Energy 2002, 27, 497-500."
+    doi: null
+    doi_source: "DOI not printed in PDF; PII S0360-3199(01)00162-8"
+    hycan_id: "HYC-0011"
+    material: "Coiled and tangled multiwalled CNT film grown on Si by CVD from C2H2 with Fe(OH)3 sol catalyst; film 2.5-10 um thick"
+    purity_stated: "not stated for the film samples"
+    uptake:
+      value: 8.0
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 298
+      pressure_MPa: 0.14
+      quote: "The CNTs film scraped from the Si substrate was weighed (9.0 mg) and when ignoring the effect of the substrate, the H2 uptake capacity of CNTs was worked out to be 8.0 wt% much higher than sample 1."
+      quote_location: "p. 498"
+    method: "volumetric pressure decay with a MEMS vacuum sensor, 20 Pa accuracy"
+    stated_uncertainty: "none given for any uptake value; no calibration against a reference hydride reported"
+    bulk_density_stated: null
+    surface_area_stated: null
+    provenance_note: >
+      The 8.0 wt% rests on a stated but untested assumption, quoted above:
+      "when ignoring the effect of the substrate", with a 9.0 mg scraped-film
+      mass against a 3x4 cm Si substrate. The paper's own powder sample,
+      measured on the same apparatus, gave 0.26, 0.21 and 0.22 wt% in three
+      runs. The paper also records an unexplained pressure RISE in its own data
+      between 10 and 20 h. Recorded as the second extreme of the contested
+      range.
+    reproducibility_tier: "contested - headline value depends on an untested mass assumption"
+
+  - key: "zhou2004"
+    label: "Zhou 2004 (purified MWNT)"
+    citation: "Zhou, L.; Zhou, Y.; Sun, Y. Enhanced storage of hydrogen at the temperature of liquid nitrogen. International Journal of Hydrogen Energy 2004, 29, 475-479."
+    doi: "10.1016/S0360-3199(03)00092-2"
+    doi_source: "printed in the PDF, p. 475"
+    hycan_id: "HYC-0052"
+    material: "Multiwalled CNT from catalytic decomposition of acetylene over pre-reduced LaCoO3; washed in toluene/methanol, then HCl and HNO3, amorphous carbon oxidized in CO2; wall thickness and inner diameter both ~10 nm"
+    purity_stated: "the sample was fairly purified and an open end was clearly shown"
+    uptake:
+      value: 0.175
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 233
+      pressure_MPa: 6.0
+      quote: "Table 1, column 'Amount of H2 adsorbed on MWNT at 6 MPa, wt%', row T = 233 K: 0.175"
+      quote_location: "Table 1, p. 477"
+    method: "volumetric, helium void-volume determination, reference cell in double thermostats to +/-0.05 K"
+    stated_uncertainty: "no uncertainty attached to the individual wt% figures; transducer non-linearity <0.05% over 20 MPa"
+    bulk_density_stated: null
+    surface_area_stated:
+      value: 137
+      unit: "m2/g"
+      quote_location: "p. 476, BET from N2 at 77 K, attributed to the authors' ref [21]"
+    provenance_note: >
+      YEAR CORRECTED: the HyCAN-DB filename reads zhou2003 and the paper was
+      accepted in March 2003, but it is published in volume 29 (2004). The
+      citable year is 2004.
+      This is the same laboratory that measured AX-21 for comparison in the
+      same paper, and it found activated carbon to adsorb "3.6-5.1 times
+      higher than on MWNT sample at pressure 6 MPa" (p. 477) -- a direct
+      like-for-like comparison on one apparatus, which is rare in this corpus.
+    reproducibility_tier: "high - reversible, same-apparatus comparison against AX-21"
+
+  - key: "tibbetts2001"
+    label: "Tibbetts 2001 (nine carbons, skeptical survey)"
+    citation: "Tibbetts, G. G.; Meisner, G. P.; Olk, C. H. Hydrogen storage capacity of carbon nanotubes, filaments, and vapor-grown fibers. Carbon 2001, 39, 2291-2301."
+    doi: null
+    doi_source: "DOI not printed in PDF; PII S0008-6223(01)00051-3"
+    hycan_id: "HYC-0051"
+    material: "Rice University nanotube bundles (the best-performing nanotube sample of nine carbons surveyed)"
+    purity_stated: "overwhelmingly composed of uniformly sized bundles of nanotubes with only a small component of soot"
+    uptake:
+      value: 0.050
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 296
+      pressure_MPa: 3.59
+      quote: "Table 1, 'Hydrogen capacities measured for various carbons at 23 C', PCI system (3.59 MPa): Rice nanotubes 0.050"
+      quote_location: "Table 1, p. 2298"
+    method: "two independent volumetric systems, with empty-chamber background subtraction; LaNi5 and Nd2Fe14B as calibration standards"
+    stated_uncertainty: "In fact, the sorption is so small that we must pay careful attention to calibration to get reliable answers (abstract, p. 2291); apparatus hysteresis itself equivalent to 0.07 wt%"
+    bulk_density_stated: null
+    surface_area_stated: null
+    provenance_note: >
+      The skeptical pole of the contested range, and the paper that questions
+      liu1999 by name: "These similarities lead us to question whether their
+      results are sorption or simply a return to thermal equilibrium after
+      pressurization" (p. 2299, citing Liu et al. as its ref [19]). Its general
+      verdict: "We believe that in all cases so far claims of more than 1 wt.%
+      at room temperature are erroneous and due simply to experimental errors"
+      (p. 2300). The largest value it measured for ANY carbon was 0.070 wt%
+      (air-etched vapour-grown carbon fibre).
+      It also calibrated against two reference hydrides and reproduced their
+      published capacities, which is the strongest internal validation in this
+      corpus.
+    reproducibility_tier: "high - dual apparatus, hydride-calibrated, background-subtracted"
+
+  - key: "takagi2004"
+    label: "Takagi 2004 (nitric-acid-treated SWCNT, 77 K)"
+    citation: "Takagi, H.; Hatori, H.; Soneda, Y.; Yoshizawa, N.; Yamada, Y. Adsorptive hydrogen storage in carbon and porous materials. Materials Science and Engineering B 2004, 108, 143-147."
+    doi: "10.1016/j.mseb.2003.10.095"
+    doi_source: "printed in the PDF, p. 143"
+    hycan_id: "HYC-0007"
+    material: "HiPco single-walled carbon nanotubes stirred 60 h in 4 M HNO3, then 24 h in 5 M HCl, washed, and heated in H2 flow at 973 K (A-SWCNT)"
+    purity_stated: "9 wt% residual metal; uptake expressed by weight exclusive of metal"
+    uptake:
+      value: 1.8
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 77
+      pressure_MPa: 0.1
+      quote: "However, the amount of adsorption increased remarkably upon treatment with nitric acid and reached 1.8 wt.% at 0.1 MPa."
+      quote_location: "p. 145"
+    method: "volumetric (BELSORP 28SA at 77 K); six-point stated accuracy protocol; LaNi5 calibration gave 1.42 wt%; desorption isotherm measured, no hysteresis"
+    stated_uncertainty: "no numeric uncertainty, but reversibility confirmed and calibration reproduced"
+    bulk_density_stated: null
+    surface_area_stated:
+      value: 710
+      unit: "m2/g"
+      quote_location: "Table 1, p. 144, micropore surface area of A-SWCNT by alpha-s plot"
+    provenance_note: >
+      The most rigorously documented CRYOGENIC CNT measurement in this corpus,
+      and the one nearest H2STAR's own envelope in temperature. Its pressure is
+      not: 0.1 MPa against the model's 10 MPa full state, so it constrains the
+      low-pressure end of an isotherm and says nothing directly about uptake at
+      the system's operating pressure. The paper notes its A-SWCNT reaches only
+      710 m2/g against a theoretical 2630 m2/g.
+    reproducibility_tier: "high - reversible, calibrated, explicit accuracy protocol"
+
+  - key: "liu2010"
+    label: "Liu 2010 (purified SWCNT; the authors' own corrected value)"
+    citation: "Liu, C.; Chen, Y.; Wu, C.-Z.; Xu, S.-T.; Cheng, H.-M. Hydrogen storage in carbon nanotubes revisited. Carbon 2010, 48, 452-455."
+    doi: "10.1016/j.carbon.2009.09.060"
+    doi_source: "printed in the PDF, p. 452"
+    hycan_id: "HYC-0012"
+    material: "Single-walled carbon nanotubes, 1.8 nm mean diameter, hydrogen arc discharge; purified by mechanical crushing, nitric acid, H2O2 reflux, NaOH sonication and water washing"
+    purity_stated: "about 95% based on thermal gravimetric analysis and TEM"
+    uptake:
+      value: 1.7
+      unit: "wt%"
+      basis: "not_stated"
+      temperature_K: 292.15
+      pressure_MPa: 12.20
+      quote: "Table 1: Purified SWCNTs | 19.0 | 12.20 | 229 | 1.7"
+      quote_location: "Table 1, p. 454"
+    method: "volumetric (Sieverts); leak rate 3.02e-8 mmol/s; LaNi5 calibration reproduced 1.4 wt%; three samples cross-checked on a second independent apparatus giving 0.7-0.9 wt%"
+    stated_uncertainty: "no interval on the 1.7 wt% itself; the independent-apparatus cross-check on the same samples gave 0.7-0.9 wt%, roughly half"
+    bulk_density_stated: null
+    surface_area_stated:
+      value: 229
+      unit: "m2/g"
+      quote_location: "Table 1, p. 454"
+    provenance_note: >
+      THE CORRECTION OF liu1999, BY THE SAME SENIOR AUTHOR AND LABORATORY:
+      "our previous reported hydrogen storage capacities were overestimated,
+      mainly due to the limited amount and ununiformity of CNT samples, poor
+      understanding on the intrinsic characteristics of CNTs and the influence
+      of temperature fluctuation and sample volume on the measured hydrogen
+      storage capacity, and improper measurement equipment and methodology
+      employed at the initial stage of the studies on hydrogen uptake in CNTs"
+      (p. 454). The paper's own framing of the field: "the reproducibility of
+      the reported high hydrogen capacity of CNTs is poor" (p. 452).
+      Note that even this corrected value does not reproduce across
+      instruments: the same samples on a second apparatus gave 0.7-0.9 wt%.
+    reproducibility_tier: "high - self-corrected, calibrated, but cross-instrument spread of ~2x"
+
+case_study:
+  primary_entry: "liu2010"
+  primary_basis: >
+    liu2010 is the entry the F8 gap waterfall is built on. It is the most
+    defensible room-temperature CNT uptake in this corpus: it is the authors'
+    own correction of the field's most-cited claim, its apparatus is
+    leak-quantified and hydride-calibrated, and the paper reports an
+    independent cross-instrument check rather than asserting reproducibility.
+    It is chosen for the quality of its provenance and not for the size of its
+    number -- which is a quarter of liu1999's and a fifth of qikun2002's.
+  excluded_entries:
+    chen1999: "chemisorption on the paper's own analysis; outside a physisorption model's scope"
+  spread_recorded: >
+    Across the five physisorption entries that report a room-temperature value,
+    the reported uptake spans 0.050 wt% (tibbetts2001) to 8.0 wt%
+    (qikun2002), a factor of 160, on nominally the same class of material. No
+    system-level conclusion can be drawn from a single entry in that
+    distribution, which is why the case study reports the gap for the
+    best-provenanced entry AND the range across the corpus.

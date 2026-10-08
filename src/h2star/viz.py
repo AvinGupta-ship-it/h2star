@@ -811,3 +811,151 @@ def plot_sobol_indices(studies, labels, output="GC", title=None, savepath=None):
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, axes
+
+
+def plot_cnt_gap(waterfalls, screen, title=None, savepath=None):
+    """CNT case study: the material-to-system gap and the consistency screen (F8).
+
+    Two panels. The left is the gap waterfall for the best-provenanced reported
+    uptake, each bar the same usable hydrogen divided by a larger denominator,
+    with the excess/absolute ambiguity drawn as the whisker -- because no paper
+    in the corpus states which basis its measurement is on, and that ambiguity
+    is larger than any engineering uncertainty in the cascade.
+
+    The right is the physical-consistency screen: the limiting uptake each
+    reported value implies, against the uptake at which the adsorbed phase
+    would exceed the pore volume the packing leaves. Entries beyond that line
+    describe materials that cannot exist at the assumed packing density.
+
+    Performs no physics; consumes prepared dictionaries.
+
+    Parameters
+    ----------
+    waterfalls : dict
+        ``{"label": str, "primary": waterfall, "alternate": waterfall}`` where
+        each waterfall is :func:`h2star.system.gap_waterfall` output. The
+        alternate supplies the whisker.
+    screen : dict
+        ``entries``, a list of ``(key, n_max_or_None, accepted_bool, note)``;
+        ``limits``, ``{label: value}`` for the coherence lines; and
+        ``reference``, ``(label, n_max)`` for the comparison sorbent.
+    title : str, optional
+        Figure suptitle.
+    savepath : str or pathlib.Path, optional
+        Saved at 300 dpi with a tight bounding box.
+
+    Returns
+    -------
+    tuple
+        ``(fig, (ax_waterfall, ax_screen))``.
+    """
+    fig, (ax_w, ax_s) = plt.subplots(1, 2, figsize=(14.0, 5.8))
+
+    # ---- left: the gap waterfall ----------------------------------------
+    primary = waterfalls["primary"]
+    alternate = waterfalls.get("alternate")
+    labels = [label for _, label, _, _ in primary["stages"]]
+    values = [value for _, _, value, _ in primary["stages"]]
+    positions = np.arange(len(values))
+
+    colours = ["tab:blue"] + ["tab:orange"] * (len(values) - 2) + ["tab:green"]
+    ax_w.bar(positions, values, color=colours, alpha=0.85, width=0.68)
+
+    if alternate is not None:
+        other = [value for _, _, value, _ in alternate["stages"]]
+        lower = [min(a, b) for a, b in zip(values, other)]
+        upper = [max(a, b) for a, b in zip(values, other)]
+        ax_w.errorbar(
+            positions, values,
+            yerr=[
+                [v - lo for v, lo in zip(values, lower)],
+                [hi - v for v, hi in zip(values, upper)],
+            ],
+            fmt="none", ecolor="black", elinewidth=1.2, capsize=5,
+            label="excess / absolute basis ambiguity",
+        )
+
+    for position, value in zip(positions, values):
+        ax_w.annotate(f"{value:.3f}", (position, value), ha="center",
+                      va="bottom", fontsize=8,
+                      xytext=(0, 3), textcoords="offset points")
+
+    ax_w.set_xticks(positions)
+    ax_w.set_xticklabels(labels, rotation=30, ha="right", fontsize=8)
+    ax_w.set_ylabel("Usable H$_2$ per kg of accumulated mass (kg kg$^{-1}$)")
+    ax_w.set_title(
+        f"Material-to-system cascade: {waterfalls['label']}\n"
+        f"total loss factor {primary['total_factor']:.2f}x",
+        fontsize=10,
+    )
+    ax_w.legend(loc="upper right", fontsize=8, frameon=True)
+    ax_w.grid(True, axis="y", alpha=0.25, linestyle=":")
+
+    # ---- right: the consistency screen ----------------------------------
+    keys = [key for key, _, _, _ in screen["entries"]]
+    inferred = [
+        value if value is not None else 0.0
+        for _, value, _, _ in screen["entries"]
+    ]
+    accepted = [flag for _, _, flag, _ in screen["entries"]]
+    rows = np.arange(len(keys))
+
+    ax_s.barh(
+        rows, inferred,
+        color=["tab:green" if flag else "tab:red" for flag in accepted],
+        alpha=0.8, height=0.6,
+    )
+    for row, (key, value, flag, note) in zip(rows, screen["entries"]):
+        if value is None:
+            ax_s.annotate(
+                note, (0.0, row), xytext=(6, 0), textcoords="offset points",
+                va="center", fontsize=8, color="tab:red", style="italic",
+            )
+        else:
+            ax_s.annotate(
+                f"{value:.0f}", (value, row), xytext=(4, 0),
+                textcoords="offset points", va="center", fontsize=8,
+            )
+
+    handles = [
+        Patch(facecolor="tab:green", alpha=0.8, label="within the pore-volume limit"),
+        Patch(facecolor="tab:red", alpha=0.8, label="rejected by the screen"),
+    ]
+    for style, (label, value) in zip(("-.", ":"), screen["limits"].items()):
+        ax_s.axvline(value, color="tab:purple", linewidth=2.0, linestyle=style)
+        handles.append(
+            Line2D([], [], color="tab:purple", linewidth=2.0, linestyle=style,
+                   label=f"{label} ({value:.0f} mol kg$^{{-1}}$)")
+        )
+    ref_label, ref_value = screen["reference"]
+    ax_s.axvline(ref_value, color="black", linewidth=1.5, linestyle="--")
+    handles.append(
+        Line2D([], [], color="black", linewidth=1.5, linestyle="--",
+               label=f"{ref_label} ({ref_value:.0f} mol kg$^{{-1}}$)")
+    )
+
+    ax_s.set_yticks(rows)
+    ax_s.set_yticklabels(keys, fontsize=9)
+    ax_s.invert_yaxis()
+    ax_s.set_xlabel("Limiting uptake $n_{\\mathrm{max}}$ implied by the "
+                    "reported value (mol kg$^{-1}$)")
+    ax_s.set_title(
+        "Physical-consistency screen on reported CNT uptakes\n"
+        "(absolute basis; the adsorbed phase must fit the pore volume)",
+        fontsize=10,
+    )
+    ax_s.legend(handles=handles, loc="lower right", fontsize=8, frameon=True)
+    ax_s.grid(True, axis="x", alpha=0.25, linestyle=":")
+
+    fig.suptitle(title or "Carbon nanotubes: the system-level gap (F8)")
+    fig.text(0.5, -0.08, GATE_V3_NOTE + " Every inferred limiting uptake "
+             "additionally rests on transferring AX-21's characteristic energy "
+             "and densities to a nanotube sample, which no paper in the corpus "
+             "reports.", ha="center", va="top", fontsize=7, style="italic",
+             wrap=True)
+    fig.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=300, bbox_inches="tight")
+
+    return fig, (ax_w, ax_s)

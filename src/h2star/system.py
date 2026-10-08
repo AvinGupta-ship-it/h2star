@@ -568,3 +568,108 @@ def size_for_usable(
         )
 
     return float(brentq(f, V_lo, V_hi, xtol=xtol, rtol=1.0e-14, maxiter=200))
+
+
+#: Ordered stages of the material-to-system gap (manual 2.10, figure F8). Each
+#: stage divides the SAME usable hydrogen mass by a larger denominator, except
+#: the first two, which change the numerator from the full-state inventory to
+#: the usable swing. Expressing every stage as one ratio keeps the waterfall a
+#: single quantity losing value, rather than six differently-defined numbers
+#: laid side by side.
+GAP_STAGES = (
+    ("material_uptake", "Material uptake at full state"),
+    ("usable_swing", "Usable swing only"),
+    ("plus_hydrogen", "+ hydrogen's own mass"),
+    ("plus_vessel", "+ pressure vessel"),
+    ("plus_insulation", "+ insulation"),
+    ("system_gc", "+ balance of plant = system GC"),
+)
+
+
+def gap_waterfall(budget):
+    """Decompose the material-to-system capacity gap, stage by stage.
+
+    Answers the question a materials paper's weight percent cannot: what does
+    this uptake become once it has to be delivered from a real tank? Each stage
+    is kilograms of hydrogen per kilogram of the mass accumulated so far, so
+    the sequence starts at the material-level number and ends at the system
+    gravimetric capacity, and every drop is attributable to one named cause.
+
+    The two transitions are different in kind and the labels say so. The first
+    changes the NUMERATOR, from the full-state inventory to the usable swing,
+    because a tank is never emptied to vacuum. The rest enlarge the
+    DENOMINATOR, adding the hydrogen's own mass, the vessel, the insulation and
+    the balance of plant.
+
+    Performs no physics: consumes a budget from
+    :meth:`SystemDesign.evaluate`.
+
+    Parameters
+    ----------
+    budget : dict
+        A system budget, as :meth:`SystemDesign.evaluate` returns it.
+
+    Returns
+    -------
+    dict
+        ``stages``, a list of ``(key, label, value_kg_per_kg, value_wt_percent)``
+        in order; ``total_factor``, the material-level value divided by the
+        system GC; and ``drops``, the fractional loss at each stage after the
+        first.
+
+    Raises
+    ------
+    KeyError
+        If the budget is missing a mass term, which would make the
+        decomposition silently incomplete.
+
+    Notes
+    -----
+    The absolute level of every stage from ``plus_vessel`` onward inherits the
+    Gate V3 gap: the engineering-mass block is light by a factor of about 4.2
+    against the HSECoE AX-21 anchor (manual 4.2), so those bars are optimistic
+    and the final system GC most of all. The SHAPE of the waterfall -- which
+    stage costs most -- is the part that survives, and for a sorbent system the
+    largest single drop is not an engineering term at all.
+    """
+    required = (
+        "m_h2_full",
+        "m_usable",
+        "m_sorbent",
+        "m_vessel",
+        "m_insulation",
+        "m_bop",
+    )
+    missing = [key for key in required if key not in budget]
+    if missing:
+        raise KeyError(
+            f"Budget is missing mass terms {missing}; the gap decomposition "
+            f"would be incomplete."
+        )
+
+    sorbent = budget["m_sorbent"]
+    usable = budget["m_usable"]
+    cumulative = sorbent
+
+    values = [budget["m_h2_full"] / sorbent, usable / sorbent]
+    for term in ("m_h2_full", "m_vessel", "m_insulation", "m_bop"):
+        cumulative += budget[term]
+        values.append(usable / cumulative)
+
+    stages = [
+        (key, label, value, 100.0 * value / (1.0 + value))
+        for (key, label), value in zip(GAP_STAGES, values)
+    ]
+
+    drops = [
+        (GAP_STAGES[i][0], 1.0 - values[i] / values[i - 1])
+        for i in range(1, len(values))
+    ]
+
+    return {
+        "stages": stages,
+        "values": values,
+        "drops": drops,
+        "total_factor": values[0] / values[-1],
+        "system_gc": values[-1],
+    }

@@ -51,7 +51,9 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 import yaml
+from scipy.optimize import brentq
 
+from .constants import M_H2
 from .envelope import DEFAULT_TARGET_USABLE_KG, OperatingPoint, evaluate_envelope
 from .isotherm import ModifiedDA
 
@@ -1283,3 +1285,186 @@ def fit_va_slope(spec_material, x_name="n_max", y_name="v_a"):
     i, j = names.index(x_name), names.index(y_name)
     cov = np.asarray(spec_material.covariance, dtype=float)
     return float(cov[i, j] / cov[i, i])
+
+
+#: Molar mass of carbon, kg/mol, for the weight-percent convention check.
+M_CARBON = 12.011e-3
+
+#: The two conventions a paper may mean by "x weight percent hydrogen".
+WT_PERCENT_CONVENTIONS = ("of_total", "of_sorbent")
+
+
+def wt_percent_to_mass_ratio(value, convention="of_total"):
+    """Convert a reported hydrogen weight percent to kg H2 per kg of sorbent.
+
+    The literature uses two conventions and rarely says which:
+
+    - ``of_total``: ``wt% = 100 * m_H2 / (m_H2 + m_sorbent)``
+    - ``of_sorbent``: ``wt% = 100 * m_H2 / m_sorbent``
+
+    At 4 wt% they differ by about 4%, which is small next to the spread between
+    papers but is not nothing, and at the 20 wt% end of the contested range
+    they differ by 25%.
+
+    For one entry in ``data/materials/cnt_literature.yaml`` the convention can
+    be determined from the paper itself rather than assumed. Liu 1999 reports
+    "4.2 weight percent, or a hydrogen to carbon atom ratio of 0.52": the
+    ``of_total`` convention gives H/C = 0.522 and ``of_sorbent`` gives 0.500,
+    so that paper is on the total-mass basis. ``of_total`` is therefore the
+    default here, and :func:`hydrogen_to_carbon_ratio` lets the same check be
+    applied to any other paper that happens to report both quantities.
+
+    Parameters
+    ----------
+    value : float
+        Reported weight percent.
+    convention : str, optional
+        One of :data:`WT_PERCENT_CONVENTIONS`.
+
+    Returns
+    -------
+    float
+        Hydrogen mass per unit sorbent mass, kg/kg.
+
+    Raises
+    ------
+    ValueError
+        If the convention is unknown, or if ``value`` is not in [0, 100) for
+        the total-mass convention, where 100 wt% would be pure hydrogen.
+    """
+    if convention not in WT_PERCENT_CONVENTIONS:
+        raise ValueError(
+            f"Unknown weight-percent convention {convention!r}; expected one "
+            f"of {list(WT_PERCENT_CONVENTIONS)}."
+        )
+    if value < 0.0:
+        raise ValueError(f"Weight percent cannot be negative; got {value}.")
+    if convention == "of_sorbent":
+        return value / 100.0
+    if value >= 100.0:
+        raise ValueError(
+            f"A total-mass weight percent of {value} is not physical: 100 wt% "
+            f"would be hydrogen with no sorbent."
+        )
+    fraction = value / 100.0
+    return fraction / (1.0 - fraction)
+
+
+def hydrogen_to_carbon_ratio(wt_percent, convention="of_total"):
+    """Hydrogen atoms per carbon atom implied by a reported weight percent.
+
+    Lets a paper's own internal consistency decide which weight-percent
+    convention it used, when it reports both a wt% and an H/C ratio. Used to
+    establish that Liu 1999 is on the total-mass basis.
+
+    Parameters
+    ----------
+    wt_percent : float
+        Reported weight percent.
+    convention : str, optional
+        One of :data:`WT_PERCENT_CONVENTIONS`.
+
+    Returns
+    -------
+    float
+        H atoms per C atom, assuming the sorbent is pure carbon.
+    """
+    ratio = wt_percent_to_mass_ratio(wt_percent, convention)
+    moles_h2_per_kg = ratio / M_H2
+    moles_c_per_kg = 1.0 / M_CARBON
+    return 2.0 * moles_h2_per_kg / moles_c_per_kg
+
+
+def material_from_reported_uptake(base_material, reported_mol_per_kg,
+                                  temperature, pressure, *, basis="absolute",
+                                  n_max_bracket=(1.0, 2000.0)):
+    """Back-solve a limiting uptake that reproduces one reported isotherm point.
+
+    This is the inference chain the CNT case study rests on, and it should be
+    read as an inference and not a measurement. The literature reports a single
+    uptake at a single temperature and pressure; the system model needs a full
+    modified Dubinin-Astakhov parameter vector. The gap is bridged by keeping
+    the reference material's characteristic energy, pseudo-saturation pressure
+    and adsorbed-phase volume, and solving only for the limiting uptake
+    ``n_max`` that makes the isotherm pass through the reported point.
+
+    Every link in that chain is an assumption, and they are the reason the
+    case study's uncertainty is as large as it is:
+
+    1. The D-A functional form describes the reported material. Not tested
+       against it; no CNT paper in the corpus reports an isotherm shape.
+    2. ``alpha``, ``beta`` and ``p0`` transfer from AX-21 activated carbon to a
+       nanotube sample. These control the temperature and pressure dependence,
+       so the inferred ``n_max`` depends on them.
+    3. ``v_a``, ``rho_bulk`` and ``rho_skel`` also transfer. No CNT paper in
+       the corpus reports a packed bulk density at all.
+    4. The reported value is on the basis the caller states. For every entry in
+       the corpus the paper does NOT state whether its uptake is excess or
+       absolute, so both must be tried and the pair reported.
+
+    Parameters
+    ----------
+    base_material : h2star.isotherm.Material
+        Reference material supplying every parameter except ``n_max``.
+    reported_mol_per_kg : float
+        Reported uptake in mol H2 per kg of sorbent.
+    temperature : float
+        Temperature of the reported point, K.
+    pressure : float
+        Pressure of the reported point, Pa.
+    basis : str, optional
+        ``"absolute"`` or ``"excess"``: which quantity the reported value is
+        taken to be.
+    n_max_bracket : tuple of float, optional
+        Search bracket for the limiting uptake, mol/kg.
+
+    Returns
+    -------
+    h2star.isotherm.Material
+        A material whose isotherm passes through the reported point.
+
+    Raises
+    ------
+    ValueError
+        If ``basis`` is unknown, if the reported uptake is not positive, or if
+        no limiting uptake inside the bracket reproduces the point -- which
+        happens when the reported value exceeds what the assumed isotherm shape
+        can deliver at that temperature and pressure, and is itself worth
+        reporting rather than working around.
+    """
+    if basis not in ("absolute", "excess"):
+        raise ValueError(
+            f"basis must be 'absolute' or 'excess'; got {basis!r}."
+        )
+    if reported_mol_per_kg <= 0.0:
+        raise ValueError(
+            f"Reported uptake must be positive (mol/kg); got "
+            f"{reported_mol_per_kg}."
+        )
+
+    def residual(n_max):
+        """Modelled minus reported uptake at the reported point, mol/kg."""
+        candidate = replace(base_material, n_max=float(n_max))
+        isotherm = ModifiedDA(candidate)
+        modelled = (
+            isotherm.n_absolute(pressure, temperature)
+            if basis == "absolute"
+            else isotherm.n_excess(pressure, temperature)
+        )
+        return float(modelled) - reported_mol_per_kg
+
+    low, high = n_max_bracket
+    f_low, f_high = residual(low), residual(high)
+    if f_low * f_high > 0.0:
+        raise ValueError(
+            f"No limiting uptake in [{low}, {high}] mol/kg reproduces "
+            f"{reported_mol_per_kg:.4g} mol/kg on a {basis} basis at "
+            f"{temperature:g} K and {pressure / 1e6:g} MPa: the modelled "
+            f"uptake is {f_low + reported_mol_per_kg:.4g} at the lower bound "
+            f"and {f_high + reported_mol_per_kg:.4g} at the upper. The "
+            f"reported value may be outside what this isotherm shape can "
+            f"deliver at that state."
+        )
+
+    solved = brentq(residual, low, high, xtol=1e-10, rtol=1e-14, maxiter=200)
+    return replace(base_material, n_max=float(solved))
