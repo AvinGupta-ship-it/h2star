@@ -9,6 +9,7 @@ runs the identical code path on identical inputs, so any difference at all is a
 real defect rather than a numerical one.
 """
 
+import math
 from pathlib import Path
 
 import numpy as np
@@ -534,3 +535,294 @@ def test_targets_file_without_a_capacity_table_is_a_clear_error(tmp_path):
     )
     with pytest.raises(ValueError, match="missing the capacity table"):
         inverse.load_doe_targets(path, "2025")
+
+
+# --------------------------------------------------------------------------
+# The probability band, the C5 metric, and the pore-volume constraint.
+# --------------------------------------------------------------------------
+
+
+def _spec():
+    """The committed uncertainty specification."""
+    from h2star import uq
+
+    return uq.UncertaintySpec.from_yaml(
+        REPO_ROOT / "data" / "uncertainty.yaml"
+    )
+
+
+def test_conditioning_reduces_variance_and_shifts_the_mean(ax21_material):
+    """Fixing the map axes constrains the remaining parameter, via the fit.
+
+    The Gate V2 covariance correlates n_max and v_a at 0.97, so conditioning on
+    the axes removes most of v_a's variance and moves its mean along the
+    direction the fit found. That is the honest answer to the objection that
+    sweeping n_max at fixed v_a traces a slice no real material follows.
+    """
+    spec = _spec()
+    conditioned = inverse.conditional_material_distribution(
+        spec.material, {"n_max": 100.0, "alpha": 3080.0}
+    )
+    assert conditioned["parameters"] == ("v_a",)
+    assert (conditioned["variance_reduction"] > 0.9).all()
+
+    marginal_sigma = math.sqrt(spec.material.covariance[2, 2])
+    conditional_sigma = math.sqrt(conditioned["covariance"][0, 0])
+    assert conditional_sigma < 0.3 * marginal_sigma
+
+    # The conditional mean rises with n_max: more uptake implies more adsorbed
+    # phase, which is also what assumption A-ISO-4 asserts physically.
+    low = inverse.conditional_material_distribution(
+        spec.material, {"n_max": 70.0, "alpha": 3080.0}
+    )["mean"][0]
+    high = inverse.conditional_material_distribution(
+        spec.material, {"n_max": 130.0, "alpha": 3080.0}
+    )["mean"][0]
+    assert high > low
+
+
+def test_conditioning_on_everything_is_refused():
+    """With every parameter pinned there is no distribution left."""
+    spec = _spec()
+    with pytest.raises(ValueError, match="no distribution"):
+        inverse.conditional_material_distribution(
+            spec.material, {"n_max": 70.0, "alpha": 3080.0, "v_a": 1.4e-3}
+        )
+
+
+def test_conditioning_on_an_unknown_parameter_is_refused():
+    """Only parameters the distribution covers can be conditioned on."""
+    spec = _spec()
+    with pytest.raises(ValueError, match="Cannot condition"):
+        inverse.conditional_material_distribution(
+            spec.material, {"rho_bulk": 300.0}
+        )
+
+
+def test_pore_volume_constraint_matches_its_definition(ax21_material):
+    """The available pore volume is 1/rho_bulk - 1/rho_skel, and nothing else."""
+    expected = 1.0 / ax21_material.rho_bulk - 1.0 / ax21_material.rho_skel
+    assert inverse.pore_volume_available(ax21_material) == pytest.approx(expected)
+
+
+def test_coherence_limit_sits_below_the_deterministic_requirement(
+    ax21_material,
+):
+    """The adsorbed phase exhausts the pore volume near the required uptake.
+
+    The deterministic acceptability map put the feasible region at
+    n_max >~ 115 mol/kg while holding v_a fixed. Two independent accounts of
+    how v_a grows with n_max -- the Gate V2 fit's own parameter correlation and
+    assumption A-ISO-4's liquid-hydrogen argument -- both place the uptake at
+    which the adsorbed phase fills the available pore volume at or below that
+    requirement. So the requirement is not reachable at AX-21's packing
+    density, and the deterministic map's feasible region was an artifact of
+    pinning a correlated parameter.
+    """
+    spec = _spec()
+    limit_fit = inverse.coherent_n_max_limit(
+        ax21_material, inverse.fit_va_slope(spec.material)
+    )
+    limit_physical = inverse.coherent_n_max_limit(
+        ax21_material, inverse.V_LIQUID_H2_MOLAR
+    )
+    # Both routes land in the same region, and both below ~125 mol/kg.
+    assert 90.0 < limit_fit < 120.0
+    assert 110.0 < limit_physical < 135.0
+    # The fit's correlation is the stricter of the two.
+    assert limit_fit < limit_physical
+
+
+def test_coherence_limit_rejects_a_non_positive_slope(ax21_material):
+    """Without growth in v_a there is no limit, and the caller is told so."""
+    with pytest.raises(ValueError, match="strictly positive"):
+        inverse.coherent_n_max_limit(ax21_material, 0.0)
+
+
+def test_rho_bulk_limit_is_the_inverted_constraint(ax21_material):
+    """The packing limit curve inverts the same constraint, consistently.
+
+    At the uptake where the n_max limit bites, the corresponding packing limit
+    must equal the reference packing density: the two functions express one
+    constraint from two directions and have to agree where they meet.
+    """
+    limit_n_max = inverse.coherent_n_max_limit(
+        ax21_material, inverse.V_LIQUID_H2_MOLAR
+    )
+    rho_at_limit = inverse.coherent_rho_bulk_limit(
+        ax21_material, [limit_n_max], inverse.V_LIQUID_H2_MOLAR
+    )[0]
+    assert rho_at_limit == pytest.approx(ax21_material.rho_bulk, rel=1e-9)
+
+
+def test_rho_bulk_limit_falls_with_uptake(ax21_material):
+    """A higher-uptake sorbent must be packed less densely. That is the trade."""
+    uptakes = np.array([80.0, 100.0, 120.0, 140.0])
+    limits = inverse.coherent_rho_bulk_limit(
+        ax21_material, uptakes, inverse.V_LIQUID_H2_MOLAR
+    )
+    assert np.all(np.diff(limits) < 0.0)
+
+
+def test_fit_slope_comes_from_the_covariance():
+    """The v_a-n_max slope is read from the fit, not hard-coded."""
+    spec = _spec()
+    cov = spec.material.covariance
+    assert inverse.fit_va_slope(spec.material) == pytest.approx(
+        cov[0, 2] / cov[0, 0]
+    )
+
+
+@pytest.fixture(scope="module")
+def small_probability_map(doe_2025_module):
+    """A tiny probability map: enough to exercise every path, not to publish."""
+    from h2star import isotherm, system
+
+    material = isotherm.Material.from_yaml(
+        REPO_ROOT / "data" / "materials" / "ax21.yaml"
+    )
+    engineering = system.EngineeringParams.from_yaml(
+        REPO_ROOT / "data" / "engineering.yaml"
+    )
+    return inverse.probability_map(
+        _spec(),
+        material,
+        engineering,
+        "n_max",
+        "alpha",
+        np.linspace(100.0, 160.0, 5),
+        np.array([3080.0]),
+        targets=doe_2025_module,
+        n_samples=40,
+        seed=0,
+        conditional=False,
+    )
+
+
+@pytest.fixture(scope="module")
+def doe_2025_module():
+    """DOE 2025 targets, module-scoped for the probability-map fixture."""
+    return inverse.load_doe_targets(
+        REPO_ROOT / "data" / "targets" / "doe_targets.yaml", "2025"
+    )
+
+
+def test_probability_map_returns_probabilities_in_range(small_probability_map):
+    """Every node reports a probability in [0, 1] or nan, and a valid count."""
+    probability = small_probability_map["probability"]
+    finite = probability[np.isfinite(probability)]
+    assert finite.size > 0
+    assert ((finite >= 0.0) & (finite <= 1.0)).all()
+    assert (small_probability_map["n_valid"] <= 40).all()
+
+
+def test_probability_rises_with_uptake(small_probability_map):
+    """More limiting uptake means a better chance of meeting the targets."""
+    row = small_probability_map["probability"][0]
+    finite = row[np.isfinite(row)]
+    assert finite[-1] > finite[0]
+
+
+def test_probability_map_is_reproducible(ax21_material, engineering_params,
+                                         doe_2025_module):
+    """Per-node seeding makes the map reproducible from its seed."""
+    kwargs = dict(
+        targets=doe_2025_module, n_samples=25, seed=0, conditional=False
+    )
+    a = inverse.probability_map(
+        _spec(), ax21_material, engineering_params, "n_max", "alpha",
+        np.array([110.0, 140.0]), np.array([3080.0]), **kwargs
+    )
+    b = inverse.probability_map(
+        _spec(), ax21_material, engineering_params, "n_max", "alpha",
+        np.array([110.0, 140.0]), np.array([3080.0]), **kwargs
+    )
+    np.testing.assert_array_equal(a["probability"], b["probability"])
+
+
+def test_node_seed_does_not_depend_on_grid_extent(ax21_material,
+                                                   engineering_params,
+                                                   doe_2025_module):
+    """A node's result is set by its grid index, not by the rest of the grid.
+
+    Seeding per node rather than from one stream means a node computed in a
+    wider grid gives the same answer as the same node in a narrower one, which
+    is what makes the map order-independent and would make it parallelizable.
+    """
+    kwargs = dict(
+        targets=doe_2025_module, n_samples=25, seed=0, conditional=False
+    )
+    narrow = inverse.probability_map(
+        _spec(), ax21_material, engineering_params, "n_max", "alpha",
+        np.array([110.0]), np.array([3080.0]), **kwargs
+    )
+    wide = inverse.probability_map(
+        _spec(), ax21_material, engineering_params, "n_max", "alpha",
+        np.array([110.0, 140.0, 170.0]), np.array([3080.0]), **kwargs
+    )
+    assert narrow["probability"][0, 0] == wide["probability"][0, 0]
+
+
+def test_probability_map_carries_its_caveat(small_probability_map):
+    """The lower-bound nature of the band travels with the data."""
+    caveat = small_probability_map["caveat"]
+    assert "LOWER BOUND" in caveat
+    assert "Gate V3" in caveat
+
+
+def test_probability_map_requires_a_material_block(ax21_material,
+                                                   engineering_params,
+                                                   doe_2025_module):
+    """Without a material distribution there is no band to draw."""
+    from h2star import uq
+
+    empty = uq.UncertaintySpec(
+        material=None, engineering=(), excluded={}, notes=""
+    )
+    with pytest.raises(ValueError, match="no material block"):
+        inverse.probability_map(
+            empty, ax21_material, engineering_params, "n_max", "alpha",
+            [100.0], [3080.0], targets=doe_2025_module
+        )
+
+
+def test_boundary_separation_reports_the_c5_metric(small_probability_map):
+    """The pre-registered C5 metric is computed from the map, not by eye."""
+    separation = inverse.boundary_separation(small_probability_map, 3080.0)
+    assert separation["row_value"] == pytest.approx(3080.0)
+    assert separation["requested_value"] == pytest.approx(3080.0)
+    assert separation["levels"] == (0.05, 0.50, 0.95)
+    assert "lower bound" in separation["note"]
+
+
+def test_boundary_separation_reports_a_bound_when_a_contour_is_missing(
+    ax21_material, engineering_params, doe_2025_module
+):
+    """A contour outside the mapped range is a bound, not a silent extension.
+
+    The pre-registration is explicit that the range must not be extended until
+    a contour appears. A map confined to low uptake has no high-probability
+    contour at all, and the metric must say so.
+    """
+    confined = inverse.probability_map(
+        _spec(), ax21_material, engineering_params, "n_max", "alpha",
+        np.array([70.0, 85.0]), np.array([3080.0]),
+        targets=doe_2025_module, n_samples=20, seed=0, conditional=False,
+    )
+    separation = inverse.boundary_separation(confined, 3080.0)
+    assert separation["bounded"]
+    assert math.isnan(separation["separation"])
+    assert "reported as a bound" in separation["note"]
+
+
+def test_boundary_separation_needs_two_columns(ax21_material,
+                                               engineering_params,
+                                               doe_2025_module):
+    """One column cannot be interpolated across."""
+    single = inverse.probability_map(
+        _spec(), ax21_material, engineering_params, "n_max", "alpha",
+        np.array([120.0]), np.array([3080.0]),
+        targets=doe_2025_module, n_samples=10, seed=0, conditional=False,
+    )
+    with pytest.raises(ValueError, match="at least two columns"):
+        inverse.boundary_separation(single, 3080.0)

@@ -348,6 +348,28 @@ _PARAM_LABELS = {
 }
 
 
+#: Compact tick labels, for the sensitivity bar chart where the full axis
+#: labels would not fit.
+_PARAM_SHORT = {
+    "n_max": "$n_{\\mathrm{max}}$",
+    "alpha": "$\\alpha$",
+    "beta": "$\\beta$",
+    "p0": "$P_0$",
+    "v_a": "$v_a$",
+    "rho_bulk": "$\\rho_{\\mathrm{bulk}}$",
+    "rho_skel": "$\\rho_{\\mathrm{skel}}$",
+    "sigma_allow": "$\\sigma_{\\mathrm{allow}}$",
+    "composite_density": "composite $\\rho$",
+    "liner_areal_mass": "liner areal mass",
+    "mli_k_eff": "MLI $k_{\\mathrm{eff}}$",
+    "mli_density": "MLI $\\rho$",
+    "heat_leak_budget": "heat-leak budget",
+    "T_env": "$T_{\\mathrm{env}}$",
+    "bop_fixed": "BOP mass",
+    "bop_scaling": "BOP scaling",
+}
+
+
 def _param_label(name):
     """Axis label with units for a swept material parameter."""
     return _PARAM_LABELS.get(name, name)
@@ -569,6 +591,220 @@ def plot_acceptability_maps(maps, reference_points=None, title=None,
     )
     fig.text(0.5, -0.03, GATE_V3_NOTE, ha="center", va="top", fontsize=7,
              style="italic", wrap=True)
+    fig.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=300, bbox_inches="tight")
+
+    return fig, axes
+
+
+def plot_probability_maps(maps, coherence_curves=None, reference_points=None,
+                          title=None, savepath=None,
+                          levels=(0.05, 0.50, 0.95)):
+    """Material acceptability as a Monte Carlo probability band (F6).
+
+    The signature figure. Each panel shades ``P(feasible)`` over a plane of two
+    material parameters and draws the pre-registered probability contours, so
+    the feasibility boundary appears as a band whose width is the blur that
+    material-parameter uncertainty alone puts on it. A single line would assert
+    a precision the Gate V2 parameter estimates do not support.
+
+    Performs NO physics. Each entry of ``maps`` is consumed exactly as
+    :func:`h2star.inverse.probability_map` returns it.
+
+    Parameters
+    ----------
+    maps : sequence of dict
+        One probability-map result per panel.
+    coherence_curves : sequence of dict, optional
+        One entry per panel, each ``{label: (x, y)}`` or
+        ``{label: (x, None)}``. A curve with ``y`` given is drawn as a line; a
+        curve with ``y`` of ``None`` is drawn as a vertical line at the single
+        x value. Used for the pore-volume coherence limits, which say where the
+        adsorbed phase would exceed the space the packing leaves for it.
+    reference_points : dict, optional
+        ``{label: {parameter: value}}``; a point is drawn on a panel only when
+        both of that panel's swept parameters appear in its mapping.
+    title : str, optional
+        Figure suptitle.
+    savepath : str or pathlib.Path, optional
+        Saved at 300 dpi with a tight bounding box.
+    levels : sequence of float, optional
+        Probability contours to draw; the pre-registered 0.05, 0.50 and 0.95.
+
+    Returns
+    -------
+    tuple
+        ``(fig, axes)``.
+    """
+    maps = list(maps)
+    fig, axes = plt.subplots(1, len(maps), figsize=(7.0 * len(maps), 5.8),
+                             squeeze=False)
+    axes = list(axes[0])
+    curves = list(coherence_curves or [{} for _ in maps])
+
+    for panel, (ax, result) in enumerate(zip(axes, maps)):
+        x = np.asarray(result["x_values"], dtype=float)
+        y = np.asarray(result["y_values"], dtype=float)
+        probability = np.asarray(result["probability"], dtype=float)
+        targets = result["targets"]
+
+        handles = []
+
+        shaded = ax.contourf(x, y, probability, levels=np.linspace(0, 1, 21),
+                             cmap="RdYlGn", vmin=0.0, vmax=1.0)
+        fig.colorbar(shaded, ax=ax, label="P(meets both DOE targets)")
+
+        styles = {0.05: ":", 0.50: "-", 0.95: "--"}
+        for level in levels:
+            finite = probability[np.isfinite(probability)]
+            if finite.size and finite.min() < level < finite.max():
+                ax.contour(x, y, probability, levels=[level], colors="black",
+                           linewidths=1.8,
+                           linestyles=styles.get(level, "-"))
+                handles.append(
+                    Line2D([], [], color="black", linewidth=1.8,
+                           linestyle=styles.get(level, "-"),
+                           label=f"P = {level:g}")
+                )
+
+        for label, (cx, cy) in (curves[panel] if panel < len(curves) else {}).items():
+            if cy is None:
+                line = ax.axvline(float(cx), color="tab:purple",
+                                  linewidth=2.0, linestyle="-.")
+            else:
+                line, = ax.plot(cx, cy, color="tab:purple", linewidth=2.0,
+                                linestyle="-.")
+            line.set_label(label)
+            handles.append(line)
+
+        # An overlaid curve must not stretch the axes past the mapped region:
+        # the blank margin it would add reads as unmapped data.
+        ax.set_xlim(x.min(), x.max())
+        ax.set_ylim(y.min(), y.max())
+
+        if reference_points:
+            for label, coords in reference_points.items():
+                if result["param_x"] in coords and result["param_y"] in coords:
+                    marker, = ax.plot(
+                        coords[result["param_x"]], coords[result["param_y"]],
+                        marker="*", markersize=16, linestyle="none",
+                        markeredgecolor="k", markerfacecolor="white",
+                        zorder=6, label=label,
+                    )
+                    handles.append(marker)
+
+        point = result["operating_point"]
+        ax.set_xlabel(_param_label(result["param_x"]))
+        ax.set_ylabel(_param_label(result["param_y"]))
+        ax.set_title(
+            f"P(meets {targets.label}) under material-parameter uncertainty\n"
+            f"{point.P_full / 1e5:.0f} bar / {point.T_full:.0f} K full, "
+            f"{point.P_empty / 1e5:.0f} bar / {point.T_empty:.0f} K empty, "
+            f"N = {result['n_samples']} per node",
+            fontsize=10,
+        )
+        # Upper left: the low-probability corner, which carries no detail a
+        # legend can obscure. Lower right is where the band lives.
+        ax.legend(handles=handles, loc="upper left", fontsize=8, frameon=True,
+                  framealpha=0.92)
+        ax.grid(True, alpha=0.2, linestyle=":")
+
+    fig.suptitle(
+        title or "Material acceptability as a probability band (F6)"
+    )
+    caveat = maps[0].get("caveat", GATE_V3_NOTE)
+    fig.text(0.5, -0.04, caveat, ha="center", va="top", fontsize=7,
+             style="italic", wrap=True)
+    fig.tight_layout()
+
+    if savepath is not None:
+        fig.savefig(savepath, dpi=300, bbox_inches="tight")
+
+    return fig, axes
+
+
+def plot_sobol_indices(studies, labels, output="GC", title=None, savepath=None):
+    """Sobol first- and total-order indices at two envelopes, side by side (F7).
+
+    Grouped horizontal bars per parameter, one panel per envelope, ordered by
+    the first panel's total-order index so the two panels are directly
+    comparable. The point of the figure is the CHANGE between panels: whether
+    the property that controls system performance shifts with operating regime
+    (claim C3).
+
+    Performs NO physics; consumes :func:`h2star.sensitivity.sobol_indices`
+    output.
+
+    Parameters
+    ----------
+    studies : sequence of dict
+        One Sobol result per envelope.
+    labels : sequence of str
+        Panel labels, same length as ``studies``.
+    output : str, optional
+        ``"GC"`` or ``"VC"``; which output's indices to draw.
+    title : str, optional
+        Figure suptitle.
+    savepath : str or pathlib.Path, optional
+        Saved at 300 dpi with a tight bounding box.
+
+    Returns
+    -------
+    tuple
+        ``(fig, axes)``.
+    """
+    studies = list(studies)
+    labels = list(labels)
+    if len(studies) != len(labels):
+        raise ValueError(
+            f"Got {len(studies)} studies and {len(labels)} labels; they must "
+            f"correspond."
+        )
+
+    # Order by the first panel so the panels can be read against each other.
+    names = list(studies[0]["names"])
+    order = np.argsort(studies[0][f"ST_{output}"])
+    names = [names[i] for i in order]
+
+    fig, axes = plt.subplots(1, len(studies), figsize=(6.4 * len(studies), 5.2),
+                             sharex=True, squeeze=False)
+    axes = list(axes[0])
+    positions = np.arange(len(names))
+
+    for ax, study, label in zip(axes, studies, labels):
+        study_names = list(study["names"])
+        s1 = np.array([study[f"S1_{output}"][study_names.index(n)] for n in names])
+        st = np.array([study[f"ST_{output}"][study_names.index(n)] for n in names])
+        s1_conf = np.array(
+            [study[f"S1_conf_{output}"][study_names.index(n)] for n in names]
+        )
+        st_conf = np.array(
+            [study[f"ST_conf_{output}"][study_names.index(n)] for n in names]
+        )
+
+        ax.barh(positions + 0.2, st, height=0.38, xerr=st_conf,
+                color="tab:blue", alpha=0.85, label="Total order $S_T$",
+                error_kw={"elinewidth": 0.8})
+        ax.barh(positions - 0.2, s1, height=0.38, xerr=s1_conf,
+                color="tab:orange", alpha=0.85, label="First order $S_1$",
+                error_kw={"elinewidth": 0.8})
+
+        ax.set_yticks(positions)
+        ax.set_yticklabels([_PARAM_SHORT.get(n, n) for n in names], fontsize=9)
+        ax.set_xlabel(f"Sobol index for system {output}")
+        ax.set_title(label, fontsize=10)
+        ax.axvline(0.0, color="k", linewidth=0.8)
+        ax.grid(True, axis="x", alpha=0.25, linestyle=":")
+
+    axes[0].legend(loc="lower right", fontsize=8, frameon=True)
+
+    fig.suptitle(
+        title or f"Global sensitivity of system {output} by operating regime (F7)"
+    )
+    fig.text(0.5, -0.05, studies[0].get("caveat", ""), ha="center", va="top",
+             fontsize=7, style="italic", wrap=True)
     fig.tight_layout()
 
     if savepath is not None:

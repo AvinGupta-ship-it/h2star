@@ -371,3 +371,132 @@ repairs a documented FAIL.
 Gate V4: NOT RUN. `uq.py` and `sensitivity.py`: not implemented.
 Author: Avin Gupta, ratifying the hand-pinned ranges in
 `data/uncertainty.yaml` per manual §5.7.
+
+---
+
+## Gate V4 — RESULT (2026-10-08)
+
+Run against the criteria pre-registered above, at the commit before any UQ code
+existed. Tolerances unedited: compare this block against the declaration and the
+diff is additive only.
+
+### V4.1 — Monte Carlo vs. analytic linear-Gaussian: **PASS**
+
+Linear functional of a correlated three-dimensional Gaussian, N = 100,000,
+seed 0. Analytic mean 6.500000, analytic standard deviation 1.910497.
+
+| Criterion | Pre-registered bound | Measured | Verdict |
+|---|---|---|---|
+| mean error | ≤ 0.024166 (4σ/√N) | 0.005513 | PASS |
+| \|σ_MC/σ_analytic − 1\| | ≤ 8.944e-3 (4/√2N) | 2.649e-3 | PASS |
+| 68% interval endpoints | ≤ 1% relative | within 0.13% | PASS |
+| 95% interval endpoints | ≤ 1% relative | within 0.66% | PASS |
+
+The input covariance is deliberately non-diagonal, and
+`test_gate_v4_1_would_fail_if_correlation_were_ignored` asserts that the
+diagonal surrogate misses the variance by more than the tolerance. The gate
+therefore tests that input correlation is propagated, not merely that arithmetic
+works.
+
+### V4.2 — Sobol vs. the Ishigami closed form: **PASS**
+
+Closed form derived in `sensitivity.ishigami_analytic` and checked against a
+brute-force scrambled-Sobol variance over 2²⁰ points (agreement 9.6e-7
+relative). Analytic V = 13.8445879407,
+S₁ = [0.3139051911, 0.4424111448, 0.0000000000],
+S_T = [0.5575888552, 0.4424111448, 0.2436836641].
+
+Pre-registered ladder, seed 0, worst relative error across all non-zero
+indices:
+
+| N | evaluations | worst relative error | \|S₁ for x₃\| |
+|---|---|---|---|
+| 2¹⁴ | 81,920 | 0.1885% | 1.10e-4 |
+| 2¹⁶ | 327,680 | 0.0047% | 2.0e-5 |
+| 2¹⁸ | 1,310,720 | 0.0008% | 2.2e-6 |
+
+Error decreased monotonically across the ladder, as required. At 2¹⁸: S₁ within
+0.08% for x₁ and x₂, S_T within 0.005% for all three, and |S₁ for x₃| = 2.2e-6
+against the absolute band of 0.05. **PASS on all three clauses.**
+
+### V4.3 — System Monte Carlo convergence: **PASS**
+
+Half-sample criterion at the baseline envelope, N = 600 and N = 2000: worst
+relative disagreement between halves 1.105% (the 5th percentile of VC), inside
+the pre-registered 2%. Reported with every propagated result by
+`uq.half_sample_convergence`.
+
+### V4.0 — Material-layer truncation: within the declared threshold
+
+Measured discard fraction of the fixed-p0 conditional covariance against the
+physical domain: **0.0000%** over the 2,000-draw propagation and 0.0085% over
+200,000 draws, against the 1% threshold above which the truncation would have to
+be named as a limitation. It does not need to be, and the measurement is
+reported anyway.
+
+### V4.4 — The signature result, as pre-registered
+
+Claim C5's "quantified amount", computed exactly as declared: the horizontal
+separation of the P = 0.05 and P = 0.95 contours along α = 3080 J/mol, with
+N = 1000 material samples per node and n_max resolved at 2.5 mol/kg.
+
+    P = 0.05 crossing:  n_max = 109.4 mol/kg
+    P = 0.50 crossing:  n_max = 125.6 mol/kg
+    P = 0.95 crossing:  n_max = 141.5 mol/kg
+
+    separation = 32.1 mol/kg = 25.6% of the median crossing
+
+**Claim C5, quantified: material-parameter uncertainty alone blurs the DOE-2025
+feasibility boundary over 32.1 mol/kg in limiting uptake, a quarter of the
+requirement itself — and that is a lower bound, because the covariance is
+conditional on a fixed p0.** A point prediction of "the required limiting
+uptake" would be quoting 126 mol/kg to three significant figures for a quantity
+whose own 5–95% range spans 109 to 142. That is the methodological case for
+curating multi-temperature, provenance-tiered measurements, which is HyCAN-DB.
+
+The same metric in the (n_max, ρ_bulk) plane along ρ_bulk = 300 kg/m³:
+separation 42.2 mol/kg, 34.5% of the median crossing at 122 mol/kg.
+
+### Unanticipated finding — the requirement sits at the edge of physical coherence
+
+Not pre-registered, because it was not foreseen; recorded here as a finding with
+its evidence rather than folded into the claims above.
+
+The deterministic acceptability map (Stage 2, figure F6 draft) placed the
+feasible region at n_max ≳ 115 mol/kg while holding the adsorbed-phase volume
+v_a fixed at the AX-21 value. That assumption is not neutral. Two independent
+accounts say v_a grows with n_max:
+
+- the Gate V2 fit's own covariance, whose regression slope is
+  dv_a/dn_max = 4.41e-5 m³/mol;
+- assumption A-ISO-4's liquid-hydrogen argument, 2.80e-5 m³/mol.
+
+The adsorbed phase has to fit inside the pore volume the packing leaves,
+1/ρ_bulk − 1/ρ_skel = 2.900e-3 m³/kg for AX-21. Solving for where it does not:
+
+    fit correlation : n_max = 104.9 mol/kg
+    A-ISO-4         : n_max = 124.1 mol/kg
+
+Both limits fall **at or below** the P = 0.50 requirement crossing of 125.6
+mol/kg, and the fit's limit falls below even the P = 0.05 crossing of 109.4.
+So the requirement the map identifies is not reachable at AX-21's packing
+density: a sorbent with enough limiting uptake to meet the DOE targets would
+have an adsorbed phase larger than its own pore volume.
+
+This does not invalidate the map. It sharpens what the map means. The
+requirement cannot be met by raising limiting uptake alone; it requires
+raising uptake *and* pore volume together, which means packing the bed less
+densely — and lower packing density costs volumetric capacity, which §V4.4
+above shows is already the binding constraint. That trade is what the
+(n_max, ρ_bulk) panel of F6 shows, with the coherence curve running diagonally
+through the probability band.
+
+Recorded as a finding, not a gate. It is implemented as
+`inverse.coherent_n_max_limit` and `inverse.coherent_rho_bulk_limit` so the
+constraint is testable rather than a remark, and `test_coherence_limit_sits_
+below_the_deterministic_requirement` pins it.
+
+### Gate V4 overall status (2026-10-08): **CLOSED, all clauses PASS.**
+
+Author: Avin Gupta. Tolerances unchanged since declaration earlier the same day,
+before `uq.py` and `sensitivity.py` existed; verifiable from `git log`.

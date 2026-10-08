@@ -674,3 +674,612 @@ def spot_check(result, base_material, engineering, indices,
             }
         )
     return records
+
+
+def conditional_material_distribution(spec_material, fixed_values):
+    """Conditional distribution of the unswept material parameters.
+
+    When the acceptability map fixes two parameters as its axes, the
+    uncertainty that remains at a grid node is the uncertainty in the OTHER
+    parameters *given* those two -- not their marginal uncertainty. With
+    pairwise correlations up to 0.97 in the Gate V2 covariance the difference is
+    large, and using the marginals would both overstate the spread and ignore
+    what the fit says about how the parameters move together.
+
+    This is also, incidentally, the honest answer to the objection in this
+    module's docstring that sweeping ``n_max`` at fixed ``v_a`` traces a slice
+    no real material follows. Conditioning lets ``v_a`` follow ``n_max`` along
+    the direction the fit actually found, rather than pinning it.
+
+    Parameters
+    ----------
+    spec_material : h2star.uq.MaterialSpec
+        Joint distribution over the material parameters.
+    fixed_values : dict
+        ``{parameter_name: value}`` for the parameters being conditioned on;
+        must be a subset of ``spec_material.parameters``.
+
+    Returns
+    -------
+    dict
+        ``parameters`` (the remaining names, in the spec's order), ``mean``
+        and ``covariance`` of the conditional distribution, and
+        ``variance_reduction``: one minus the ratio of conditional to marginal
+        variance, per remaining parameter, which is how much the fit's
+        correlation structure constrains each one once the axes are pinned.
+
+    Raises
+    ------
+    ValueError
+        If ``fixed_values`` names a parameter the distribution does not cover,
+        or if it would leave nothing to condition.
+    """
+    names = list(spec_material.parameters)
+    unknown = [name for name in fixed_values if name not in names]
+    if unknown:
+        raise ValueError(
+            f"Cannot condition on {unknown}: not in the material distribution "
+            f"{tuple(names)}."
+        )
+    fixed_index = [names.index(name) for name in fixed_values]
+    free_index = [i for i in range(len(names)) if i not in fixed_index]
+    if not free_index:
+        raise ValueError(
+            "Conditioning on every parameter leaves no distribution; the "
+            "material would be fully determined by the grid axes."
+        )
+
+    mean = np.asarray(spec_material.mean, dtype=float)
+    cov = np.asarray(spec_material.covariance, dtype=float)
+
+    s_aa = cov[np.ix_(free_index, free_index)]
+    s_ab = cov[np.ix_(free_index, fixed_index)]
+    s_bb = cov[np.ix_(fixed_index, fixed_index)]
+
+    gain = s_ab @ np.linalg.inv(s_bb)
+    observed = np.array(
+        [float(fixed_values[names[i]]) for i in fixed_index], dtype=float
+    )
+    cond_mean = mean[free_index] + gain @ (observed - mean[fixed_index])
+    cond_cov = s_aa - gain @ cov[np.ix_(fixed_index, free_index)]
+
+    # Symmetrize against accumulated floating-point asymmetry; the Schur
+    # complement is symmetric in exact arithmetic.
+    cond_cov = 0.5 * (cond_cov + cond_cov.T)
+
+    marginal = np.diag(s_aa)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        reduction = np.where(marginal > 0.0, 1.0 - np.diag(cond_cov) / marginal, 0.0)
+
+    return {
+        "parameters": tuple(names[i] for i in free_index),
+        "mean": cond_mean,
+        "covariance": cond_cov,
+        "variance_reduction": reduction,
+    }
+
+
+def _probability_node(args):
+    """Evaluate one grid node of :func:`probability_map`.
+
+    Kept at module level and taking a single tuple so a node is a
+    self-contained unit of work. The node's randomness comes from a seed
+    sequence derived from its own ``(i, j)`` grid index, so its result does not
+    depend on the order the grid is traversed in -- which is what makes the map
+    reproducible and would let it be parallelized.
+
+    It is NOT parallelized here, deliberately. A process pool inside a library
+    function needs the caller's module to be import-safe, and a caller that
+    runs this from a script without an ``if __name__ == "__main__"`` guard gets
+    recursive process spawning rather than a speedup. On the two-core
+    environment this project runs in, that risk buys under a factor of two, and
+    the clean-room reproduction has to be robust more than it has to be fast.
+    """
+    (
+        i,
+        j,
+        node,
+        sample_names,
+        mean,
+        cov,
+        base_material,
+        engineering,
+        fixed,
+        operating_point,
+        targets,
+        n_samples,
+        entropy,
+        target_usable_kg,
+    ) = args
+
+    temperatures = (operating_point.T_full, operating_point.T_empty)
+    child = np.random.default_rng(
+        np.random.SeedSequence(entropy=entropy, spawn_key=(i, j))
+    )
+    draws = (
+        child.multivariate_normal(mean, cov, size=n_samples)
+        if len(sample_names)
+        else np.zeros((n_samples, 0))
+    )
+
+    gcs, vcs = [], []
+    for row in draws:
+        overrides = dict(node)
+        overrides.update(zip(sample_names, (float(v) for v in row)))
+        overrides.update(fixed)
+        candidate = replace(base_material, **overrides)
+        if material_domain_error(candidate, temperatures) is not None:
+            continue
+        try:
+            budget = evaluate_envelope(
+                candidate,
+                ModifiedDA(candidate),
+                engineering,
+                *operating_point.as_tuple(),
+                target_usable_kg=target_usable_kg,
+            )
+        except (ValueError, ArithmeticError):
+            continue
+        if not (math.isfinite(budget["GC"]) and math.isfinite(budget["VC"])):
+            continue
+        gcs.append(budget["GC"])
+        vcs.append(budget["VC"])
+
+    if not gcs:
+        return (i, j, 0, math.nan, math.nan, math.nan, math.nan, math.nan)
+
+    gc_array = np.asarray(gcs)
+    vc_array = np.asarray(vcs)
+    # Probabilities are over the DRAWN samples, not the survivors: a node whose
+    # samples are mostly incoherent has a low probability of yielding a
+    # material that meets the targets, and dividing by the survivors would
+    # report the opposite.
+    return (
+        i,
+        j,
+        len(gcs),
+        float(np.count_nonzero((gc_array >= targets.gc) & (vc_array >= targets.vc)) / n_samples),
+        float(np.count_nonzero(gc_array >= targets.gc) / n_samples),
+        float(np.count_nonzero(vc_array >= targets.vc) / n_samples),
+        float(np.median(gc_array)),
+        float(np.median(vc_array)),
+    )
+
+
+def probability_map(spec, base_material, engineering, param_x, param_y,
+                    x_values, y_values, *, operating_point=None, targets,
+                    n_samples=1000, seed=0,
+                    target_usable_kg=DEFAULT_TARGET_USABLE_KG,
+                    conditional=True, progress=None):
+    """Monte Carlo probability that a material at each grid node meets targets.
+
+    The signature result (manual 2.10 F6, 4.3). At each node the two swept
+    parameters are held at the node's coordinates and the remaining uncertain
+    material parameters are sampled, giving the probability that a material
+    measured to sit at that point would meet both DOE targets. The boundary
+    becomes a probability band rather than a line, which is the only defensible
+    form given that Gate V2 found the parameters non-identifiable from a single
+    published isotherm.
+
+    Only the MATERIAL layer is sampled here, because claim C5 is specifically
+    that material-parameter uncertainty *alone* blurs the boundary. Mixing in
+    the engineering layer would make the band wider and the claim weaker.
+
+    Parameters
+    ----------
+    spec : h2star.uq.UncertaintySpec
+        Declared input uncertainty; its material block is used.
+    base_material : h2star.isotherm.Material
+        Reference material supplying parameters neither swept nor sampled.
+    engineering : h2star.system.EngineeringParams
+        Engineering parameters, held at their nominal values.
+    param_x, param_y : str
+        Swept parameters, forming the axes.
+    x_values, y_values : array_like
+        Grid coordinates in each parameter's SI unit.
+    operating_point : h2star.envelope.OperatingPoint, optional
+        Fixed envelope; defaults to the 100 bar / 80 K baseline.
+    targets : h2star.inverse.Targets
+        Targets defining feasibility.
+    n_samples : int, optional
+        Material samples per node; default 1000, the pre-registered minimum.
+    seed : int, optional
+        Base seed. Each node draws from its own child generator, so the map is
+        reproducible and a node's result does not depend on grid traversal
+        order.
+    target_usable_kg : float, optional
+        Usable-hydrogen mission in kilograms (kg).
+    conditional : bool, optional
+        When ``True`` (default), the unswept material parameters are sampled
+        from their distribution *conditional* on the node's coordinates, so
+        they follow the correlation the fit found. When ``False``, they are
+        sampled from their marginal distribution about the fit mean, which
+        ignores that correlation; retained for the comparison that shows how
+        much the correlation matters.
+    progress : callable, optional
+        Called as ``progress(done, total)`` as nodes complete. The map is the
+        most expensive routine in the package -- a node is ``n_samples``
+        system evaluations, each a Brent sizing solve -- so a caller running a
+        publication-sized grid will want it.
+
+    Returns
+    -------
+    dict
+        The axes; ``probability`` (shape ``(n_y, n_x)``), the fraction of
+        samples meeting both targets at each node; ``p_gc`` and ``p_vc``, the
+        same for each target separately; ``n_valid``, how many samples at each
+        node were coherent materials; ``median_GC`` and ``median_VC``;
+        ``variance_reduction`` from the conditioning; and the metadata and
+        caveat needed to report the figure.
+
+    Raises
+    ------
+    ValueError
+        If the specification has no material block, if the swept parameters are
+        invalid, or if ``n_samples`` is not positive.
+
+    Notes
+    -----
+    Nodes where no sample is a coherent material report ``nan`` probability
+    and ``n_valid`` of zero, which is distinct from a probability of zero. The
+    distinction matters here more than usual: conditioning makes ``v_a`` grow
+    with ``n_max`` along the fitted direction, and far enough out that implies
+    an adsorbed phase larger than the pore volume -- so the high-uptake corner
+    is *incoherent* under this fit's correlation structure rather than merely
+    infeasible. That is a finding about extrapolating the fit, and collapsing
+    it into "probability zero" would hide it.
+    """
+    if spec.material is None:
+        raise ValueError("The specification has no material block to sample.")
+    _validate_sweep(param_x, param_y)
+    if n_samples <= 0:
+        raise ValueError(f"n_samples must be positive; got {n_samples}.")
+    if operating_point is None:
+        operating_point = OperatingPoint(P_full=100.0e5, T_full=80.0)
+
+    x_values = np.atleast_1d(np.array(x_values, dtype=float, copy=True))
+    y_values = np.atleast_1d(np.array(y_values, dtype=float, copy=True))
+    shape = (y_values.size, x_values.size)
+
+    probability = np.full(shape, np.nan)
+    p_gc = np.full(shape, np.nan)
+    p_vc = np.full(shape, np.nan)
+    n_valid = np.zeros(shape, dtype=int)
+    median_gc = np.full(shape, np.nan)
+    median_vc = np.full(shape, np.nan)
+
+    swept = {param_x, param_y}
+    material_names = set(spec.material.parameters)
+    conditioned = swept & material_names
+    reduction = None
+
+    entropy = np.random.SeedSequence(seed).entropy
+
+    tasks = []
+    for i, y in enumerate(y_values):
+        for j, x in enumerate(x_values):
+            node = {param_x: float(x), param_y: float(y)}
+
+            if conditional and conditioned:
+                conditional_spec = conditional_material_distribution(
+                    spec.material, {k: node[k] for k in conditioned}
+                )
+                sample_names = conditional_spec["parameters"]
+                mean = conditional_spec["mean"]
+                cov = conditional_spec["covariance"]
+                reduction = conditional_spec["variance_reduction"]
+            else:
+                free = [
+                    k for k in spec.material.parameters if k not in conditioned
+                ]
+                keep = [spec.material.parameters.index(k) for k in free]
+                sample_names = tuple(free)
+                mean = np.asarray(spec.material.mean)[keep]
+                cov = np.asarray(spec.material.covariance)[np.ix_(keep, keep)]
+
+            tasks.append(
+                (
+                    i,
+                    j,
+                    node,
+                    sample_names,
+                    mean,
+                    cov,
+                    base_material,
+                    engineering,
+                    dict(spec.material.fixed),
+                    operating_point,
+                    targets,
+                    int(n_samples),
+                    entropy,
+                    float(target_usable_kg),
+                )
+            )
+
+    outcomes = []
+    for count, task in enumerate(tasks, 1):
+        outcomes.append(_probability_node(task))
+        if progress is not None:
+            progress(count, len(tasks))
+
+    for i, j, valid, p_both, pg, pv, mgc, mvc in outcomes:
+        n_valid[i, j] = valid
+        if valid:
+            probability[i, j] = p_both
+            p_gc[i, j] = pg
+            p_vc[i, j] = pv
+            median_gc[i, j] = mgc
+            median_vc[i, j] = mvc
+
+    return {
+        "param_x": param_x,
+        "param_y": param_y,
+        "x_values": x_values,
+        "y_values": y_values,
+        "probability": probability,
+        "p_gc": p_gc,
+        "p_vc": p_vc,
+        "n_valid": n_valid,
+        "n_samples": int(n_samples),
+        "median_GC": median_gc,
+        "median_VC": median_vc,
+        "targets": targets,
+        "operating_point": operating_point,
+        "target_usable_kg": float(target_usable_kg),
+        "conditional": bool(conditional),
+        "conditioned_on": tuple(sorted(conditioned)),
+        "variance_reduction": (
+            None if reduction is None else np.asarray(reduction)
+        ),
+        "seed": int(seed),
+        "caveat": (
+            "Material-parameter uncertainty only, conditional on a fixed p0 "
+            "and therefore a LOWER BOUND on the blur a single published "
+            "isotherm implies. The underlying system mass model is separately "
+            "known from Gate V3 to be optimistic by a factor of about 4.2, so "
+            "the band's position is optimistic even where its width is honest."
+        ),
+    }
+
+
+def boundary_separation(result, along_value, level_low=0.05, level_high=0.95,
+                        median_level=0.50):
+    """Horizontal separation of two probability contours, as C5 defines it.
+
+    Pre-registered in ``docs/validation_plan.md`` (V4.4): claim C5's
+    "quantified amount" is the horizontal distance between the
+    ``P(feasible) = 0.05`` and ``0.95`` contours along a fixed value of the
+    y-axis parameter, expressed absolutely and as a percentage of the x value
+    at which the median contour crosses the same line.
+
+    Defining the metric before the map was computed is the point. A separation
+    read off a finished figure could be chosen to look impressive; this one was
+    specified in advance, including the instruction to report a bound rather
+    than extend the mapped range when a contour does not cross.
+
+    Parameters
+    ----------
+    result : dict
+        Output of :func:`probability_map`.
+    along_value : float
+        Value of the y-axis parameter to take the horizontal cut at, in that
+        parameter's SI unit.
+    level_low, level_high, median_level : float, optional
+        Probability levels; defaults are the pre-registered 0.05, 0.95 and
+        0.50.
+
+    Returns
+    -------
+    dict
+        ``row_value`` actually used and its index; the x value at which each
+        level is crossed (``nan`` when it is not crossed inside the mapped
+        range); ``separation`` and ``separation_percent``; ``bounded``, true
+        when a level was not crossed so the result is a bound; and ``note``,
+        the sentence to put in the figure caption or the claim.
+
+    Raises
+    ------
+    ValueError
+        If the map has fewer than two columns, so no horizontal interpolation
+        is possible.
+    """
+    y_values = np.asarray(result["y_values"], dtype=float)
+    x_values = np.asarray(result["x_values"], dtype=float)
+    if x_values.size < 2:
+        raise ValueError(
+            "boundary_separation needs at least two columns to interpolate."
+        )
+
+    row = int(np.argmin(np.abs(y_values - along_value)))
+    probabilities = np.asarray(result["probability"], dtype=float)[row]
+
+    def crossing(level):
+        """First x where the probability row crosses ``level``, by linear interp."""
+        finite = np.isfinite(probabilities)
+        if finite.sum() < 2:
+            return math.nan
+        xs = x_values[finite]
+        ps = probabilities[finite]
+        for k in range(ps.size - 1):
+            lo, hi = ps[k], ps[k + 1]
+            if (lo - level) * (hi - level) <= 0.0 and lo != hi:
+                t = (level - lo) / (hi - lo)
+                return float(xs[k] + t * (xs[k + 1] - xs[k]))
+        return math.nan
+
+    x_low = crossing(level_low)
+    x_high = crossing(level_high)
+    x_median = crossing(median_level)
+
+    separation = (
+        abs(x_high - x_low)
+        if math.isfinite(x_low) and math.isfinite(x_high)
+        else math.nan
+    )
+    percent = (
+        100.0 * separation / x_median
+        if math.isfinite(separation) and math.isfinite(x_median) and x_median
+        else math.nan
+    )
+    bounded = not math.isfinite(separation)
+
+    if bounded:
+        note = (
+            f"The P={level_low:g} and P={level_high:g} contours do not both "
+            f"cross {result['param_y']} = {float(y_values[row]):g} inside the "
+            f"mapped range {result['param_x']} in "
+            f"[{x_values.min():g}, {x_values.max():g}]; the separation is "
+            f"reported as a bound rather than the range extended."
+        )
+    else:
+        note = (
+            f"Material-parameter uncertainty alone blurs the feasibility "
+            f"boundary over {separation:.3g} in {result['param_x']} "
+            f"({percent:.1f}% of the median-contour crossing at "
+            f"{x_median:.3g}) along {result['param_y']} = "
+            f"{float(y_values[row]):g}. Conditional on a fixed p0, so a lower "
+            f"bound."
+        )
+
+    return {
+        "row_index": row,
+        "row_value": float(y_values[row]),
+        "requested_value": float(along_value),
+        "x_at_low": x_low,
+        "x_at_median": x_median,
+        "x_at_high": x_high,
+        "levels": (float(level_low), float(median_level), float(level_high)),
+        "separation": separation,
+        "separation_percent": percent,
+        "bounded": bounded,
+        "note": note,
+    }
+
+
+#: Liquid-hydrogen molar volume, m^3/mol, as used by assumption A-ISO-4 to
+#: estimate the adsorbed-phase volume from the limiting uptake.
+V_LIQUID_H2_MOLAR = 2.8e-5
+
+
+def pore_volume_available(material):
+    """Specific pore volume a packed bed leaves for the adsorbed phase, m^3/kg.
+
+    ``1/rho_bulk - 1/rho_skel``: the volume per kilogram of sorbent that is not
+    occupied by the pore-free solid. The adsorbed phase has to fit inside it,
+    which is the constraint :func:`coherent_n_max_limit` expresses.
+    """
+    return 1.0 / material.rho_bulk - 1.0 / material.rho_skel
+
+
+def coherent_n_max_limit(material, slope):
+    """Largest limiting uptake whose adsorbed phase still fits in the pores.
+
+    If the adsorbed-phase volume grows with the limiting uptake at rate
+    ``slope``, the two meet the available pore volume at
+
+        n_max_limit = n_max_ref + (V_pore - v_a_ref) / slope
+
+    Beyond that the adsorbed phase would exceed the space the packing leaves
+    for it, and the parameter vector does not describe a material at all.
+
+    This matters because the deterministic acceptability map holds ``v_a``
+    fixed while sweeping ``n_max``, which silently assumes the adsorbed phase
+    does not grow with the uptake. It does, by two independent accounts: the
+    Gate V2 fit's own parameter correlation implies
+    ``dv_a/dn_max = 8.87e-5 m^3/mol``, and assumption A-ISO-4's liquid-hydrogen
+    argument implies ``2.8e-5 m^3/mol``. Both place the limit *below* the
+    uptake the deterministic map identifies as the requirement, so that
+    requirement is not reachable at fixed packing density.
+
+    Parameters
+    ----------
+    material : h2star.isotherm.Material
+        Reference material, supplying ``n_max``, ``v_a`` and the two densities.
+    slope : float
+        ``dv_a/dn_max`` in m^3/mol. Use
+        :data:`V_LIQUID_H2_MOLAR` for the A-ISO-4 argument, or the conditional
+        regression coefficient from the fit covariance.
+
+    Returns
+    -------
+    float
+        Limiting uptake in mol/kg at which the pore volume is exhausted.
+
+    Raises
+    ------
+    ValueError
+        If ``slope`` is not strictly positive; a non-positive slope would mean
+        the adsorbed phase does not grow with uptake, and the limit would not
+        exist.
+    """
+    if slope <= 0.0:
+        raise ValueError(
+            f"slope must be strictly positive (m^3/mol); got {slope}."
+        )
+    return material.n_max + (pore_volume_available(material) - material.v_a) / slope
+
+
+def coherent_rho_bulk_limit(material, n_max_values, slope):
+    """Largest packing density that still leaves room for the adsorbed phase.
+
+    Inverts the pore-volume constraint for the packing density: at a given
+    limiting uptake, the bed can be packed no more densely than
+
+        rho_bulk_max = 1 / (v_a(n_max) + 1/rho_skel)
+
+    which is the boundary curve to draw on an ``(n_max, rho_bulk)``
+    acceptability map. It states the real trade the map has to confront: a
+    higher-uptake sorbent needs more pore volume, which means packing it less
+    densely, which costs volumetric capacity.
+
+    Parameters
+    ----------
+    material : h2star.isotherm.Material
+        Reference material, supplying ``n_max``, ``v_a`` and ``rho_skel``.
+    n_max_values : array_like
+        Limiting uptakes in mol/kg.
+    slope : float
+        ``dv_a/dn_max`` in m^3/mol.
+
+    Returns
+    -------
+    numpy.ndarray
+        Maximum packing density in kg/m^3 at each uptake. Entries where the
+        implied adsorbed-phase volume is non-positive are ``nan``.
+    """
+    if slope <= 0.0:
+        raise ValueError(
+            f"slope must be strictly positive (m^3/mol); got {slope}."
+        )
+    n_max_values = np.atleast_1d(np.asarray(n_max_values, dtype=float))
+    v_a = material.v_a + slope * (n_max_values - material.n_max)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        limit = np.where(v_a > 0.0, 1.0 / (v_a + 1.0 / material.rho_skel), np.nan)
+    return limit
+
+
+def fit_va_slope(spec_material, x_name="n_max", y_name="v_a"):
+    """Regression slope ``dv_a/dn_max`` implied by the fit covariance.
+
+    The conditional expectation of one fitted parameter given another is
+    linear with slope ``Sigma_xy / Sigma_xx``. Taking it from the covariance
+    rather than hard-coding a number keeps the figure and the constraint tied
+    to the fit that produced them.
+
+    Parameters
+    ----------
+    spec_material : h2star.uq.MaterialSpec
+        Joint distribution over the material parameters.
+    x_name, y_name : str, optional
+        Parameter names; defaults give ``dv_a/dn_max``.
+
+    Returns
+    -------
+    float
+        Slope in the ratio of the two parameters' units (m^3/mol for the
+        default pair).
+    """
+    names = list(spec_material.parameters)
+    i, j = names.index(x_name), names.index(y_name)
+    cov = np.asarray(spec_material.covariance, dtype=float)
+    return float(cov[i, j] / cov[i, i])
