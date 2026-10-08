@@ -22,6 +22,14 @@ dev = [
     "pytest",
     "ruff==0.15.17",
 ]
+# Needed only to re-execute the notebooks, which the clean-room reproduction in
+# manual Part VII requires. Declared rather than left to be improvised, so the
+# reproduction instruction is complete.
+nb = [
+    "nbformat",
+    "nbclient",
+    "ipykernel",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

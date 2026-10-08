@@ -47,6 +47,17 @@ python3 scripts/make_all_figures.py              # all eight figures, ~9 min
 
 The xfail is deliberate and is Gate V3 (below). Python 3.11 or later.
 
+To re-execute the notebooks as well — the last step of the clean-room
+reproduction — add the notebook extra:
+
+```bash
+python3 -m pip install -e ".[dev,nb]"
+python3 scripts/run_notebooks.py --check         # all eight, ~8 min
+```
+
+`--check` runs them without writing them back, so it answers "do these still
+run?" without producing a diff. Notebook 07 is most of that time.
+
 ```python
 from h2star import envelope, isotherm, system
 
