@@ -47,10 +47,11 @@ python3 scripts/make_all_figures.py              # all eight figures, ~11 min
 
 The xfail is deliberate and is Gate V3 (below). Python 3.11 or later.
 
-On a Matplotlib, FreeType or Pillow other than the one the committed
-figures were produced under, three tests skip rather than fail: the ones
-that compare figure *bytes*. Everything else, including every number,
-runs everywhere. Verified on Matplotlib 3.9.4, 3.11.0 and 3.11.2.
+On a platform, Matplotlib, FreeType or Pillow other than the one the committed
+figures were produced under, three tests skip rather than fail: the ones that
+compare figure *bytes*. Everything else, including every number, runs
+everywhere. Verified on Matplotlib 3.9.4, 3.11.0 and 3.11.2, and on Linux and
+macOS.
 
 To re-execute the notebooks as well — the last step of the clean-room
 reproduction — add the notebook extra:
@@ -141,15 +142,17 @@ to produce is fitting to a known answer.
 
 - Every number behind every figure is deterministic under a fixed seed, and the
   eight figures (nine PNGs — F7 draws one per output) are byte-identical
-  **given the same Matplotlib, FreeType and Pillow**. Verified two ways:
+  **on one platform, given the same Matplotlib, FreeType and Pillow**. Not
+  across platforms: CI runs Ubuntu and macOS on identical library versions and
+  only Ubuntu reproduces the committed bytes. Verified two ways:
   regenerating them from a fresh clone in a separate virtual environment and
   comparing SHA-256, nine of nine identical across Python 3.11 vs 3.13, NumPy
   2.4.6 vs 2.5.3 and SciPy 1.17.1 vs 1.18.1; and
   `tests/test_figure_bytes.py`, which regenerates figures under 60-odd hostile
   ambient `rcParams` and demands the committed bytes back, with a control that
   fails if the hostile settings turn out not to reach the canvas.
-- Byte-identity is **not** claimed across Matplotlib, FreeType or Pillow
-  versions. FreeType rasterises glyphs differently between releases, Matplotlib
+- Byte-identity is **not** claimed across platforms, nor across Matplotlib,
+  FreeType or Pillow versions. FreeType rasterises glyphs differently between releases, Matplotlib
   stamps its own version into the PNG's `Software` chunk, and Pillow writes the
   file. The numbers survive all three; the bytes need not. Only `figures/` is
   byte-claimed — the notebooks' inline images are rendered by IPython's inline

@@ -199,9 +199,20 @@ def test_the_rendering_stack_is_recorded_and_real():
     one where byte-identity is claimed at all. Before that was recorded, the
     byte comparison ran unconditionally and CI's macOS jobs asserted something
     `docs/known_limitations.md` explicitly does not claim.
+
+    Platform is in the fingerprint because CI demonstrated it belongs there:
+    Ubuntu and macOS ran the same Matplotlib 3.11.2, FreeType 2.14.3 and
+    Pillow 12.3.0, and only Ubuntu reproduced the committed bytes. A
+    version-only fingerprint did not skip on macOS and the byte comparison
+    failed there, which is the same mistake one level down -- the project's
+    own first statement of this claim had said "not a cross-platform
+    byte-reproducibility guarantee", and a later rewrite dropped the
+    qualifier.
     """
     recorded = viz.FIGURE_STYLE_STACK
-    assert set(recorded) == {"matplotlib", "freetype", "pillow"}, recorded
+    assert set(recorded) == {
+        "matplotlib", "freetype", "pillow", "platform",
+    }, recorded
     assert all(recorded.values()), recorded
 
     running = viz.rendering_stack()

@@ -228,17 +228,21 @@ Named so their absence is not mistaken for an oversight.
   as kg/L, triangulated against an independent HSECoE pair, and recorded as a
   transcription-error correction with the reasoning written down before the
   comparison was run.
-- **Figure byte-identity holds within a rendering stack, not across versions.**
+- **Figure byte-identity holds on one platform within one rendering stack.**
   Under a fixed seed every number behind every figure is deterministic. The
-  images are byte-identical too, given the same Matplotlib, FreeType and
-  Pillow: verified by regenerating them from a fresh clone in a separate
-  virtual environment and comparing SHA-256 (nine of nine identical across
-  Python 3.11 vs 3.13, NumPy 2.4.6 vs 2.5.3, SciPy 1.17.1 vs 1.18.1), and by
-  `tests/test_figure_bytes.py`, which regenerates under hostile ambient
-  `rcParams`. What it does not cover is a different Matplotlib, FreeType or
-  Pillow: FreeType rasterises glyphs differently between releases, Matplotlib
-  writes its own version into the PNG's `Software` chunk, and Pillow encodes
-  the file. The numbers survive all three; the bytes need not. `pyproject.toml`
+  images are byte-identical too, on the same platform and given the same
+  Matplotlib, FreeType and Pillow: verified by regenerating them from a fresh
+  clone in a separate virtual environment and comparing SHA-256 (nine of nine
+  identical across Python 3.11 vs 3.13, NumPy 2.4.6 vs 2.5.3, SciPy 1.17.1 vs
+  1.18.1), and by `tests/test_figure_bytes.py`, which regenerates under hostile
+  ambient `rcParams`. What it does not cover is a different *platform*, or a
+  different Matplotlib, FreeType or Pillow. FreeType rasterises glyphs
+  differently between releases, Matplotlib writes its own version into the
+  PNG's `Software` chunk, and Pillow encodes the file — and the operating
+  system changes the result even when all three versions are identical, which
+  CI demonstrated: Ubuntu and macOS running the same Matplotlib 3.11.2,
+  FreeType 2.14.3 and Pillow 12.3.0, and only Ubuntu reproducing the committed
+  bytes. The numbers survive all of it; the bytes need not. `pyproject.toml`
   does not pin those versions, so a reader installing this in a year gets a
   different stack and the byte claim stops holding while the numbers do not.
   Sibling project RamanUQ claims byte-reproducibility outright; this project

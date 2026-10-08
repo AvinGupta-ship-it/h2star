@@ -93,6 +93,17 @@ not anticipate.
   `ValueError: hatch.color: 'edge'`. The configuration is now filtered on load
   to what the running Matplotlib accepts and `viz.FIGURE_STYLE_UNSUPPORTED`
   reports what was dropped. Verified working on 3.9.4, 3.11.0 and 3.11.2.
+- **The rendering-stack fingerprint left out the platform, which is the one
+  thing the project had known about from the start.** With the stack recorded
+  as Matplotlib, FreeType and Pillow versions only, CI's macOS jobs matched it
+  exactly — PyPI's latest is the recorded 3.11.2 and 12.3.0 — so the byte
+  comparison ran there and failed, because the operating system changes glyph
+  rasterisation at identical versions. Ubuntu and macOS, same four library
+  versions, only Ubuntu reproducing the bytes, is the controlled demonstration.
+  The project's first statement of this claim had said "not a cross-platform
+  byte-reproducibility guarantee"; a later rewrite narrowed it to versions and
+  dropped the qualifier. Platform is now part of the fingerprint and the
+  qualifier is back in `README.md` and `docs/known_limitations.md`.
 - **The byte tests asserted on every platform what the documentation claims
   only within one rendering stack.** CI's macOS jobs went red with 65
   failures: macOS had Matplotlib 3.11.0 and Pillow 12.2.0 against the recorded

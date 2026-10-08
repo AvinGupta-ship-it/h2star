@@ -66,22 +66,22 @@ def _blacklist():
 
 
 def rendering_stack():
-    """The three libraries a figure's bytes depend on, in this environment.
+    """Everything outside the package that a figure's bytes depend on.
 
-    Matplotlib lays the figure out, FreeType rasterises the glyphs, and Pillow
-    encodes the PNG. The recorded configuration removes the *host* from the
-    question; it cannot remove these, so the committed figures' bytes are
-    conditional on them and the versions are recorded alongside.
+    Matplotlib lays the figure out, FreeType rasterises the glyphs, Pillow
+    encodes the PNG, and the operating system changes the result even when all
+    three versions are identical: CI ran Ubuntu and macOS on the same
+    Matplotlib 3.11.2, FreeType 2.14.3 and Pillow 12.3.0, and only Ubuntu
+    reproduced the committed bytes. The recorded configuration removes the
+    host's *settings* from the question; it cannot remove any of these, so the
+    committed figures are conditional on them and all four are recorded.
+
+    Delegates to :func:`h2star.viz.rendering_stack` so the recorder and the
+    runtime cannot disagree about what the fingerprint is.
     """
-    import matplotlib as mpl
-    import matplotlib.ft2font as ft
-    import PIL
+    from h2star import viz
 
-    return {
-        "matplotlib": mpl.__version__,
-        "freetype": ft.__freetype_version__,
-        "pillow": PIL.__version__,
-    }
+    return viz.rendering_stack()
 
 
 def current_configuration():

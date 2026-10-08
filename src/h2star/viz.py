@@ -51,15 +51,22 @@ FIGURE_STYLE_PATH = Path(__file__).resolve().parent / "figure_style.json"
 
 
 def rendering_stack():
-    """The three library versions a figure's bytes depend on, right now.
+    """Everything outside this package that a figure's bytes depend on.
 
-    The recorded configuration removes the *host* from a figure's bytes. It
-    cannot remove these: Matplotlib lays the figure out, FreeType rasterises
-    the glyphs and Pillow encodes the PNG, and all three change their output
-    between releases. So byte-identity with the committed figures is claimed
-    only when this matches :data:`FIGURE_STYLE_STACK`, and the numbers are
-    claimed regardless.
+    The recorded configuration removes the *host's settings* from a figure's
+    bytes. It cannot remove these: Matplotlib lays the figure out, FreeType
+    rasterises the glyphs and Pillow encodes the PNG, all three change their
+    output between releases, and the operating system changes it even when the
+    versions are identical -- CI proved that, with Ubuntu and macOS running the
+    same Matplotlib 3.11.2, FreeType 2.14.3 and Pillow 12.3.0, and only Ubuntu
+    reproducing the committed bytes. Platform is part of the fingerprint for
+    that reason, not as a precaution.
+
+    Byte-identity with the committed figures is claimed only where this matches
+    :data:`FIGURE_STYLE_STACK`. The numbers are claimed everywhere.
     """
+    import platform
+
     import matplotlib.ft2font as ft
     import PIL
 
@@ -67,6 +74,7 @@ def rendering_stack():
         "matplotlib": mpl.__version__,
         "freetype": ft.__freetype_version__,
         "pillow": PIL.__version__,
+        "platform": f"{platform.system()}-{platform.machine()}",
     }
 
 

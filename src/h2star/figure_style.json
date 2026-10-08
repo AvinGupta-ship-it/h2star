@@ -3,7 +3,8 @@
  "rendering_stack": {
   "matplotlib": "3.11.2",
   "freetype": "2.14.3",
-  "pillow": "12.3.0"
+  "pillow": "12.3.0",
+  "platform": "Linux-x86_64"
  },
  "rcparams": {
   "_internal.classic_mode": false,

@@ -1705,3 +1705,64 @@ then the DOI into `CITATION.cff` and the README badge.
   dependencies from the same index at the same moment. A genuinely old
   resolution is only tested by the two pinned virtualenvs used for this fix,
   which are not part of CI.
+
+---
+
+## 2026-10-08 — The platform was the qualifier I deleted
+
+Hours: not applicable (v2.0 execution model).
+
+### What happened
+The stack gate fixed Avin's Mac and did not fix CI. The new
+`oldest-supported-matplotlib` job passed, both Ubuntu jobs passed, both macOS
+jobs failed again.
+
+The reason is that CI installs fresh from PyPI, and PyPI's latest Matplotlib
+and Pillow *are* the recorded 3.11.2 and 12.3.0. So on CI's macOS the recorded
+stack matched exactly, the gate did not skip, the byte comparison ran — and
+failed, because macOS rasterises glyphs differently from Linux at identical
+library versions. Avin's own Mac had happened to carry an older Matplotlib
+3.11.0, which is why the version-only gate appeared to explain his failure.
+One environment confirmed the hypothesis and a second refuted it.
+
+Four jobs, identical Python and identical library versions, OS the only
+variable: both Linux pass, both macOS fail. That isolates the platform without
+needing the log, which the container cannot fetch anyway.
+
+### The part that stings
+`git show 4c371dd:README.md` says, of this very claim: *"That is an
+observation, not a cross-platform byte-reproducibility guarantee."* The project
+knew from the first time it stated the claim that byte-identity was
+platform-specific. When I rewrote the sentence after the first clean-room
+failure, I narrowed it from "this platform" to "a given Matplotlib and FreeType
+version" and deleted the qualifier that was already correct. Every subsequent
+round — the sixteen rcParams, the stack fingerprint — was rediscovering, at
+increasing cost, a limitation the repository had written down on day one.
+
+The lesson is not "be careful rewriting". It is that a rewrite which *narrows*
+a claim should have to say which part of the old claim it is dropping and why.
+Mine dropped a true qualifier silently, while appearing to make the claim more
+precise.
+
+### The fix
+Platform is now part of the recorded fingerprint, so the byte comparison runs
+where the committed bytes can be produced and skips elsewhere with its reason.
+`scripts/record_figure_style.py` delegates to `viz.rendering_stack()` so the
+recorder and the runtime cannot disagree about what the fingerprint is. The
+qualifier is restored in README and `known_limitations.md`, with the CI
+observation as its evidence rather than an assertion.
+
+### Lessons
+Three environments have now each caught something the others could not: the
+clean room caught the host font, CI's macOS jobs caught the platform, and a
+pinned old Matplotlib caught that the package would not run at all elsewhere.
+None of them is redundant, and the clean-room procedure as written covers only
+the first.
+
+### Next actions
+Sixth clean room, then Mode B: Zenodo toggle before the release, tag `v0.2.0`,
+concept DOI to ORCID.
+
+### Open questions
+- Carried forward: no Matplotlib floor in `pyproject.toml`; the clean room and
+  CI still resolve from the same index at the same moment.
