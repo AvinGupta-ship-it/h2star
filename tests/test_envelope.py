@@ -15,11 +15,21 @@ reported at the optimum are exactly what a direct evaluation at that operating
 point returns, and that any constraint imposed actually holds there.
 """
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
 from h2star import envelope, isotherm, system
-from tests.conftest import AX21_YAML, ENGINEERING_YAML
+
+#: Repository root, resolved from this file. Deliberately NOT imported from
+#: ``tests.conftest``: that import only resolves when the repository root
+#: happens to be on ``sys.path``, which ``python -m pytest`` arranges and a
+#: bare ``pytest`` does not. CI runs the bare form, so the import passed
+#: locally and failed there.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+AX21_YAML = REPO_ROOT / "data" / "materials" / "ax21.yaml"
+ENGINEERING_YAML = REPO_ROOT / "data" / "engineering.yaml"
 
 #: Interior optimum of the synthetic surface, in (Pa, K, K).
 _SYNTH_P = 110.0e5

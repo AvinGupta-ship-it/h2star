@@ -8,6 +8,8 @@ entry. A figure that renders without error but omits the caveat would be a
 quiet overclaim, which is why that one is asserted rather than assumed.
 """
 
+from pathlib import Path
+
 import matplotlib
 import numpy as np
 import pytest
@@ -17,7 +19,14 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 from h2star import envelope, inverse, viz  # noqa: E402
-from tests.conftest import DOE_TARGETS_YAML  # noqa: E402
+
+#: Repository root, resolved from this file. Deliberately NOT imported from
+#: ``tests.conftest``: that import only resolves when the repository root
+#: happens to be on ``sys.path``, which ``python -m pytest`` arranges and a
+#: bare ``pytest`` does not. CI runs the bare form, so the import passed
+#: locally and failed there.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOE_TARGETS_YAML = REPO_ROOT / "data" / "targets" / "doe_targets.yaml"
 
 
 @pytest.fixture(autouse=True)

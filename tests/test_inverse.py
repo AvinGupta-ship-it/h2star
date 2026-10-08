@@ -16,7 +16,14 @@ import pytest
 import yaml
 
 from h2star import envelope, inverse, system
-from tests.conftest import DOE_TARGETS_YAML
+
+#: Repository root, resolved from this file. Deliberately NOT imported from
+#: ``tests.conftest``: that import only resolves when the repository root
+#: happens to be on ``sys.path``, which ``python -m pytest`` arranges and a
+#: bare ``pytest`` does not. CI runs the bare form, so the import passed
+#: locally and failed there.
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DOE_TARGETS_YAML = REPO_ROOT / "data" / "targets" / "doe_targets.yaml"
 
 #: A small, fast grid for tests that only need the engine's structure.
 _NX, _NY = 7, 5

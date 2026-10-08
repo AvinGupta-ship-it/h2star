@@ -24,11 +24,17 @@ file -- a top-level ``citation``, a ``source`` block with a URL, or per-value
 """
 
 import csv
+from pathlib import Path
 
 import pytest
 import yaml
 
-from tests.conftest import REPO_ROOT
+#: Repository root, resolved from this file. Deliberately NOT imported from
+#: ``tests.conftest``: that import only resolves when the repository root
+#: happens to be on ``sys.path``, which ``python -m pytest`` arranges and a
+#: bare ``pytest`` does not. CI runs the bare form, so the import passed
+#: locally and failed there.
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 DATA_DIR = REPO_ROOT / "data"
 
