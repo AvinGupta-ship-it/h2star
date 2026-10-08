@@ -1,0 +1,227 @@
+name: "H2STAR uncertainty specification"
+description: >
+  Declared input distributions for the Monte Carlo uncertainty propagation
+  (manual 2.4J) and the Sobol global sensitivity analysis (manual 2.4K). Two
+  layers are declared separately because they have different epistemic status:
+  the MATERIAL layer is a measured covariance recovered from the Gate V2 refit
+  of published data, while the ENGINEERING layer is a set of declared ranges,
+  most of which are modeling assumptions rather than reported uncertainties.
+  Every entry states which it is. Nothing here is a fitted or tuned value, and
+  no range was chosen after seeing a system-level result: this file is frozen
+  by the dated pre-registration block in docs/validation_plan.md before uq.py
+  and sensitivity.py exist.
+date_accessed: "2026-10-08"
+
+material:
+  # The material layer is sampled jointly, not parameter by parameter: Gate V2
+  # established that these parameters are not independently identifiable from a
+  # single isotherm (pairwise correlations up to 0.97 even with p0 fixed), so
+  # sampling marginals would understate the correlation and overstate the
+  # effective information in the fit.
+  distribution: "multivariate_normal"
+  parameters: ["n_max", "alpha", "v_a"]
+  units: ["mol/kg", "J/mol", "m3/kg"]
+  mean: [67.823510, 3266.150700, 1.4228810e-3]
+  covariance:
+    - [ 6.1244740e+01, -1.5479850e+03,  2.7017930e-03]
+    - [-1.5479850e+03,  4.1972370e+04, -6.3272840e-02]
+    - [ 2.7017930e-03, -6.3272840e-02,  1.3444700e-07]
+  one_sigma: [7.8259020, 204.87160, 3.6667020e-4]
+  status: "MEASURED (recovered covariance, not a declared range)"
+  _source: >
+    Conditional covariance of the Gate V2 modified Dubinin-Astakhov refit of
+    the digitized AX-21 77 K excess isotherm
+    (data/validation/ax21_digitized.csv, 11 points, from Richard, Benard &
+    Chahine, Adsorption 2009, 15, 43-51, DOI 10.1007/s10450-009-9149-x,
+    Fig. 1a), computed with p0 held at the published 1.47e+9 Pa via
+    fitting.fit_modified_da(..., fix_p0=True). Reproduced 2026-10-08 and
+    matching the Day-8 record in docs/validation_plan.md to the digit:
+    n_max 67.8 mol/kg (-5.3% vs published), alpha 3266 J/mol (+6.0%),
+    v_a 1.423e-3 m3/kg (-0.5%), RMSE 0.907 mol/kg, cond(JtJ) 6.5e+12.
+  _justification: >
+    The UNCONSTRAINED four-parameter fit cannot seed this layer. Its optimizer
+    terminated with log10(p0) at the imposed lower bound, and a covariance
+    reported at an active bound is not a valid local Gaussian approximation --
+    recorded as an open question on Day 8 and resolved here. Fixing p0 at the
+    published value removes the active bound, returns the remaining parameters
+    to within 6% of published, and leaves a well-posed covariance. The price is
+    that the uncertainty quantified downstream is CONDITIONAL on p0: it is the
+    spread that remains once the flattest direction of the likelihood ridge is
+    pinned, and it therefore UNDERSTATES the total parameter uncertainty
+    implied by a single isotherm. That understatement is the honest direction
+    for a headline claim -- the feasibility boundary is at least this blurred --
+    and the unconstrained ridge is reported separately as a structural
+    sensitivity rather than mixed into the headline band.
+  fixed:
+    p0:
+      value: 1.47e+9
+      unit: "Pa"
+      _source: >
+        Richard, Benard & Chahine, Adsorption 2009, 15, Table 3, HYDROGEN
+        column of the global fit: P0 = 1470 MPa. Held fixed, not sampled; see
+        _justification above.
+    beta:
+      value: 18.9
+      unit: "J/(mol*K)"
+      _source: >
+        Richard, Benard & Chahine, Adsorption 2009, 15, Table 3. Held fixed
+        because on a single isotherm alpha and beta enter only through the
+        combination alpha + beta*T and are not separately identifiable; this is
+        the same reduction the Gate V2 parameter-recovery pre-registration
+        made on 2026-07-02.
+  domain_handling: >
+    Samples are drawn from the multivariate normal and then screened against
+    the physical domain (inverse.material_domain_error plus the tank layer's
+    void-volume constraint). Samples outside it are discarded and redrawn, and
+    the discard fraction is reported with every result. Measured discard
+    fraction for this covariance at the reference packing, over 200,000 draws
+    on 2026-10-08: 0.0085% (17 of 200,000; 12 from v_a <= 0, 5 from a negative
+    void volume). The 1% reporting threshold in the pre-registration was set as
+    a general guard, not calibrated to this number.
+
+engineering:
+  # Declared ranges. Each entry states whether its range is SOURCED or a
+  # MODELING ASSUMPTION. The nominal values and their provenance live in
+  # data/engineering.yaml and are not repeated here; only the spread is
+  # declared here.
+
+  sigma_allow:
+    distribution: "triangular"
+    unit: "Pa"
+    low: 1.5606e+9
+    mode: 1.836e+9
+    high: 2.1114e+9
+    status: "MODELING ASSUMPTION (range not sourced)"
+    _source: >
+      Nominal 1.836e+9 Pa from data/engineering.yaml (Hua et al., ANL-10/24
+      (2010), Table 1: 2550 MPa * 0.90 quality * 0.80 translation efficiency).
+      No uncertainty is reported with those factors.
+    _justification: >
+      +/-15% about the nominal, as a declared assumption. The two knockdown
+      factors folded into the nominal (0.90 and 0.80) are themselves point
+      estimates of quantities that vary with fibre lot and winding process, and
+      manual 3.14 FM4 requires the vessel model to carry generous propagated
+      uncertainty precisely because it is a correlation rather than a
+      structural analysis. The band is symmetric because no asymmetry is
+      sourced; it is NOT derived from a reported standard deviation and must
+      not be described as one.
+
+  mli_k_eff:
+    distribution: "triangular"
+    unit: "W/(m*K)"
+    low: 3.12e-4
+    mode: 5.2e-4
+    high: 7.28e-4
+    status: "MODELING ASSUMPTION (range not sourced)"
+    _source: >
+      Nominal 5.2e-4 W/(m*K) from data/engineering.yaml (Ahluwalia et al.,
+      ST001 (2011), slide 26, MOF-5 key assumptions). Recorded there as a
+      design/model assumption, not a measurement.
+    _justification: >
+      +/-40% about the nominal, as a declared assumption. engineering.yaml
+      records that the source does not report the shield count or the warm/cold
+      span this effective conductivity corresponds to, and MLI apparent
+      conductivity varies strongly with layer density and residual gas
+      pressure, so the figure cannot be transferred tightly to a different
+      tank. A wider band than the vessel stress reflects that the number is
+      less constrained, not that it is less important.
+
+  heat_leak_budget:
+    distribution: "uniform"
+    unit: "W"
+    low: 5.0
+    high: 7.0
+    status: "SOURCED (range spans two published values)"
+    _source: >
+      Lower endpoint: the HSECoE reference-model heat in-leakage requirement of
+      5 W total tank (Ahluwalia et al., ST001 (2011), slide 8), which is the
+      sizing driver used in data/engineering.yaml. Upper endpoint: the DOE
+      automotive cryogenic-tank target ceiling of < 7 W for a 100 L tank at
+      300 K warm / 78 K cold (Meneghelli, Tamburello, Fesmire, Swanger, DOE
+      H2 & Fuel Cells Program FY2017 Annual Progress Report, Sec. IV.D.4,
+      DE-EE0007649 (2017), pp.1-2), recorded there as a corroborating bound.
+    _justification: >
+      This is a design requirement rather than an uncertain physical quantity,
+      so the range is not a measurement error: it spans the two published
+      requirement levels this project could source, and the propagated spread
+      answers "how much does the answer depend on which requirement is
+      adopted?". Uniform rather than triangular because neither endpoint is
+      more authoritative than the other for this tank class. No value outside
+      the two sourced endpoints is invented.
+
+  bop_fixed:
+    distribution: "triangular"
+    unit: "kg"
+    low: 8.0
+    mode: 16.0
+    high: 24.0
+    status: "SOURCED (range specified by the project's own assumptions stress test)"
+    _source: >
+      Nominal 16.0 kg from data/engineering.yaml (Ahluwalia et al., ST001
+      (2011), slide 26, balance-of-system miscellaneous weight). Range from
+      H2STAR manual 3.9, which specifies a +/-50% balance-of-plant mass stress
+      test as part of the assumptions sensitivity analysis.
+    _justification: >
+      +/-50% as the manual specifies. The nominal is a single lumped mass, not
+      a component-resolved breakdown, and data/engineering.yaml records that no
+      size-scaling coefficient could be sourced (bop_scaling is deliberately
+      0.0). A wide symmetric band is the honest representation of a lumped
+      constant standing in for a component list, and it also absorbs the
+      omitted size dependence.
+
+  rho_bulk:
+    distribution: "uniform"
+    unit: "kg/m3"
+    low: 270.0
+    high: 300.0
+    status: "MODELING ASSUMPTION (range not sourced)"
+    _source: >
+      Nominal 300 kg/m3 from data/materials/ax21.yaml (Richard, Benard &
+      Chahine, Adsorption 2009, 15, Table 1: 0.30 g/cm3).
+    _justification: >
+      One-sided, spanning 90-100% of the laboratory bulk density. The range is
+      asymmetric on purpose and the asymmetry is the physical content: a bed
+      packed into a real vessel achieves at most the laboratory bulk density
+      and in practice somewhat less, because wall effects and incomplete
+      settling lose packing fraction. There is no mechanism by which an
+      as-packed bed exceeds the measured bulk density, so no upward excursion
+      is declared. The 10% depth of the band is a declared assumption, not a
+      sourced figure.
+
+excluded:
+  performance_factor:
+    reason: >
+      The performance factor is a CROSS-CHECK on the vessel mass
+      (vessel.vessel_mass_performance_factor), not an input to the system
+      budget: system.SystemDesign.evaluate sizes the vessel by hoop stress and
+      never reads it. Propagating uncertainty through a quantity that does not
+      enter the output would add a Sobol index of exactly zero and invite the
+      reader to think the cross-check had been exercised by the uncertainty
+      analysis. It has not been, and it is excluded rather than included at
+      zero effect.
+  composite_density:
+    reason: >
+      Enters the vessel mass linearly alongside sigma_allow and the liner
+      areal mass. No independent uncertainty is sourced for it, and declaring
+      a second unsourced band on the same vessel-mass term would double-count
+      the vessel idealization that the sigma_allow band already represents.
+      The Gate V3 record (manual 4.2) is the honest statement about vessel-mass
+      error, and it is a factor of about 4.2, far outside any of these bands:
+      this uncertainty layer quantifies spread about a model whose absolute
+      level is separately known to be optimistic, and it does not and cannot
+      repair that.
+  liner_areal_mass:
+    reason: >
+      As for composite_density: same vessel-mass term, no sourced uncertainty,
+      and already represented by the sigma_allow band.
+
+notes: >
+  Scope statement, to be repeated wherever these distributions are used. This
+  file quantifies the SPREAD of the system model's predictions given declared
+  input uncertainty. It does not and cannot quantify the model's BIAS. Gate V3
+  measured that bias for the system mass denominator and found the engineering
+  block light by a factor of about 4.2 against the HSECoE AX-21 anchor, which
+  is an order of magnitude larger than any band declared here. A Monte Carlo
+  interval computed from this file is therefore an interval about an optimistic
+  central estimate, and must never be presented as though it bracketed the
+  truth. Manual 4.2.3 sets out which claims survive that distinction.

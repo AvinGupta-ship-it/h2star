@@ -219,3 +219,155 @@ Gate V2 — overall status (2026-08-10): CLOSED.
     practical non-identifiability, diagnosed Day 8; the curve is identifiable, the
     individual parameters are not.
   Part 3 (isosteric heat): PASS (this entry).
+---
+
+## Gate V4 and the uncertainty layer — PRE-REGISTERED 2026-10-08
+
+Declared before `src/h2star/uq.py` and `src/h2star/sensitivity.py` exist. At the
+commit that adds this block both modules are still module docstrings with no
+implementation, and no Monte Carlo or Sobol result has been computed for this
+project. The commit ordering in `git log` is the pre-registration record.
+
+Three things are frozen here: how the material-parameter uncertainty is seeded,
+what Gate V4 must achieve to pass, and what the signature result will report.
+
+### V4.0 — Material-parameter seeding (resolves the Day-8 open question)
+
+Day 8 recorded that the single-isotherm fit covariance "cannot naively seed the
+material-parameter Monte Carlo" and listed two candidate resolutions. The
+decision, taken now and before any propagation runs:
+
+**Seed the material layer from the FIXED-p0 conditional covariance.** p0 is held
+at the published 1.47e+9 Pa and beta at the published 18.9 J/(mol·K); the
+remaining three parameters (n_max, alpha, v_a) are sampled jointly from the
+multivariate normal recorded in `data/uncertainty.yaml`, committed with this
+block.
+
+Reason. The unconstrained four-parameter fit terminated with log10(p0) at the
+imposed lower bound, and a covariance evaluated at an active bound is not a
+valid local Gaussian approximation — the Day-8 verdict says so explicitly.
+Fixing p0 removes the active bound, returns the other parameters to within 6%
+of published, and leaves a usable covariance (cond(JᵀJ) 6.5e+12, still a ridge,
+pairwise |correlation| up to 0.97).
+
+What this costs, stated plainly because it bounds every claim built on it: the
+resulting uncertainty is CONDITIONAL on p0 and therefore **understates** the
+total parameter uncertainty a single isotherm implies. Every interval and every
+probability band produced from it is a lower bound on the true blur. That is
+the honest direction for a headline claim — the feasibility boundary is *at
+least* this uncertain — and it must be stated wherever the band is shown. The
+unconstrained ridge is reported separately, as a labelled structural
+sensitivity, never mixed into the headline band.
+
+Samples falling outside the physical domain are discarded and redrawn, and the
+discard fraction is reported with every result. **If the discard fraction
+exceeds 1%, the result is reported with the truncation named as a limitation**
+rather than presented as a clean Gaussian propagation. Measured discard
+fraction for this covariance at the reference packing, over 200,000 draws on
+2026-10-08: 0.0085%. The 1% threshold is a general guard and was not calibrated
+to that number.
+
+### V4.1 — Monte Carlo machinery vs. an analytic linear-Gaussian case
+
+Target: the propagation machinery reproduces a case with a closed-form answer.
+
+Case: a linear functional y = cᵀx of a three-dimensional Gaussian input
+x ~ N(μ, Σ) with μ, Σ and c fixed in the test, Σ deliberately non-diagonal so
+that a propagation ignoring input correlation would fail. Analytic mean cᵀμ and
+analytic variance cᵀΣc.
+
+PASS requires all four, at N = 100,000 samples with the seed fixed in the test:
+
+1. |mean_MC − mean_analytic| ≤ 4·σ_analytic/√N
+2. |σ_MC/σ_analytic − 1| ≤ 4/√(2N)
+3. the 68% interval endpoints within 1% relative of analytic
+4. the 95% interval endpoints within 1% relative of analytic
+
+The factor 4 rather than 3 is declared now and for a stated reason: four
+criteria are checked at once and the suite runs on every push, so a 3σ bound
+would produce a spurious failure of this gate roughly once in a hundred runs.
+Four keeps the false-failure rate negligible while still failing on any real
+error, which is always far larger than a sampling fluctuation.
+
+### V4.2 — Sobol machinery vs. the Ishigami function
+
+Target: Sobol first- and total-order indices on the Ishigami test function
+reproduce the closed-form values.
+
+Function, with a = 7 and b = 0.1, inputs uniform on [−π, π]:
+
+    f(x) = sin(x₁) + a·sin²(x₂) + b·x₃⁴·sin(x₁)
+
+Closed-form variance decomposition:
+
+    V₁  = ½(1 + bπ⁴/5)²        V₂  = a²/8        V₃ = 0
+    V₁₃ = 8b²π⁸/225            V   = V₁ + V₂ + V₁₃
+
+giving, at these a and b:
+
+    V   = 13.8445879407
+    S₁  = [0.3139051911, 0.4424111448, 0.0000000000]
+    S_T = [0.5575888552, 0.4424111448, 0.2436836641]
+
+These are the analytic values of the standard test function, not numbers taken
+from a secondary source; the closed form above was checked against a
+brute-force scrambled-Sobol variance estimate over 2²⁰ points on 2026-10-08 and
+agreed to 9.6e-7 relative. Confirming the closed form against the primary
+literature (Ishigami & Homma) is a Mode B item and does not gate this test,
+because the derivation stands on its own.
+
+PASS requires, at the largest sample size of the ladder below:
+
+- |S₁ᵢ − analytic| / analytic ≤ 5% for i = 1, 2
+- |S₁₃| ≤ 0.05 **absolute** — a relative tolerance is undefined against an
+  analytic value of exactly zero, and declaring one would be meaningless
+- |S_Tᵢ − analytic| / analytic ≤ 5% for i = 1, 2, 3
+
+Sample-size ladder, pre-registered so that increasing N is part of the
+procedure rather than a rescue applied after a failure: Saltelli base sample
+N = 2¹⁴, 2¹⁶, 2¹⁸, run in that order with the seed fixed. The error against the
+analytic values must **decrease** across the ladder, and the 2¹⁸ result must
+meet the bands above. A ladder that meets the band only by widening it, or an N
+raised beyond 2¹⁸ after seeing a failure, is a FAIL and is recorded as one.
+
+### V4.3 — Convergence of the system Monte Carlo
+
+Any reported system-level Monte Carlo result must demonstrate convergence, by
+the half-sample criterion: splitting the sample in two, the median and the 5th
+and 95th percentiles of system gravimetric capacity computed from each half
+agree within 2% relative. N ≥ 10,000 per reported distribution. A result that
+fails this is reported with the failure, not with a larger N substituted
+silently.
+
+### V4.4 — What the signature result will report
+
+Declared now so that the headline number is not chosen after seeing the map.
+
+Figure F6's feasibility boundary is drawn as Monte Carlo probability contours
+at **P(feasible) = 0.05, 0.50 and 0.95**, with N ≥ 1,000 material samples per
+grid node.
+
+Claim C5's "quantified amount" is defined as: **the horizontal separation
+between the P = 0.05 and P = 0.95 contours in the (n_max, α) plane, measured in
+mol/kg along the line α = 3080 J/mol (the published AX-21 value), and expressed
+both absolutely and as a percentage of the n_max at which the P = 0.50 contour
+crosses that line.** If the P = 0.05 or P = 0.95 contour does not cross that
+line inside the mapped range, the metric is reported as a bound and the mapped
+range is stated, not silently extended until it does.
+
+### Scope limit carried into every result from this layer
+
+This layer quantifies the SPREAD of the model's predictions under declared
+input uncertainty. It does not quantify the model's BIAS. Gate V3 measured that
+bias for the system mass denominator and found the engineering block light by a
+factor of about 4.2 against the HSECoE AX-21 anchor — an order of magnitude
+larger than any band declared in `data/uncertainty.yaml`. An interval from this
+layer is an interval about an optimistic central estimate. It must never be
+presented as though it bracketed the truth, and no amount of Monte Carlo
+repairs a documented FAIL.
+
+### Status at the time of declaration
+
+Gate V4: NOT RUN. `uq.py` and `sensitivity.py`: not implemented.
+Author: Avin Gupta, ratifying the hand-pinned ranges in
+`data/uncertainty.yaml` per manual §5.7.
