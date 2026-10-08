@@ -42,7 +42,7 @@ cd h2star
 python3 -m pip install -e ".[dev]"
 python3 -m pytest                               # 303 passed, 1 xfailed
 python3 scripts/make_all_figures.py --quick      # smoke test, ~20 s
-python3 scripts/make_all_figures.py              # all eight figures, ~9 min
+python3 scripts/make_all_figures.py              # all eight figures, ~11 min
 ```
 
 The xfail is deliberate and is Gate V3 (below). Python 3.11 or later.
@@ -135,18 +135,28 @@ to produce is fitting to a known answer.
 ## Reproducibility
 
 - Every number behind every figure is deterministic under a fixed seed, and the
-  eight figures (nine PNGs — F7 draws one per output) are byte-identical for a
-  given Matplotlib and FreeType version. Verified by regenerating them from a
-  fresh clone in a separate virtual environment and comparing SHA-256:
-  nine of nine identical across Python 3.11 vs 3.13, NumPy 2.4.6 vs 2.5.3 and
-  SciPy 1.17.1 vs 1.18.1. Byte-identity does not extend across Matplotlib or
-  FreeType versions, which rasterise glyphs differently between releases; the
-  numbers do.
-- That holds because `viz.FIGURE_RCPARAMS` pins the font and hinting a figure is
-  drawn with, instead of inheriting them from the host. An earlier release drew
-  its figures under a font the development container supplied and no dependency
-  declared, which made them unreproducible anywhere else while leaving every
-  plotted number correct — see `docs/known_limitations.md`.
+  eight figures (nine PNGs — F7 draws one per output) are byte-identical
+  **given the same Matplotlib, FreeType and Pillow**. Verified two ways:
+  regenerating them from a fresh clone in a separate virtual environment and
+  comparing SHA-256, nine of nine identical across Python 3.11 vs 3.13, NumPy
+  2.4.6 vs 2.5.3 and SciPy 1.17.1 vs 1.18.1; and
+  `tests/test_figure_bytes.py`, which regenerates figures under 60-odd hostile
+  ambient `rcParams` and demands the committed bytes back, with a control that
+  fails if the hostile settings turn out not to reach the canvas.
+- Byte-identity is **not** claimed across Matplotlib, FreeType or Pillow
+  versions. FreeType rasterises glyphs differently between releases, Matplotlib
+  stamps its own version into the PNG's `Software` chunk, and Pillow writes the
+  file. The numbers survive all three; the bytes need not. Only `figures/` is
+  byte-claimed — the notebooks' inline images are rendered by IPython's inline
+  backend and are not.
+- That holds because `viz.figure_style()` applies an entire recorded rendering
+  configuration — every `rcParams` key Matplotlib considers settable, at its
+  stock value, in `src/h2star/figure_style.json` — rather than inheriting any
+  of it from the host. The first attempt pinned only the seven font settings
+  the original defect involved, and an adversarial review then found sixteen
+  more host-settable parameters that still moved the bytes. See
+  `docs/known_limitations.md`; `scripts/record_figure_style.py --check` reports
+  whether an environment agrees with the record.
 - `scripts/make_all_figures.py` is the **sole writer** of `figures/`. The
   notebooks show their figures inline and write nothing, so executing them
   cannot replace a published figure; `tests/test_notebook_hygiene.py` enforces

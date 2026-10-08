@@ -1,60 +1,85 @@
 """Visualization of isotherms, envelopes, and system-level results."""
 
 import functools
+import json
 from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from cycler import cycler
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
 from .heats import isosteric_heat
 
-#: Rendering parameters pinned for every figure this module draws.
+#: Recorded rendering configuration, shipped with the package.
 #:
-#: A figure's *bytes* depend on the font its text is drawn with, and Matplotlib
-#: takes that from whichever ``matplotlibrc`` the host environment supplies. A
-#: host that names a different ``font.family`` -- some container images do --
-#: silently changes every label, every tight bounding box, and therefore every
-#: pixel, while leaving all the numbers untouched. Figures built under such a
-#: host cannot be regenerated anywhere else. That is a defect in the figure,
-#: not in the host, and it is invisible unless something compares bytes across
-#: environments: H2STAR's own clean-room check found exactly this, with all
-#: nine PNGs differing and all nine headline numbers reproducing exactly.
+#: A figure's *bytes* are a function of the whole of ``rcParams``, and
+#: Matplotlib builds ``rcParams`` from whatever configuration the host supplies
+#: -- a ``matplotlibrc`` in the working directory, one named by
+#: ``$MATPLOTLIBRC``, one in the user's config directory, or the packaged
+#: default, which a container image can edit. A host that changes any of a few
+#: hundred settings silently changes every pixel while leaving all the numbers
+#: untouched, and figures built that way cannot be regenerated anywhere else.
 #:
-#: Pinning these removes the host from the question. ``DejaVu Sans`` is named
-#: outright rather than reached through the ``sans-serif`` alias because DejaVu
-#: ships inside the Matplotlib wheel: it is present wherever Matplotlib is, so
-#: the pin relies on no system font being installed and no alias resolving a
-#: particular way. Every value is Matplotlib's own documented default, except
-#: that ``font.family`` names the concrete font the default alias resolves to
-#: on a stock install.
+#: H2STAR shipped that defect once. The first clean-room run regenerated all
+#: nine PNGs from a fresh clone: every headline number reproduced to the last
+#: digit and all nine images differed, because the development container names
+#: ``Inter`` in ``font.family``. The first fix pinned the seven font and text
+#: settings that defect involved -- and an adversarial review then demonstrated
+#: sixteen further host-settable settings that still moved the bytes with that
+#: pin in force, among them ``savefig.bbox``, ``figure.dpi``, ``font.weight``,
+#: ``axes.titlesize``, ``lines.antialiased`` and ``path.simplify``. The lesson
+#: was that enumerating the settings that matter is the wrong shape of fix:
+#: the list is long, version-dependent, and a reviewer will always find the
+#: next entry on it.
 #:
-#: What this buys is byte-identity for a given Matplotlib and FreeType version,
-#: verified across two Python versions and two independent installs. It does
-#: not buy byte-identity *across* those versions: FreeType rasterises glyphs
-#: differently between releases, so different FreeType draws the same text with
-#: different pixels. ``docs/known_limitations.md`` states the limit.
-FIGURE_RCPARAMS = {
-    "font.family": ["DejaVu Sans"],
-    "font.size": 10.0,
-    "mathtext.fontset": "dejavusans",
-    "text.antialiased": True,
-    "text.hinting": "default",
-    "text.hinting_factor": None,
-    "axes.unicode_minus": True,
-}
+#: So this is not a list of settings that matter. It is the *entire* recorded
+#: configuration -- every ``rcParams`` key that Matplotlib's own style
+#: machinery considers settable, with its stock value, recorded from a pristine
+#: Matplotlib by ``scripts/record_figure_style.py``. Applying it leaves nothing
+#: for the host to contribute. The only deliberate deviation from stock is
+#: ``font.family``, which names ``DejaVu Sans`` outright rather than reaching
+#: it through the ``sans-serif`` alias: DejaVu ships inside the Matplotlib
+#: wheel, so the pin relies on no system font being installed.
+#:
+#: ``tests/test_figure_bytes.py`` is what makes this claim falsifiable. It
+#: regenerates figures under hostile ambient settings -- including every one
+#: of the sixteen -- and asserts the committed bytes come back.
+FIGURE_STYLE_PATH = Path(__file__).resolve().parent / "figure_style.json"
+
+
+def _load_figure_style(path=FIGURE_STYLE_PATH):
+    """Read the recorded configuration into an ``rcParams``-shaped dict."""
+    with open(path) as handle:
+        document = json.load(handle)
+    recorded = dict(document["rcparams"])
+    # A Cycler does not survive JSON, so the colour sequence is stored and the
+    # cycler rebuilt. It reaches the canvas, so it cannot be left to the host.
+    cycle = recorded.get("axes.prop_cycle")
+    if isinstance(cycle, dict) and "__cycler_color__" in cycle:
+        colors = [
+            tuple(c) if isinstance(c, list) else c
+            for c in cycle["__cycler_color__"]
+        ]
+        recorded["axes.prop_cycle"] = cycler("color", colors)
+    return document.get("matplotlib_version"), recorded
+
+
+#: The Matplotlib version the configuration was recorded from.
+FIGURE_STYLE_VERSION, FIGURE_RCPARAMS = _load_figure_style()
 
 
 def figure_style():
-    """Context manager that applies :data:`FIGURE_RCPARAMS`.
+    """Context manager applying the recorded rendering configuration.
 
     Every plotting function in this module already applies it to its own
-    drawing. Use this directly when a *caller* creates the figure or saves it
-    -- ``scripts/make_all_figures.py`` does, because the isosteric-heat figure
-    is assembled by the caller around :func:`plot_isosteric_heat`, so the
-    figure-level text would otherwise be drawn under the host's font.
+    drawing. Use it directly when a *caller* creates or saves the figure --
+    ``scripts/make_all_figures.py`` does, because the isosteric-heat figure is
+    assembled by the caller around :func:`plot_isosteric_heat`, so its
+    figure-level text and its ``savefig`` would otherwise run under the host's
+    settings.
 
     Returns
     -------
@@ -63,22 +88,34 @@ def figure_style():
         importing or calling this module never mutates a caller's global
         Matplotlib configuration.
 
+    Notes
+    -----
+    This buys byte-identity for a given Matplotlib, FreeType and Pillow. It
+    does not buy it *across* those versions: FreeType rasterises glyphs
+    differently between releases, Matplotlib stamps its own version into the
+    PNG's ``Software`` chunk, and Pillow writes the file. Nor can a recorded
+    configuration cover a setting that a later Matplotlib adds.
+    ``docs/known_limitations.md`` states the limit.
+
     Examples
     --------
     >>> from h2star import viz
     >>> with viz.figure_style():
     ...     fig, ax = plt.subplots()
-    ...     _ = ax.set_title("drawn with the pinned font")
+    ...     _ = ax.set_title("drawn with the recorded configuration")
     """
     return mpl.rc_context(FIGURE_RCPARAMS)
 
 
 def _styled(func):
-    """Apply :data:`FIGURE_RCPARAMS` for the duration of a plotting call.
+    """Apply the recorded configuration for the duration of a plotting call.
 
     A decorator rather than an indented ``with`` block inside each function
     body: it keeps the pin in one place, so a new plotting function opts in
-    with one line and cannot half-apply it.
+    with one line and cannot half-apply it. The wrapper is stamped so a test
+    can tell a styled function from one that merely carries some other
+    decorator -- checking only for ``functools.wraps``'s ``__wrapped__`` passes
+    for any wrapper at all, which an adversarial review demonstrated.
     """
 
     @functools.wraps(func)
@@ -86,6 +123,7 @@ def _styled(func):
         with figure_style():
             return func(*args, **kwargs)
 
+    wrapper._h2star_styled = True
     return wrapper
 
 
@@ -112,7 +150,7 @@ def eos_parity_plot(isotherms, savepath=None):
             y-axis.
     savepath : str or pathlib.Path, optional
         If given, the figure is saved to this path (PNG inferred from the
-        extension) at 150 dpi. The parent directory must already exist.
+        extension) at 150 dpi. The parent directory is created if needed.
 
     Returns
     -------
@@ -144,6 +182,7 @@ def eos_parity_plot(isotherms, savepath=None):
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=150)
 
     return fig, ax
@@ -350,7 +389,7 @@ def plot_system_validation(
         Legend label for the model point.
     savepath : str or pathlib.Path, optional
         If given, the figure is saved here at 300 dpi with tight bounding box.
-        The parent directory must already exist; it is not created.
+        The parent directory is created if needed.
 
     Returns
     -------
@@ -401,6 +440,7 @@ def plot_system_validation(
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, (ax_gc, ax_vc)
@@ -482,7 +522,7 @@ def plot_forward_maps(grid, targets=None, title=None, savepath=None):
         Figure suptitle. A default naming the swing endpoint is used if absent.
     savepath : str or pathlib.Path, optional
         If given, the figure is saved here at 300 dpi with a tight bounding
-        box. The parent directory must already exist.
+        box. The parent directory is created if needed.
 
     Returns
     -------
@@ -546,6 +586,7 @@ def plot_forward_maps(grid, targets=None, title=None, savepath=None):
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, (ax_gc, ax_vc)
@@ -679,6 +720,7 @@ def plot_acceptability_maps(maps, reference_points=None, title=None,
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, axes
@@ -806,6 +848,7 @@ def plot_probability_maps(maps, coherence_curves=None, reference_points=None,
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, axes
@@ -895,6 +938,7 @@ def plot_sobol_indices(studies, labels, output="GC", title=None, savepath=None):
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, axes
@@ -1044,6 +1088,7 @@ def plot_cnt_gap(waterfalls, screen, title=None, savepath=None):
     fig.tight_layout()
 
     if savepath is not None:
+        Path(savepath).parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(savepath, dpi=300, bbox_inches="tight")
 
     return fig, (ax_w, ax_s)

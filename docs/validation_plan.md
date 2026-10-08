@@ -542,7 +542,7 @@ Relative system GC at the same envelope, against AX-21 = 1.00:
 | zhou2004 | 0.175 wt% @ 233 K, 6 MPa | 6.6 mol/kg | 0.0320 | 0.49x | accepted |
 | tibbetts2001 | 0.050 wt% @ 296 K, 3.59 MPa | 4.6 mol/kg | 0.0307 | 0.47x | accepted |
 | liu1999 | 4.2 wt% @ 298 K, 10 MPa | 163.0 mol/kg | — | — | **rejected** |
-| qikun2002 | 8.0 wt% @ 298 K, 0.14 MPa | none exists | — | — | **rejected** |
+| qikun2002 | 8.0 wt% @ 298 K, 0.14 MPa | 4.43e+4 mol/kg | — | — | **rejected** |
 | chen1999 | 20 wt% @ 653 K, 1 atm | — | — | — | out of scope |
 
 ### The physical-consistency screen, and what it independently found
@@ -560,9 +560,22 @@ two the experimental literature contests:
 - **liu1999** (4.2 wt%, *Science* 1999, the field's most-cited CNT claim)
   implies n_max = 163.0 mol/kg, beyond BOTH limits. The reported uptake
   requires a material whose adsorbed phase would exceed its own pore volume.
-- **qikun2002** (8.0 wt%) is worse: **no limiting uptake at all** reproduces
-  the reported point. 43.1 mol/kg at 0.14 MPa is outside what the modified
-  Dubinin-Astakhov form can deliver at that state for any n_max.
+- **qikun2002** (8.0 wt%) is worse by a wide margin: reproducing 43.1 mol/kg at
+  0.14 MPa requires **n_max = 4.43e+4 mol/kg**, which is 357x the A-ISO-4
+  coherence limit and 422x the limit on the fit's own correlation.
+
+  **Corrected 2026-10-08.** This entry previously read "no limiting uptake at
+  all reproduces the reported point... for any n_max." That was wrong. The
+  modified D-A form is linear in n_max at a fixed state and p0 >> 0.14 MPa, so
+  the point is reachable, just not by a coherent material; the `ValueError`
+  that prompted the original wording came from the back-solver's default
+  search bracket of (1, 2000) mol/kg, whose top is already about 16x the
+  coherence limit. The rejection stands and is stronger stated correctly — a
+  required uptake two orders of magnitude past the pore-volume limit is a
+  sharper verdict than an unreachable point — but the mechanism recorded was
+  not the mechanism operating. Found by an independent adversarial review of
+  the release, re-derived from the artifact, and the back-solver now reports
+  the required value in its error rather than implying unreachability.
 
 Both rejections are independent of the experimental arguments that were made
 against those values at the time. Tibbetts et al. (2001) questioned liu1999 on
@@ -590,9 +603,11 @@ measurement, and the chain is as weak as its weakest link:
    temperature and pressure dependence, so every extrapolation away from the
    reported state depends on them. liu2010's datum is extrapolated 212 K
    downward; takagi2004's is extrapolated two decades in pressure.
-3. v_a, rho_bulk and rho_skel transfer too. **No CNT paper in the corpus reports
-   a packed bulk density at all**, and the Stage 3 Sobol study ranks v_a as the
-   single largest contributor to system-capacity variance.
+3. v_a, rho_bulk and rho_skel transfer too. **No CNT paper the case study uses
+   reports a packed bulk density** — one of the seven, chen1999, does, and that
+   is the chemisorption entry excluded from the case study — and the Stage 3
+   Sobol study ranks v_a as the single largest contributor to system-capacity
+   variance.
 4. The excess/absolute basis is assumed, because **none of the seven papers
    states it**. On liu2010 that ambiguity alone moves the inferred limiting
    uptake from 53.5 to 95.2 mol/kg, a factor of 1.78, and the system GC from

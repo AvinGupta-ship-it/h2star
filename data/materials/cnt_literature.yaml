@@ -24,8 +24,10 @@ citation: >
 #
 # H2STAR's system model needs a full modified Dubinin-Astakhov parameter vector
 # (n_max, alpha, beta, p0, v_a) plus a packed bulk density and a skeletal
-# density. NOT ONE of the papers below reports any of those. They report a
-# single uptake at a single temperature and pressure. Converting such a point
+# density. Not one of the papers below reports a D-A parameter, and exactly one
+# reports a density: chen1999, the entry excluded from the case study on its
+# own account of its mechanism. They report a single uptake at a single
+# temperature and pressure. Converting such a point
 # into a system prediction therefore requires an inference chain, and every
 # link in it is an assumption rather than a measurement. The chain is
 # implemented in `inverse.material_from_reported_uptake` and documented there.
@@ -40,9 +42,12 @@ citation: >
 #      single most common fatal error in the literature; the literature does
 #      not record which side of it each measurement falls on.
 #
-#   2. NONE of them reports a packed bulk density, and only some report a
-#      surface area. Packing density enters the system volume directly and the
-#      Stage 3 Sobol study ranks it as a contributor; it is simply absent.
+#   2. ONE of the seven reports a packed bulk density -- chen1999, at 0.9
+#      g/cm3, and that is the chemisorption entry excluded from the case
+#      study, so NONE of the six entries the case study actually uses reports
+#      one. Only some report a surface area. Packing density enters the system
+#      volume directly and the Stage 3 Sobol study ranks it as a contributor;
+#      for every entry that is screened it is simply absent.
 #
 # These are findings about the corpus, recorded here so the case study's
 # uncertainty is attributable rather than mysterious.

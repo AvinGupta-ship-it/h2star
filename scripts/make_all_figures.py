@@ -319,11 +319,21 @@ def figure_f7(ctx, out, quick=False):
         )
         labels.append(label)
 
+    # F6 marks quick mode in its own title; F7 did not, so a coarsened F7 was
+    # indistinguishable from the published one once the console warning had
+    # scrolled away. Both now say so in the image.
+    title = None
+    if quick:
+        title = (
+            "Sobol indices by operating regime (F7) "
+            "- QUICK MODE, NOT THE PUBLISHED FIGURE"
+        )
     for output in ("GC", "VC"):
         viz.plot_sobol_indices(
             studies,
             labels,
             output=output,
+            title=title,
             savepath=out / f"F7_sobol_{output.lower()}.png",
         )
 
@@ -423,8 +433,9 @@ def main(argv=None):
     parser.add_argument(
         "--figures",
         type=Path,
-        default=REPO_ROOT / "figures",
-        help="output directory (default: ./figures)",
+        default=None,
+        help="output directory (default: ./figures, or ./figures/quick with "
+             "--quick)",
     )
     args = parser.parse_args(argv)
 
@@ -434,10 +445,22 @@ def main(argv=None):
     if unknown:
         parser.error(f"unknown figure(s) {sorted(unknown)}; known: {sorted(known)}")
 
+    # Quick mode must not be able to overwrite a published figure. It used to
+    # write into figures/ like a real run, so a smoke test left two coarsened
+    # PNGs sitting among the published ones under their published names. It
+    # now writes to figures/quick/ unless an output directory is named
+    # outright, and the console still says so.
+    if args.figures is None:
+        args.figures = (
+            REPO_ROOT / "figures" / "quick" if args.quick
+            else REPO_ROOT / "figures"
+        )
+
     args.figures.mkdir(parents=True, exist_ok=True)
     if args.quick:
-        print("QUICK MODE: F6 and F7 are coarsened. These are NOT the "
-              "published figures.\n")
+        print(f"QUICK MODE: F6 and F7 are coarsened. These are NOT the "
+              f"published figures, and they are written to {args.figures} "
+              f"rather than among them.\n")
 
     context = load_inputs()
     failures = []

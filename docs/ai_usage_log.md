@@ -536,3 +536,158 @@ Verification: 156 passed and 1 xfailed, lint clean, under the exact CI
 invocation (clean Python 3.11 venv, bare `pytest` from the repository root) and
 again on 3.13. Notebooks executed with no errors; both figures regenerated and
 inspected. Gate V3 metrics bitwise unchanged throughout.
+
+---
+
+## 2026-10-08 — Stage 3: uncertainty and sensitivity layers
+
+Tool: Claude (Opus 5), cloud session running the pipeline directly.
+
+Purpose: pre-register the Gate V4 tolerances and the seeding decision, then
+build the Monte Carlo and Sobol layers and adjudicate Gate V4.
+
+What Avin provided: the hand-pinned uncertainty ranges in `data/uncertainty.yaml`
+and their ratification per manual 5.7, and the push of each bundle. The ranges
+are his because three of the five are modelling assumptions rather than sourced
+values, and declaring an assumption is a scientific judgement.
+
+What Claude did: wrote the pre-registration block, `uq.py`, `sensitivity.py`,
+the probability-map engine, F6 and F7, and three test modules; ran the suite,
+lint, the notebooks and the figures; wrote the journal and changelog entries.
+
+Pre-registration discipline. The tolerances were committed in `9cc33bd`, at
+which point both modules were one-line docstrings and no Monte Carlo or Sobol
+result existed for this project. `git log` ordering is the record. The sample
+ladder for Gate V4.2 was fixed in advance for exactly this reason: without it,
+raising N after a failure is a rescue rather than part of the procedure.
+
+What was deliberately not done: the uncertainty layer is seeded from the
+fixed-p0 conditional covariance, which understates what a single isotherm
+implies. The alternative was the unconstrained fit, whose covariance is
+evaluated at an active bound and is not a valid local Gaussian approximation.
+The cost is stated wherever a band is used rather than absorbed silently, and
+every band is labelled a lower bound.
+
+---
+
+## 2026-10-08 — Stage 4: CNT case study
+
+Tool: Claude (Opus 5), cloud session running the pipeline directly.
+
+Purpose: build the CNT corpus from primary sources, apply the consistency
+screen, produce F8 and table T7, and compute claim C4.
+
+What Avin provided: the HyCAN-DB corpus and the PDFs behind it, and the push.
+Claim C4 as rewritten requires his sign-off per manual 2.12 and that is
+recorded as pending in `validation_plan.md`.
+
+What Claude did: read the seven papers as primary sources and recorded every
+number with the verbatim sentence and page it came from; implemented the
+inference chain, the weight-percent convention check and the gap waterfall;
+built F8 and the screen; wrote the tests and the records.
+
+No value, DOI or reference came from model memory. Two papers print no DOI and
+the corpus records that rather than supplying one. The weight-percent
+convention was resolved from Liu 1999's own internal consistency check — the
+paper reports both 4.2 wt% and an H/C ratio of 0.52, and only the total-mass
+convention reproduces it — rather than assumed.
+
+What was deliberately not done: claim C4 was not reported as the manual wrote
+it. The absolute form would have quoted a shortfall against the DOE target that
+this model is not entitled to, because Gate V3's bias puts both the CNT entry
+and AX-21 above that target. The claim was rewritten to a ratio, which survives
+a shared-denominator bias, and the rewrite is recorded as a revision rather
+than presented as the original plan.
+
+---
+
+## 2026-10-08 — Stage 5: hardening and release documentation
+
+Tool: Claude (Opus 5), cloud session running the pipeline directly.
+
+Purpose: one-command figure regeneration, then `known_limitations.md`,
+`CHANGELOG.md`, the README, the docs index and `CITATION.cff`.
+
+What Avin provided: the push of each bundle. No other input was required.
+
+What Claude did: wrote `scripts/make_all_figures.py`, fixed the two defects
+writing it exposed, added notebooks 07 and 08, and wrote the release
+documentation. Every numeric claim in the README was cross-checked against
+`docs/validation_plan.md` before committing.
+
+The figure script found the irreproducible Sobol confidence intervals and two
+signature mismatches. Both were invisible to the eight notebooks, each of which
+had independently arrived at a working call; the first caller written against
+the signatures rather than copied from a notebook found them immediately.
+
+What was deliberately not done: `CITATION.cff` carries no `doi` field. Zenodo
+has not minted one, and a placeholder DOI in a citation file is worse than its
+absence.
+
+---
+
+## 2026-10-08 — Stage 6: clean room, adversarial review, and two rounds of correction
+
+Tool: Claude (Opus 5), cloud session running the pipeline directly. Two
+isolated subagents, both read-only on the repository: one independent verifier
+given no access to this session's reasoning, and one adversarial reviewer.
+
+Purpose: reproduce the whole project from a fresh clone, and correct whatever
+that contradicted.
+
+What Avin provided: the push of each bundle. The release itself — the Zenodo
+toggle, the tag, the DOI and ORCID — is his and is not done here.
+
+What Claude did: ran three clean-room reproductions, each from a fresh clone
+into a new directory with a fresh virtual environment and the documented
+install; diagnosed and fixed what they found; commissioned the two subagents;
+fixed what *they* found; and wrote the records. `docs/clean_room_log.md` is the
+contemporaneous log, including the runs that failed.
+
+Independent re-derivation (no self-certification). A separate agent, given no
+access to this session's reasoning, re-derived from the artifact: Gate V1's
+maximum relative density error; Gate V3's `GC_full` and `VC_full`; Gate V4.1's
+mean error and standard-deviation ratio; Gate V4.2's error ladder, *including
+deriving the Ishigami variance decomposition itself from the ANOVA definitions
+and confirming it by independent quadrature rather than reading the module's
+formula back*; claim C5's three contour crossings and their separation; both
+pore-volume coherence limits; the CNT screen's verdicts and counts; and claim
+C4's ratio. All matched. It also confirmed that `test_viz_style.py` fails when
+a plotting function loses the pin, by removing one in a copy of the repository
+and running it.
+
+That agent found two errors in the record. The fit slope `dv_a/dn_max` was
+given as `8.87e-5 m³/mol` in the docstring of the very function that defines
+the pore-volume constraint, where the committed covariance gives `4.41e-5` —
+the computed limits were never affected, because they call `fit_va_slope`. And
+the qikun2002 rejection was recorded as "no limiting uptake at all reproduces
+the reported point", which is false: the D-A form is linear in `n_max` at a
+fixed state, so the point is reachable at 4.43e+4 mol/kg, and the error that
+prompted the wording came from the back-solver's default search bracket. The
+physical verdict stands and is stronger stated correctly.
+
+Adversarial review. A second agent, also read-only and also without this
+session's reasoning, was asked to find claims stated more strongly than their
+evidence supports. It found the most important defect of the stage, and it was
+mine: the fix for the figure-reproducibility defect pinned seven font settings,
+and sixteen other host-settable `rcParams` still moved the committed bytes with
+that pin in force, with the entire suite green. It further showed that the
+cross-environment comparison offered as evidence could not have detected this,
+because the two environments differed in only the seven pinned settings. That
+is the same error as the original one — evidence that cannot falsify the claim
+— made a second time while fixing the first. It also demonstrated that three of
+the new hygiene tests and both of the new style tests passed against mutations
+they were written to catch, that `--quick` overwrote two published figures,
+that `run_notebooks.py` reported success for a notebook whose cell raised, and
+that no published number was asserted anywhere in the repository.
+
+Finding all of that was the agents'. The fixes, and the judgement about which
+findings were real, were made here; each fix is accompanied by a test that
+fails against the mutation which exposed it, and each correction to a claim is
+recorded as a correction rather than silently applied.
+
+Verification: suite under the exact CI invocation in a fresh Python 3.11 venv,
+`ruff` clean, all nine figures byte-compared against the committed ones, all
+eight notebooks executed, and every headline number recomputed from the
+artifact by `scripts/report_headline_numbers.py` rather than read from a
+record. Recorded in `docs/clean_room_log.md`.

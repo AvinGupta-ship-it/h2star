@@ -1188,8 +1188,11 @@ def coherent_n_max_limit(material, slope):
     fixed while sweeping ``n_max``, which silently assumes the adsorbed phase
     does not grow with the uptake. It does, by two independent accounts: the
     Gate V2 fit's own parameter correlation implies
-    ``dv_a/dn_max = 8.87e-5 m^3/mol``, and assumption A-ISO-4's liquid-hydrogen
-    argument implies ``2.8e-5 m^3/mol``. Both place the limit *below* the
+    ``dv_a/dn_max = 4.41e-5 m^3/mol`` -- computed by :func:`fit_va_slope` from
+    the committed covariance rather than written down here, so that the
+    constraint and the fit cannot drift apart -- and assumption A-ISO-4's
+    liquid-hydrogen argument implies ``2.8e-5 m^3/mol``. Both place the limit
+    *below* the
     uptake the deterministic map identifies as the requirement, so that
     requirement is not reachable at fixed packing density.
 
@@ -1396,8 +1399,9 @@ def material_from_reported_uptake(base_material, reported_mol_per_kg,
     2. ``alpha``, ``beta`` and ``p0`` transfer from AX-21 activated carbon to a
        nanotube sample. These control the temperature and pressure dependence,
        so the inferred ``n_max`` depends on them.
-    3. ``v_a``, ``rho_bulk`` and ``rho_skel`` also transfer. No CNT paper in
-       the corpus reports a packed bulk density at all.
+    3. ``v_a``, ``rho_bulk`` and ``rho_skel`` also transfer. No CNT paper the
+       case study uses reports a packed bulk density; one of the seven in the
+       corpus does, and it is the chemisorption entry the case study excludes.
     4. The reported value is on the basis the caller states. For every entry in
        the corpus the paper does NOT state whether its uptake is excess or
        absolute, so both must be tried and the pair reported.
@@ -1456,18 +1460,57 @@ def material_from_reported_uptake(base_material, reported_mol_per_kg,
     low, high = n_max_bracket
     f_low, f_high = residual(low), residual(high)
     if f_low * f_high > 0.0:
+        # The D-A form is linear in n_max at a fixed state, so the reported
+        # point is almost always reachable by some n_max -- just not by a
+        # physically coherent one. Saying "no n_max reproduces this" would be
+        # false; the informative statement is HOW FAR beyond the bracket the
+        # required value lies, so the magnitude is in the error rather than
+        # left to be inferred from a failure. The bracket's own top is the
+        # screen: 2000 mol/kg is about 16x the pore-volume coherence limit for
+        # AX-21, so a solution past it cannot describe a material.
+        required = _required_n_max_beyond(residual, high)
+        detail = (
+            f"reproducing it needs n_max = {required:.4g} mol/kg"
+            if required is not None
+            else "no limiting uptake up to 1e9 mol/kg reproduces it either"
+        )
         raise ValueError(
             f"No limiting uptake in [{low}, {high}] mol/kg reproduces "
             f"{reported_mol_per_kg:.4g} mol/kg on a {basis} basis at "
             f"{temperature:g} K and {pressure / 1e6:g} MPa: the modelled "
             f"uptake is {f_low + reported_mol_per_kg:.4g} at the lower bound "
-            f"and {f_high + reported_mol_per_kg:.4g} at the upper. The "
-            f"reported value may be outside what this isotherm shape can "
-            f"deliver at that state."
+            f"and {f_high + reported_mol_per_kg:.4g} at the upper, and "
+            f"{detail}. The bracket is a physical screen, not a numerical "
+            f"limit: its upper bound is already far beyond any uptake the "
+            f"available pore volume can hold, so the reported value is "
+            f"outside what this isotherm shape can deliver at that state by "
+            f"a coherent material."
         )
 
     solved = brentq(residual, low, high, xtol=1e-10, rtol=1e-14, maxiter=200)
     return replace(base_material, n_max=float(solved))
+
+
+def _required_n_max_beyond(residual, high, ceiling=1.0e9):
+    """The limiting uptake that reproduces a point, searched past ``high``.
+
+    Used only to put a magnitude into a rejection message. Returns ``None`` if
+    the point is unreachable even at ``ceiling``, which for the modified D-A
+    form means the reported value exceeds what the shape can deliver at that
+    state for any uptake at all -- a different and much stronger statement
+    than running off the end of the default bracket, and one worth being able
+    to distinguish.
+    """
+    bound = high
+    while bound < ceiling:
+        bound *= 100.0
+        try:
+            if residual(bound) * residual(high) < 0.0:
+                return brentq(residual, high, bound, xtol=1e-8, rtol=1e-12,
+                              maxiter=200)
+        except (ValueError, FloatingPointError, OverflowError):
+            return None
+    return None
 
 
 def material_from_corpus_entry(base_material, entry, basis="absolute",

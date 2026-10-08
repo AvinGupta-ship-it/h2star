@@ -85,6 +85,72 @@ not anticipate.
 
 ### Fixed
 
+- **The first fix for the figure-reproducibility defect was itself too
+  narrow, and its evidence could not have shown that.** Pinning the seven font
+  and text settings the original defect involved left sixteen other
+  host-settable `rcParams` moving the committed bytes — `savefig.bbox`,
+  `figure.dpi`, `font.weight`, `axes.titlesize`, `lines.antialiased`,
+  `path.simplify` among them — with the whole suite green. The
+  cross-environment comparison offered as evidence compared two hosts that
+  differed in only the seven pinned settings, so it could not distinguish a
+  working pin from two agreeable hosts. `viz.figure_style()` now applies an
+  entire recorded configuration (`src/h2star/figure_style.json`, every
+  `rcParams` key Matplotlib's style machinery considers settable, at its stock
+  value) and `tests/test_figure_bytes.py` regenerates figures under hostile
+  ambient settings and demands the committed bytes back, with a control that
+  fails if the hostile settings do not reach the canvas. Found by adversarial
+  review.
+- **The qikun2002 rejection recorded the wrong mechanism.** The validation
+  record said no limiting uptake reproduces its reported point "for any
+  n_max". The modified D-A form is linear in `n_max` at a fixed state, so the
+  point is reachable — at 4.43e+4 mol/kg, which is 357× the A-ISO-4
+  coherence limit. The `ValueError` came from the back-solver's default search
+  bracket, whose top is itself about 16× that limit. The rejection stands and
+  is stronger stated correctly, and the back-solver now reports the required
+  uptake instead of implying unreachability.
+- **`inverse.coherent_n_max_limit`'s docstring gave the fit slope as
+  8.87e-5 m³/mol**, twice the 4.41e-5 the committed covariance implies and
+  that every other document states. The computed limits were never affected —
+  they call `fit_va_slope` — but the wrong number sat in the function that
+  defines the constraint.
+- **Three documents said no CNT paper in the corpus reports a packed bulk
+  density.** One does: chen1999, at 0.9 g/cm³, which is the chemisorption
+  entry the case study excludes. The accurate statement — none of the entries
+  the case study screens reports one — is now in all of them.
+- **`--quick` overwrote two published figures with unmarked coarsened
+  output.** F6 marked quick mode in its title and F7 did not, and both wrote
+  into `figures/` under their published names, so the documented smoke test
+  left two coarsened PNGs among the published ones. Quick mode now writes to
+  `figures/quick/` and F7 carries the marker too.
+- **`run_notebooks.py` reported "ok" and exited 0 for a notebook whose cell
+  raised**, when the failing cell carried the standard `raises-exception` tag:
+  the traceback lands in the cell's outputs rather than propagating. It now
+  inspects outputs for errors. It also passed `record_timing` on by default,
+  so a reproduction that changed nothing still rewrote a wall-clock timestamp
+  into every cell.
+- **Three of the new hygiene tests did not test what they claimed.** The
+  function-definition check skipped any cell containing a line magic, and five
+  of eight notebooks carry `%matplotlib inline` in their first cell; the
+  figure-writing check matched two substrings, so `fig.canvas.print_png(...)`
+  wrote a published figure straight past it; and the executed check asserted
+  only that *some* cell had outputs, which a notebook that died after its
+  second cell satisfies. The style check tested for `functools.wraps` rather
+  than for the pin, so any unrelated decorator passed, and discovered
+  functions by name, so one named anything else was never checked. All found
+  by adversarial review, all now fail against the mutations that exposed them.
+- **Notebook 02 computed a figure and threw it away.** The
+  published-versus-refit comparison — the visual evidence for the project's
+  central non-identifiability finding — was built in a cell with no output at
+  all, and its sibling displayed only because the inline backend flushes the
+  first figure of a session. A test now requires every cell that builds a
+  figure to display it.
+- **No published number was asserted anywhere.** The gates assert their
+  pre-registered tolerances, which is correct, but a tolerance is a floor:
+  Gate V1's is 0.1% against an observed 0.005%, so the EOS wrapper could
+  degrade twentyfold and still pass. `scripts/report_headline_numbers.py`
+  recomputes all of them from the artifact and `tests/test_headline_numbers.py`
+  pins the observed values, separately from the gates and without touching
+  them.
 - **Every committed figure was reproducible on one machine only.** Matplotlib
   takes `font.family` and `text.hinting` from whichever configuration the host
   supplies, and the development container injects
@@ -119,7 +185,7 @@ not anticipate.
   same fallback and run from the root or from `notebooks/`.
 - **Notebook 07 had never been executed.** It was committed with zero outputs
   while every other notebook carried its results, and nothing checked. It now
-  runs — 393 s, the probability maps being the cost — and a test asserts that
+  runs — six to seven minutes, the probability maps being the cost — and a test asserts that
   every notebook is committed with outputs.
 - **F1's legend was ordered by filename, not temperature.** The isotherms were
   loaded with `sorted(glob(...))`, which orders `100, 160, 298, 77` as strings,
@@ -179,7 +245,7 @@ not anticipate.
   identifies. The requirement needs uptake *and* pore volume together.
 - **The consistency screen rejects exactly the two contested CNT values.** Liu
   1999's 4.2 wt% implies 163 mol/kg, beyond both pore-volume limits; Wang Qikun
-  2002's 8.0 wt% is reproduced by no limiting uptake at all. Neither rejection
+  2002's 8.0 wt% needs 4.43e+4 mol/kg, 357× the A-ISO-4 limit. Neither rejection
   uses the experimental evidence raised against those values at the time, and
   the four entries the screen accepts are the four with reversible isotherms and
   calibrated apparatus.

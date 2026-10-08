@@ -63,8 +63,20 @@ def main(argv=None):
         return 2
 
     paths = sorted(NOTEBOOK_DIR.glob("*.ipynb"))
+    known = [p.name for p in paths]
     if args.only:
         prefixes = tuple(args.only)
+        unmatched = [
+            prefix for prefix in args.only
+            if not any(name.startswith(prefix) for name in known)
+        ]
+        if unmatched:
+            print(
+                f"--only {unmatched} matches no notebook. Known notebooks:\n  "
+                + "\n  ".join(known),
+                file=sys.stderr,
+            )
+            return 2
         paths = [p for p in paths if p.name.startswith(prefixes)]
     if not paths:
         print(f"no notebooks matched in {NOTEBOOK_DIR}", file=sys.stderr)
@@ -77,11 +89,16 @@ def main(argv=None):
         step = time.perf_counter()
         notebook = nbformat.read(path, as_version=4)
         # The kernel's working directory is the repository root, which is where
-        # the notebooks resolve their data paths from.
+        # the notebooks resolve their data paths from. record_timing is off
+        # because it writes a wall-clock timestamp into every cell's metadata:
+        # with it on, a reproduction that changed nothing still produced a
+        # 12-24 line diff per notebook, which is exactly the "diff to mistake
+        # for a result" the clean-room check is supposed not to leave.
         client = NotebookClient(
             notebook,
             timeout=CELL_TIMEOUT_S,
             kernel_name="python3",
+            record_timing=False,
             resources={"metadata": {"path": str(REPO_ROOT)}},
         )
         try:
@@ -90,6 +107,27 @@ def main(argv=None):
             failures.append((path.name, exc))
             print(f"FAILED ({type(exc).__name__}: {exc})")
             continue
+
+        # A cell tagged `raises-exception` does not raise out of execute(), so
+        # the traceback lands in the cell's outputs and the notebook otherwise
+        # looks clean. Checking the outputs is the only way to see it; without
+        # this, an errored notebook was reported ok and the script exited 0.
+        errored = [
+            index
+            for index, cell in enumerate(notebook.cells)
+            if cell.cell_type == "code"
+            and any(
+                output.get("output_type") == "error"
+                for output in cell.get("outputs", [])
+            )
+        ]
+        if errored:
+            failures.append(
+                (path.name, RuntimeError(f"error output in cells {errored}"))
+            )
+            print(f"FAILED (error output in cells {errored})")
+            continue
+
         if not args.check:
             nbformat.write(notebook, path)
         outputs = sum(

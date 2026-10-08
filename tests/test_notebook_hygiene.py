@@ -48,19 +48,40 @@ def _code_cells(path):
     ]
 
 
+def _strip_ipython_syntax(source):
+    """Blank out line magics and shell escapes, keeping the rest parseable.
+
+    An earlier version skipped the whole cell whenever any line began with
+    ``%`` or ``!``. Five of the eight notebooks carry ``%matplotlib inline`` in
+    their first cell, so the function-definition check was blind to exactly the
+    cell where a helper would most naturally be added -- an adversarial review
+    demonstrated a model function hiding there with the suite green. Replacing
+    the magic with a blank line keeps the cell's real code under test and
+    preserves line numbers.
+    """
+    return "\n".join(
+        "" if line.lstrip().startswith(("!", "%", "?")) else line
+        for line in source.splitlines()
+    )
+
+
 def _parsed_cells(path):
-    """Code cells parsed to AST, skipping any cell that uses IPython syntax."""
+    """Every code cell of a notebook, parsed to AST.
+
+    A cell that will not parse is a failure, not something to skip: swallowing
+    ``SyntaxError`` would hide a function definition just as effectively as
+    skipping a magic cell did.
+    """
     trees = []
-    for src in _code_cells(path):
-        if any(
-            line.lstrip().startswith(("!", "%"))
-            for line in src.splitlines()
-        ):
-            continue
+    for index, src in enumerate(_code_cells(path)):
+        cleaned = _strip_ipython_syntax(src)
         try:
-            trees.append(ast.parse(src))
-        except SyntaxError:
-            continue
+            trees.append(ast.parse(cleaned))
+        except SyntaxError as exc:
+            raise AssertionError(
+                f"{path.name} code cell {index} does not parse as Python "
+                f"({exc}), so it cannot be checked"
+            ) from exc
     return trees
 
 
@@ -87,21 +108,76 @@ def test_notebook_defines_no_functions_or_classes(path):
     )
 
 
+#: Ways a notebook could write an image file. ``savefig`` and ``savepath`` were
+#: the only two checked at first; an adversarial review wrote a published
+#: figure straight out with ``fig.canvas.print_png(...)`` and the whole hygiene
+#: suite stayed green.
+FIGURE_WRITE_CALLS = (
+    "savefig", "savepath", "print_png", "print_figure", "print_raw",
+    "print_rgba", "imsave", "write_png", "to_png", "buffer_rgba",
+)
+
+
 @pytest.mark.parametrize("path", NOTEBOOKS, ids=lambda p: p.stem)
 def test_notebook_does_not_write_into_figures(path):
-    """`scripts/make_all_figures.py` is the only writer of `figures/`."""
-    offenders = []
+    """`scripts/make_all_figures.py` is the only writer of `figures/`.
+
+    Two independent checks, because either alone has a hole. Naming any
+    image-writing call is caught wherever it writes; and naming the published
+    directory at all is caught however it is written to. A notebook has no
+    business referring to ``figures/`` in executable code now that it publishes
+    nothing there.
+    """
+    writes, references = [], []
     for src in _code_cells(path):
         for line in src.splitlines():
             stripped = line.strip()
             if stripped.startswith("#"):
                 continue
-            if "savefig" in stripped or "savepath" in stripped:
-                offenders.append(stripped)
-    assert not offenders, (
-        f"{path.name} writes a figure file:\n  "
-        + "\n  ".join(offenders)
+            if any(call in stripped for call in FIGURE_WRITE_CALLS):
+                writes.append(stripped)
+            if "figures" in stripped:
+                references.append(stripped)
+
+    assert not writes, (
+        f"{path.name} writes an image file:\n  " + "\n  ".join(writes)
         + "\nShow the figure inline instead; make_all_figures.py publishes it."
+    )
+    assert not references, (
+        f"{path.name} refers to the published figure directory in executable "
+        f"code:\n  " + "\n  ".join(references)
+        + "\nOnly scripts/make_all_figures.py may touch figures/."
+    )
+
+
+@pytest.mark.parametrize("path", NOTEBOOKS, ids=lambda p: p.stem)
+def test_notebook_figures_are_displayed(path):
+    """A figure a notebook builds must be shown, not computed and discarded.
+
+    Since the notebooks stopped writing into ``figures/``, the inline output is
+    the only record of what they drew, so a figure that is assigned and never
+    displayed is work thrown away. Notebook 02 had exactly that: the
+    published-versus-refit comparison, which is the visual evidence for the
+    project's central non-identifiability finding, was built in a cell with no
+    output at all. Its sibling cell displayed only because the inline backend
+    happens to flush the first figure of a session, which is not something to
+    rely on.
+
+    The rule is syntactic and therefore checkable: a cell that binds ``fig``
+    ends with a bare ``fig``.
+    """
+    offenders = []
+    for index, src in enumerate(_code_cells(path)):
+        builds = "fig = " in src or "fig, " in src
+        if not builds:
+            continue
+        lines = [line for line in src.rstrip().splitlines() if line.strip()]
+        if lines and lines[-1].strip() != "fig":
+            offenders.append(index)
+    assert not offenders, (
+        f"{path.name} code cells {offenders} build a figure without "
+        "displaying it; end the cell with a bare `fig` so the inline output "
+        "records what was drawn"
     )
 
 
@@ -137,16 +213,52 @@ def test_notebook_resolves_paths_from_the_repository_root(path):
 
 
 @pytest.mark.parametrize("path", NOTEBOOKS, ids=lambda p: p.stem)
-def test_notebook_is_committed_with_outputs(path):
-    """An unexecuted notebook must not pass for an executed one.
+def test_notebook_is_committed_fully_executed(path):
+    """An unexecuted or half-executed notebook must not pass for a run one.
 
-    Notebook 07 was committed with zero outputs. The notebooks are part of the
-    record, and a notebook with no outputs is a claim that was never run.
+    Notebook 07 was committed with zero outputs. The first version of this test
+    asserted only that *some* cell had outputs, and an adversarial review
+    showed that a notebook which died after its second cell satisfied it, as
+    did one whose outputs were present with every execution count cleared --
+    outputs pasted in rather than produced.
+
+    So the check is on the execution counts, which are the kernel's own record
+    of what it ran: every code cell must carry one, they must increase
+    monotonically through the notebook, and no cell may have an error output.
     """
     nb = json.loads(path.read_text())
     code_cells = [c for c in nb["cells"] if c["cell_type"] == "code"]
-    with_output = [c for c in code_cells if c.get("outputs")]
-    assert with_output, (
-        f"{path.name} has {len(code_cells)} code cells and no outputs at all; "
-        "it was committed unexecuted"
+    assert code_cells, f"{path.name} has no code cells"
+
+    missing = [
+        index for index, cell in enumerate(code_cells)
+        if cell.get("execution_count") is None
+    ]
+    assert not missing, (
+        f"{path.name} code cells {missing} carry no execution count, so the "
+        "notebook was committed unexecuted or only partly executed"
+    )
+
+    counts = [cell["execution_count"] for cell in code_cells]
+    out_of_order = [
+        (counts[i], counts[i + 1])
+        for i in range(len(counts) - 1)
+        if counts[i + 1] <= counts[i]
+    ]
+    assert not out_of_order, (
+        f"{path.name} execution counts do not increase through the notebook "
+        f"({out_of_order}); the committed outputs are not from one run in "
+        "order"
+    )
+
+    errored = [
+        index for index, cell in enumerate(code_cells)
+        if any(
+            output.get("output_type") == "error"
+            for output in cell.get("outputs", [])
+        )
+    ]
+    assert not errored, (
+        f"{path.name} code cells {errored} have an error output, so the "
+        "committed notebook records a failed run"
     )

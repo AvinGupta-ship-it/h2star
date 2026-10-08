@@ -1126,3 +1126,487 @@ F6's boundary as a Monte Carlo probability band.
   touched again.
 - Carried forward: bop_scaling has no sourced coefficient; the ST044 BOP term's
   place in the printed denominator; the strict Gate V3 xfail.
+
+---
+
+## 2026-10-08 — Stage 3: uncertainty and sensitivity layers; Gate V4 closed
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+Pre-register the Gate V4 tolerances and the seeding decision in a dated commit
+before any uncertainty code exists, then build `uq.py` and `sensitivity.py`,
+adjudicate Gate V4 against the analytic linear-Gaussian case and the Ishigami
+function, and redraw F6's boundary as a Monte Carlo probability band.
+
+### Artifacts
+- 9cc33bd  `data/uncertainty.yaml`; the Gate V4 pre-registration block in
+           `docs/validation_plan.md`. At this commit both modules are still
+           one-line docstrings.
+- b8dec65  `src/h2star/uq.py`, `src/h2star/sensitivity.py`, the probability-map
+           engine in `inverse.py`, F6 and F7, three test modules.
+- Tag: none.
+
+### Gates/tests advanced
+**Gate V4 PASSES on all clauses**, against the criteria as declared. V4.1, the
+analytic linear-Gaussian case at N = 100,000: mean error 0.0055 against the
+0.0242 bound, standard-deviation ratio within 2.6e-3 against 8.9e-3. V4.2,
+Ishigami against the closed form on the pre-registered ladder: worst relative
+error 0.1885% at 2^14, 0.0047% at 2^16, 0.0008% at 2^18, decreasing
+monotonically as required. V4.3 convergence at 1.1% worst half-sample
+disagreement against 2%. Suite 159 → 230 passed, 1 xfailed. Gate V3 metrics
+bitwise unchanged.
+
+### The result
+Claim C5 is quantified by the metric fixed in advance. Along alpha = 3080
+J/mol the P = 0.05, 0.50 and 0.95 feasibility contours cross at n_max = 109.4,
+125.6 and 141.5 mol/kg, so material-parameter uncertainty alone blurs the
+DOE-2025 boundary over 32.1 mol/kg — a quarter of the requirement itself, and
+a lower bound, because the covariance is conditional on a fixed p0. A point
+prediction of "the required limiting uptake" would quote 126 mol/kg for a
+quantity whose own 5–95% range runs from 109 to 142.
+
+Claim C3 has an answer, and the regime shift the manual anticipated is real:
+at cryogenic conditions the adsorbed-phase volume and the limiting uptake
+dominate (ST 0.51 and 0.34) while binding energetics are negligible (alpha ST
+0.017); at ambient, alpha rises by a factor of 9.5 to 0.165 and becomes
+third-ranked, while the fixed balance-of-plant mass falls from 0.137 to 0.011.
+
+### The finding the plan did not anticipate
+The Stage 2 deterministic map held v_a fixed while n_max swept, and that
+assumption is not neutral. The fit's own covariance implies dv_a/dn_max =
+4.41e-5 m³/mol and assumption A-ISO-4 implies 2.80e-5: the adsorbed phase
+grows with uptake by two independent accounts. It has to fit in the pore volume
+the packing leaves, 2.900e-3 m³/kg for AX-21, which it stops doing at n_max =
+104.9 mol/kg on the fit's correlation or 124.1 on A-ISO-4 — both at or below
+the P = 0.50 requirement crossing of 125.6, and the fit's below even the
+P = 0.05 crossing. The requirement is therefore not reachable at AX-21's
+packing density: a sorbent with enough uptake would have an adsorbed phase
+larger than its own pores. This sharpens the map rather than invalidating it.
+The requirement needs uptake *and* pore volume together, which means packing
+less densely, which costs the volumetric capacity that is already the binding
+constraint. Implemented as `coherent_n_max_limit` and `coherent_rho_bulk_limit`
+so the constraint is testable rather than a remark.
+
+### Problems
+The pre-registration had to resolve the Day-8 open question before it could
+declare anything. The unconstrained four-parameter fit terminated with
+log10(p0) at the imposed lower bound, and a covariance evaluated at an active
+bound is not a valid local Gaussian approximation, so it cannot seed the
+uncertainty layer. Fixing p0 at the published 1.47e+9 Pa removes the bound and
+returns a usable covariance, at the stated cost that every band built on it is
+conditional on p0 and therefore understates what a single isotherm implies.
+That is the honest direction for a headline claim — the boundary is at least
+this uncertain — and it is recorded wherever the band is used.
+
+A process-pool path for the probability map was written and then removed. With
+`spawn`, a library function that needs the caller's module to be import-safe
+gives recursive process spawning rather than a speedup when called from a
+script without a `__main__` guard, and on two cores the risk bought less than
+a factor of two. The clean-room reproduction has to be robust before it is
+fast.
+
+### Lessons
+Pre-registration is only worth something if it is uncomfortable to write. The
+V4.2 clause that mattered was the sample-size ladder fixed in advance, because
+without it "raise N" is a rescue applied after a failure rather than part of
+the procedure. The clause that mattered second was giving the analytically zero
+Sobol index an absolute tolerance: a relative tolerance against zero is
+undefined, and declaring one would have been a criterion that could not fail.
+
+### Next actions
+Stage 4: populate the CNT corpus from primary sources, place CNTs on the F6
+maps, build F8, and compute C4.
+
+### Open questions
+- The Sobol indices describe an independent-input surrogate, because Saltelli
+  sampling needs a box and building one discards the material correlation.
+  Every result says so; whether a correlated-input sensitivity method is worth
+  adding is open.
+- Carried forward: `bop_scaling` has no sourced coefficient; the strict Gate V3
+  xfail.
+
+---
+
+## 2026-10-08 — Stage 4: CNT case study; the screen rejects the contested values
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+Build the carbon-nanotube corpus from papers read as primary sources, place
+CNTs on the acceptability maps, produce F8 and table T7, and compute claim C4.
+
+### Artifacts
+- fd4132c  `data/materials/cnt_literature.yaml` (seven papers, every number
+           with the verbatim sentence and page it came from), the inference
+           chain in `inverse.py`, `gap_waterfall` in `system.py`, F8,
+           `tests/test_cnt_case_study.py`.
+- Tag: none.
+
+### Gates/tests advanced
+No gate verdict changed. Suite 230 → 253 passed, 1 xfailed.
+
+### Claim C4 could not be reported as written
+The manual's C4 promises "a system gravimetric capacity a quantified factor
+below target". This model puts the best-provenanced CNT entry at 0.0571 kg/kg
+against the DOE 2025 target of 0.055 — above it — and AX-21 activated carbon
+at 0.0652, also above it. Both are the Gate V3 gap showing through: a system
+mass denominator light by about 4.2× makes every absolute system capacity
+optimistic. A shortfall-against-target claim would quote a number this model is
+not entitled to. C4 was therefore rewritten to a relative form, which survives
+the bias because a shared denominator cancels in a ratio: at 100 bar / 80 K the
+best-provenanced reported CNT uptake implies a system gravimetric capacity
+0.88× that of AX-21, and no entry passing a physical-consistency screen exceeds
+AX-21.
+
+### The result
+The screen's verdict is the stage's central finding. The pore-volume constraint
+was established in the Gate V4 record, before any CNT value had been read.
+Applied to the corpus it rejects exactly two entries: `liu1999` (4.2 wt%,
+*Science* 1999, the field's most-cited CNT claim) implies n_max = 163.0 mol/kg,
+beyond both limits — a material whose adsorbed phase would exceed its own pore
+volume; and `qikun2002` (8.0 wt%) is worse by a wide margin, in that
+reproducing 43.1 mol/kg at 0.14 MPa requires n_max = 4.43e+4 mol/kg, 357x the
+A-ISO-4 coherence limit.
+
+Both rejections use none of the experimental evidence marshalled against those
+values at the time. Tibbetts et al. (2001) questioned `liu1999` on calibration
+and thermal-equilibrium grounds; Liu et al. (2010), same senior author and
+laboratory, stated that "our previous reported hydrogen storage capacities were
+overestimated". This model reaches the same verdict from a pore-volume
+argument. All three papers are in the corpus, so the provenance chain closes
+inside the dataset. The four entries the screen accepts are the four with
+reversible isotherms and hydride-calibrated apparatus, two with
+cross-instrument checks. The screen was not tuned to produce that alignment,
+and a test pins it so a future change to the isotherm layer cannot move a
+rejection into acceptance unnoticed.
+
+### One ambiguity resolved from a source rather than assumed
+"x weight percent hydrogen" may mean m_H2/(m_H2 + m_sorbent) or
+m_H2/m_sorbent. Liu 1999 reports "4.2 weight percent, or a hydrogen to carbon
+atom ratio of 0.52": the total-mass convention gives H/C = 0.5224, the
+sorbent-mass convention 0.5005. The paper is on the total-mass basis, which is
+now the documented default.
+
+### What the corpus does not contain, recorded because it bounds everything else
+None of the seven papers states whether its uptake is Gibbsian excess or
+absolute — on `liu2010` that ambiguity alone moves the inferred limiting uptake
+from 53.5 to 95.2 mol/kg, a factor of 1.78, which is why it is drawn as F8's
+whisker: it exceeds any engineering uncertainty in the cascade. One of seven
+reports a bulk density, which the Stage 3 Sobol study ranks among the largest
+contributors to system-capacity variance. Two print no DOI, recorded as absent
+rather than supplied from memory. Across the five physisorption entries with a
+room-temperature value the reported uptake spans 0.050 to 8.0 wt%, a factor of
+160 on nominally the same material class. That is C5's mechanism reached from
+the literature side, independently of the fit covariance.
+
+### Lessons
+The interlock the manual describes paid off in the direction it was not
+designed for. HyCAN-DB was built to supply values to H2STAR; what it actually
+supplied was the provenance chain that let a thermodynamic objection and a
+published experimental retraction be seen to agree. Agreement between an
+experimental objection and an independent physical one is worth more than
+either alone, and neither would have been visible from a single number in a
+review table.
+
+### Next actions
+Stage 5: one-command figure regeneration, `known_limitations.md`,
+`CHANGELOG.md`, README, `docs/README.md`, `CITATION.cff`.
+
+### Open questions
+- Every inferred limiting uptake is the output of an inference chain in which
+  alpha, beta, p0, v_a and both densities transfer from AX-21 because no CNT
+  paper reports them. Labelled as such in the data file, the module docstring
+  and the figure caption. Any CNT measurement reporting its basis and packing
+  density would collapse most of this.
+
+---
+
+## 2026-10-08 — Stage 5: hardening, and two defects the figure script exposed
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+One-command figure regeneration, then the documentation a reader needs in order
+to decide whether to trust a number from this project.
+
+### Artifacts
+- 208566c  `scripts/make_all_figures.py`; the Sobol bootstrap-seeding fix;
+           notebooks 07 and 08.
+- 4c371dd  `docs/known_limitations.md`, `CHANGELOG.md`, README rewritten from
+           two lines, `docs/README.md`, `CITATION.cff`, `docs/references.md`
+           extended, `pyproject` 0.1.0 → 0.2.0.
+- Tag: none.
+
+### Gates/tests advanced
+No gate verdict changed. Suite 253 → 255 passed, 1 xfailed.
+
+### The two defects
+Writing a caller that lived outside the notebooks is what exposed both, which
+is the argument for having written it.
+
+The Sobol **confidence intervals** were not reproducible. SALib's own `seed`
+argument reaches the point estimates but not, in the pinned version, the
+bootstrap resampling behind `S1_conf` and `ST_conf`: two identical calls
+returned `ST_conf` for n_max of 0.108 and 0.078, a 38% swing in a published
+error bar. The point estimates were and are deterministic, so this would have
+gone unnoticed — F7's bars were stable and only its whiskers moved. Fixed by
+seeding NumPy's legacy global generator immediately before the `analyze` call,
+which is what the bootstrap draws from, and restoring the prior state
+afterwards. Seeding a global RNG inside a library function is not good
+practice; it is done deliberately and narrowly because it is the only lever
+over SALib's internals and the alternative is irreproducible published
+intervals.
+
+The script's F2 and F3 calls did not match the real signatures. Both were wrong
+in a way only a caller outside the notebooks could expose, because each
+notebook had its own working call.
+
+### Lessons
+A second caller is a test. Eight notebooks had each independently arrived at a
+working call for the figure functions, and the agreement between them was
+mistaken for the functions being correctly specified. The first caller written
+against the signatures rather than copied from a notebook found two mismatches
+immediately. The same shape as the CI-invocation lesson from Stage 2: a check
+is only as good as the conditions it runs under, and "every existing caller
+works" names the callers, not the interface.
+
+### Next actions
+Stage 6: clean room, then release.
+
+### Open questions
+- `docs/references.md` records honestly that the Ishigami closed form used at
+  Gate V4.2 is derived in the module and checked numerically rather than taken
+  from the cited text. Confirming it against the primary text remains open.
+
+---
+
+## 2026-10-08 — Stage 6: the clean room, and three defects only it could see
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+Reproduce the whole project from a fresh clone in a fresh environment — suite,
+figures, notebooks, headline numbers — and correct anything it contradicts.
+
+### Artifacts
+- dcd1760  `viz.FIGURE_RCPARAMS` and the `@_styled` pin;
+           `tests/test_viz_style.py`; all nine figures regenerated; the
+           reproducibility claims in README and `known_limitations.md`
+           corrected.
+- 42eefe8  All eight notebooks made portable and re-executed;
+           `tests/test_notebook_hygiene.py`; F1 regenerated under a
+           temperature sort.
+- 4d68c34  `scripts/run_notebooks.py` and the `nb` extra.
+- `docs/clean_room_log.md` records all three runs, including the one that
+  failed.
+- Tag: none yet. `v0.2.0` is Avin's to cut.
+
+### Gates/tests advanced
+No gate verdict changed. Suite 255 → 303 passed, 1 xfailed. Gate V3 metrics
+bitwise unchanged throughout.
+
+### What the clean room found
+**The figures only reproduced on one machine.** Run 1 regenerated all nine PNGs
+from a fresh clone: every headline number reproduced to the last digit and all
+nine images differed. Matplotlib reads `font.family` and `text.hinting` from
+whatever configuration the host supplies, and this development container
+injects `Inter` and `no_hinting` into `rcParamsDefault` itself, so even a fresh
+install inside it inherits them. Neither is declared by any dependency the
+repository names. Every label was drawn in a font no other machine has, which
+moved every tight bounding box and so every pixel, while leaving every plotted
+number correct. Forcing those two values in the clean room reproduced the
+committed bytes exactly, which is what settled the diagnosis.
+
+**Notebook 02 could not execute anywhere.** It asserted that the working
+directory ended in `/research/h2star`, a path on one machine. Notebook 03
+asserted the directory was *named* `h2star`, which fails for any clone with
+another name — the clean room's is named `repo` — and its committed output had
+an absolute container path printed into it.
+
+**Notebook 07 had never been executed.** It was committed with zero outputs
+while all seven others carried theirs, and nothing checked. It runs in 364 s.
+
+**Executing notebook 02 would have replaced the published F2.** Every notebook
+wrote its figure into `figures/`, harmless for six and wrong for two: notebook
+02 saved an F2 built from the *unconstrained* refit, whose parameters the
+uncertainty layer deliberately does not use, and notebook 01 saved an F1 with
+its isotherms in a different order. The other six agreed byte for byte, which
+is precisely the coincidence that kept this invisible.
+
+F1's own legend was ordered by filename rather than temperature: `sorted(glob)`
+orders `100, 160, 298, 77` as strings, so the published legend ran out of
+sequence and the scatter overlay order was a property of how the files were
+named.
+
+### The result
+Run 3, on `4d68c34`: 303 passed and 1 xfailed under bare `pytest`, ruff clean,
+validation 22 + 1 xfail, provenance 29; all eight figures regenerated in one
+command and **nine of nine PNGs byte-identical** by SHA-256; all eight
+notebooks executed with no errors; and `git status` clean afterwards, because
+nothing in the suite, the figure script or the notebooks writes into the
+repository. The environment differed from the development one in Python
+(3.11.17 vs 3.13), NumPy (2.4.6 vs 2.5.3) and SciPy (1.17.1 vs 1.18.1).
+
+### Lessons
+Every defect this stage found was invisible to every check that ran on the
+development machine, and each was invisible for the same reason: the check and
+the thing checked shared an environment. Repeat runs cannot detect
+environment-dependent output. Eight notebooks agreeing cannot detect a figure
+only six of them agree on. A convention of always running `python3 -m` cannot
+detect a `sys.path` dependency, which was Stage 2's version of the same
+lesson. The clean room is not a formality at the end of the project; it is the
+first check in the project whose conditions are not the ones the work was
+produced under.
+
+The narrower lesson is about claims. The reproducibility sentence in the README
+was not a careless overclaim — it stated its evidence, "byte-identical on
+repeat runs on this platform", and that evidence was real. It was the wrong
+evidence for the claim, and nothing but a cross-environment comparison would
+have shown that. Stating the evidence alongside a claim is necessary and it is
+not sufficient; the evidence also has to be capable of being wrong.
+
+Three defects are now covered by tests rather than by having been found once.
+`tests/test_viz_style.py` asserts every plotting function carries the rendering
+pin; `tests/test_notebook_hygiene.py` asserts the notebooks define no
+functions, write no figures, carry no machine-specific paths, resolve paths
+from the repository root, and are committed with outputs. Run against the
+notebooks as they stood before this stage it fails fourteen times and names
+every defect above, including notebook 03's leaked container path, which I had
+not noticed.
+
+### Next actions
+Mode B, Avin's: enable the Zenodo ↔ GitHub toggle **before** cutting the
+release, tag `v0.2.0`, add the concept DOI to ORCID via Works → Add → Add DOI,
+then add the DOI to `CITATION.cff` and the README badge.
+
+### Open questions
+- Carried forward: `bop_scaling` has no sourced coefficient; the Ishigami
+  closed form is derived and numerically checked rather than confirmed against
+  the primary text; the strict Gate V3 xfail; whether a correlated-input
+  sensitivity method is worth adding.
+
+---
+
+## 2026-10-08 — Stage 6, second round: the adversarial review, and making the same mistake twice
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+Have the release checked by agents that did not produce it, and correct
+whatever they contradict, before anything is tagged.
+
+### Artifacts
+- Independent verifier and adversarial reviewer, both isolated and read-only.
+- The recorded rendering configuration (`src/h2star/figure_style.json`,
+  `scripts/record_figure_style.py`) replacing the seven-key pin.
+- `tests/test_figure_bytes.py`, `tests/test_headline_numbers.py`,
+  `scripts/report_headline_numbers.py`.
+- Corrections to the qikun2002 mechanism, the fit-slope docstring, and the
+  bulk-density statement in three files.
+- Tag: none yet.
+
+### Gates/tests advanced
+No gate verdict changed. Suite 303 → 394 passed, 1 xfailed.
+
+### The finding that matters
+The verifier re-derived every headline number from the artifact and all of them
+matched, including the Ishigami closed form, which it derived from the ANOVA
+definitions itself rather than reading the module's formula back. That is the
+reassuring half.
+
+The adversarial reviewer found that the fix I had written for the
+figure-reproducibility defect was too narrow, and — worse — that the evidence I
+had offered for it could not have shown otherwise. I pinned seven font and text
+settings. Sixteen other host-settable `rcParams` still moved the committed
+bytes with that pin in force, the whole suite green: `savefig.bbox`,
+`figure.dpi`, `font.weight`, `axes.titlesize`, `lines.antialiased`,
+`path.simplify` and others. And the cross-environment comparison I had cited
+compared two hosts that differed in exactly the seven settings I had pinned, so
+it could not distinguish "the pin neutralised the host" from "both hosts
+agreed about everything else".
+
+That is the same error as the original, committed while fixing the original.
+The first claim was "byte-identical on repeat runs on this platform" — true
+evidence, wrong test. The second was "byte-identical for a given Matplotlib and
+FreeType version" — also true evidence, also the wrong test. Both times I
+stated the evidence honestly alongside the claim and both times the evidence
+was incapable of failing. Writing the evidence down is not the discipline. The
+discipline is asking what observation would contradict the claim, and then
+making that observation.
+
+### The fix, and why its shape is different
+Enumerating the settings that matter is the wrong shape: the list is long,
+version-dependent, and a reviewer will always find the next entry on it. So
+`figure_style()` no longer lists settings believed to matter. It applies the
+entire recorded configuration — every `rcParams` key Matplotlib's style
+machinery considers settable, at its stock value, with `font.family` naming
+DejaVu Sans outright as the one deliberate deviation. There is nothing left for
+a host to contribute.
+
+And `tests/test_figure_bytes.py` checks it the only way that can fail: it makes
+the host hostile on purpose, one setting at a time and then all sixty at once,
+regenerates through the same code path that published the figures, and demands
+the committed bytes back. It carries a control that bypasses the pin and
+requires the bytes to *move*; the first version of that control passed
+vacuously, because wrapping the builder in nothing is not a bypass when the
+`viz` function it calls carries the pin itself.
+
+### Everything else the reviewers found
+Three of the new hygiene tests and both new style tests passed against the
+mutations they were written to catch. The function-definition check skipped any
+cell containing a line magic, and five of eight notebooks carry
+`%matplotlib inline` in their first cell. The figure-write check matched two
+substrings, so `fig.canvas.print_png(...)` wrote a published figure straight
+past it. The executed-notebook check asserted only that *some* cell had
+outputs. The style check tested for `functools.wraps` rather than for the pin,
+and discovered functions by name. All five now fail against those mutations.
+
+`--quick` wrote coarsened F7 images into `figures/` under their published
+names, with no marker in the image. The qikun2002 rejection recorded a
+mechanism that is not the mechanism operating. A docstring gave the fit slope
+as twice its value. Three documents said no CNT paper reports a bulk density
+when one does. Notebook 02 computed the comparison figure — the visual evidence
+for the central finding — and threw it away. `run_notebooks.py` reported
+success for a notebook whose cell raised. And no published number was asserted
+anywhere in the repository, so "the headline numbers reproduce" rested on a
+session having checked them once.
+
+### Lessons
+Two, and the first is uncomfortable. A fix written by whoever diagnosed the
+defect inherits the diagnosis's blind spot. I understood the original failure
+as "a font leaked in", fixed the font, and verified it against an environment
+that differed only in the font. Someone who had not formed that picture
+immediately asked what else leaks. That is an argument for adversarial review
+as a standing step rather than a final flourish, and specifically for review by
+something that has not read the reasoning.
+
+The second is about tests written in the same hour as the thing they test.
+Every one of the five tests that failed under mutation was written by me,
+immediately after the fix, with the defect fresh in mind — and each tested the
+shape of the defect I had just seen rather than the property I meant to
+guarantee. Checking `__wrapped__` tests that a decorator is present, which is
+what the fix had just added; it does not test that the decorator is the pin.
+The habit worth keeping is the one this round forced: for every guard, build
+the mutation it is supposed to catch and watch it fail first.
+
+### Next actions
+Final clean room against the corrected commit — suite, figures byte-compared,
+notebooks, and every headline number recomputed by
+`scripts/report_headline_numbers.py --full` rather than read from this record.
+Then Mode B, Avin's: Zenodo toggle before the release, tag `v0.2.0`, concept
+DOI to ORCID.
+
+### Open questions
+- `pyproject.toml` does not pin Matplotlib, FreeType or Pillow, and the byte
+  claim is conditional on all three. A constraints file would make the claim
+  self-enforcing for a reader installing this in a year. Not done, because
+  pinning a version range is a decision with consequences for anyone depending
+  on the package and it is Avin's to make.
+- The notebooks' inline PNGs are rendered by IPython's inline backend, which
+  the recorded configuration does not govern. They are now documented as
+  evidence that the notebooks ran rather than as byte-level artifacts; pinning
+  them too is possible and was judged not worth the coupling.
+- The three clean-room environments were separate virtual environments on one
+  machine. OS, libc and CPU were never varied, so byte-identity on a genuinely
+  different machine remains untested.

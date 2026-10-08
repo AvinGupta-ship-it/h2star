@@ -156,16 +156,38 @@ def test_basis_ambiguity_moves_the_answer_substantially(ax21_material,
     assert excess / absolute == pytest.approx(1.78, rel=0.05)
 
 
-def test_back_solve_rejects_an_unreachable_point(ax21_material):
-    """A reported value the isotherm cannot deliver is an error, not a fit.
+def test_back_solve_rejects_a_point_no_coherent_material_reaches(ax21_material):
+    """A reported value only an incoherent material reaches is an error.
 
-    This is what rejects qikun2002: 43.1 mol/kg at 0.14 MPa is outside what the
-    D-A form can produce at that state for any limiting uptake.
+    This is what rejects qikun2002, and the reason matters. 43.1 mol/kg at
+    0.14 MPa is *reachable*: the modified D-A form is linear in ``n_max`` at a
+    fixed state, so some limiting uptake always reproduces a point. It takes
+    4.43e+4 mol/kg, which is 357x the A-ISO-4 pore-volume coherence limit. The
+    back-solver's default bracket stops at 2000 mol/kg, itself about 16x that
+    limit, so the bracket is a physical screen rather than a numerical
+    accident — and the error says how far beyond it the required value lies
+    instead of implying the point cannot be reached at all.
+
+    The earlier version of this test asserted the stronger, false claim. It
+    passed, because the assertion was on the exception and not on the reason.
     """
-    with pytest.raises(ValueError, match="No limiting uptake"):
+    with pytest.raises(ValueError, match="No limiting uptake") as excinfo:
         inverse.material_from_reported_uptake(
             ax21_material, 43.133, 298.0, 0.14e6, basis="absolute"
         )
+    # The magnitude is the finding, so the message must carry it.
+    assert "4.428e+04" in str(excinfo.value)
+
+    # And the point really is reachable, which is why the claim was wrong.
+    reached = inverse.material_from_reported_uptake(
+        ax21_material, 43.133, 298.0, 0.14e6, basis="absolute",
+        n_max_bracket=(1.0, 1.0e6),
+    )
+    assert reached.n_max == pytest.approx(4.4281e4, rel=1e-3)
+    limit = inverse.coherent_n_max_limit(
+        ax21_material, inverse.V_LIQUID_H2_MOLAR
+    )
+    assert reached.n_max / limit == pytest.approx(357.0, rel=0.01)
 
 
 def test_back_solve_rejects_a_non_positive_uptake(ax21_material):

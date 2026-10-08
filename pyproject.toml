@@ -34,6 +34,13 @@ nb = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# figure_style.json is the recorded rendering configuration and viz reads it at
+# import time, so a wheel that omitted it would fail on `import h2star.viz`
+# rather than degrade. Declared explicitly instead of relying on
+# include-package-data defaults.
+[tool.setuptools.package-data]
+h2star = ["figure_style.json"]
+
 [tool.pytest.ini_options]
 markers = [
     "validation: gate tests validating physics against reference data or analytic limits",

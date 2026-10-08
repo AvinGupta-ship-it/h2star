@@ -21,6 +21,7 @@ Where to start, depending on what you want.
 
 | Document | What it is |
 |---|---|
+| [`clean_room_log.md`](clean_room_log.md) | Every clean-room reproduction, dated and against a named commit, **including the two that failed**. The record of what regenerating this project from a fresh clone actually produces. |
 | [`progress_journal.md`](progress_journal.md) | Day-by-day record: what advanced, what broke, what was learned. Includes dated correction notes where an earlier entry was wrong. |
 | [`ai_usage_log.md`](ai_usage_log.md) | Honest AI-assistance disclosure, session by session, including the dated transition where the division of labour changed. |
 
@@ -32,6 +33,9 @@ Where to start, depending on what you want.
 | [`../data/`](../data/) | Every input, each number carrying a citation. `uncertainty.yaml` labels each declared range `SOURCED` or `MODELING ASSUMPTION`. |
 | [`../notebooks/`](../notebooks/) | Eight executed notebooks, 01–08, mirroring figures F1–F8. Narrative and figure calls only; all physics lives in the package. |
 | [`../scripts/make_all_figures.py`](../scripts/make_all_figures.py) | Regenerates all eight figures from the committed data in one command. |
+| [`../scripts/run_notebooks.py`](../scripts/run_notebooks.py) | Executes all eight notebooks from the repository root in one command. `--check` runs them without writing them back. |
+| [`../scripts/report_headline_numbers.py`](../scripts/report_headline_numbers.py) | Recomputes every headline number from the artifact, so the clean room compares computed values rather than a record. |
+| [`../scripts/record_figure_style.py`](../scripts/record_figure_style.py) | Records, and with `--check` audits, the rendering configuration the figures are drawn under. |
 
 ## The validation gates at a glance
 

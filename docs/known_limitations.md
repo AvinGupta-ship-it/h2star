@@ -172,9 +172,11 @@ Four assumptions, each a link that could break:
 2. α, β and p₀ transfer from an activated carbon. These set the temperature and
    pressure dependence, so every extrapolation away from the reported state
    depends on them, and one entry is extrapolated 212 K.
-3. v_a, ρ_bulk and ρ_skel transfer too. **No CNT paper in the corpus reports a
-   packed bulk density at all**, and the Sobol study ranks v_a as the single
-   largest contributor to system-capacity variance.
+3. v_a, ρ_bulk and ρ_skel transfer too. **No CNT paper the case study uses
+   reports a packed bulk density** — one of the seven does, chen1999 at
+   0.9 g/cm³, and that is the chemisorption entry excluded from the case study,
+   so every entry actually screened is missing it — and the Sobol study ranks
+   v_a as the single largest contributor to system-capacity variance.
 4. The measurement basis is assumed, because **none of the seven papers states
    whether its uptake is Gibbsian excess or absolute**. On the primary entry
    that ambiguity alone moves the inferred limiting uptake from 53.5 to
@@ -226,41 +228,74 @@ Named so their absence is not mistaken for an oversight.
   as kg/L, triangulated against an independent HSECoE pair, and recorded as a
   transcription-error correction with the reasoning written down before the
   comparison was run.
-- **Figure byte-identity holds within a Matplotlib and FreeType version, not
-  across versions.** Under a fixed seed every number behind every figure is
-  deterministic. The images are byte-identical too, verified by regenerating
-  them from a fresh clone in a separate virtual environment and comparing
-  SHA-256: nine of nine identical across Python 3.11 vs 3.13, NumPy 2.4.6 vs
-  2.5.3 and SciPy 1.17.1 vs 1.18.1. What that does not cover is a different
-  Matplotlib or FreeType, which rasterise glyphs differently between releases.
-  Text is the whole of the difference, so the numbers survive a version change
-  and the bytes need not. Sibling project RamanUQ claims byte-reproducibility
-  outright; this project claims it only within a rendering stack.
+- **Figure byte-identity holds within a rendering stack, not across versions.**
+  Under a fixed seed every number behind every figure is deterministic. The
+  images are byte-identical too, given the same Matplotlib, FreeType and
+  Pillow: verified by regenerating them from a fresh clone in a separate
+  virtual environment and comparing SHA-256 (nine of nine identical across
+  Python 3.11 vs 3.13, NumPy 2.4.6 vs 2.5.3, SciPy 1.17.1 vs 1.18.1), and by
+  `tests/test_figure_bytes.py`, which regenerates under hostile ambient
+  `rcParams`. What it does not cover is a different Matplotlib, FreeType or
+  Pillow: FreeType rasterises glyphs differently between releases, Matplotlib
+  writes its own version into the PNG's `Software` chunk, and Pillow encodes
+  the file. The numbers survive all three; the bytes need not. `pyproject.toml`
+  does not pin those versions, so a reader installing this in a year gets a
+  different stack and the byte claim stops holding while the numbers do not.
+  Sibling project RamanUQ claims byte-reproducibility outright; this project
+  claims it only within one stack. Only `figures/` is byte-claimed: the
+  notebooks' inline images come from IPython's inline backend, which the
+  recorded configuration does not govern, so they are evidence that the
+  notebooks ran and not a byte-level artifact.
 - **The figures shipped before v0.2.0 were reproducible on one machine only,
-  and the project's own reproducibility claim did not notice.** Matplotlib
-  takes `font.family` and `text.hinting` from whatever configuration the host
-  supplies, and the container this work was developed in injects
+  and the project's reproducibility claim was wrong twice before it was
+  right.** This is the most instructive defect in the project and it is
+  recorded in full.
+
+  Matplotlib builds `rcParams` from whatever configuration the host supplies,
+  and the container this work was developed in injects
   `font.family = Inter, sans-serif, DejaVu Sans` and
   `text.hinting = no_hinting` into `rcParamsDefault` itself, so even a fresh
   install inside it inherits them. Neither value is declared by any dependency
   this repository names. Every label was drawn in a font no other machine has,
-  which moved every tight bounding box and therefore every pixel. The Stage 6
-  clean room caught it: all nine headline numbers reproduced to the last digit
-  and all nine images differed. Forcing those two values in the clean-room
-  environment reproduced the committed bytes exactly, which is what established
-  that the cause was the font configuration and nothing numerical.
+  which moved every tight bounding box and therefore every pixel. The first
+  clean-room run caught it: all nine headline numbers reproduced to the last
+  digit and all nine images differed. Forcing those two values in the
+  clean-room environment reproduced the committed bytes exactly, which
+  established that the cause was the configuration and nothing numerical.
 
-  The claim that was wrong said the figures were byte-identical *on repeat runs
-  on this platform*. That was true, and it was the wrong test: repeat runs in
-  one environment cannot detect output that depends on the environment. Only a
-  comparison across environments can, which is the reason the clean-room gate
-  exists and the reason it is run from a fresh clone rather than the working
-  tree. `viz.FIGURE_RCPARAMS` now pins the rendering configuration to
-  Matplotlib's own stock defaults, naming DejaVu Sans — which ships inside the
-  Matplotlib wheel — rather than reaching it through the `sans-serif` alias, so
-  the figures depend on no system font. `tests/test_viz_style.py` asserts that
-  every public plotting function carries the pin, because the defect returns
-  the moment a new plotting function forgets it.
+  **The first wrong claim** said the figures were byte-identical *on repeat
+  runs on this platform*. That was true, and it was the wrong test: repeat runs
+  in one environment cannot detect output that depends on the environment.
+
+  **The second wrong claim** said they were byte-identical *for a given
+  Matplotlib and FreeType version*, on the evidence of the cross-environment
+  comparison. That evidence could not support it. The fix at the time pinned
+  seven font and text settings, and the two environments compared differed in
+  only those seven — so the comparison could not distinguish "the pin
+  neutralised the host" from "both hosts agreed on everything else". An
+  adversarial review then demonstrated sixteen further host-settable
+  parameters that moved the committed bytes with that pin in force —
+  `savefig.bbox`, `figure.dpi`, `font.weight`, `axes.titlesize`,
+  `lines.antialiased`, `path.simplify` among them — with the entire test suite
+  green.
+
+  The lesson is about the shape of a fix and the shape of its evidence.
+  Enumerating the settings that matter is the wrong fix: the list is long,
+  version-dependent, and a reviewer will always find the next entry.
+  Comparing two agreeable environments is the wrong evidence: it cannot fail.
+  So `viz.figure_style()` now applies an *entire* recorded configuration —
+  every `rcParams` key Matplotlib's style machinery considers settable, at its
+  stock value, recorded in `src/h2star/figure_style.json` — which leaves
+  nothing for the host to contribute, and `tests/test_figure_bytes.py` checks
+  it the only way that can fail: it makes the host hostile on purpose, one
+  setting at a time and then all at once, regenerates through the same code
+  path that published the figures, and demands the committed bytes back. It
+  carries a control that fails if the hostile settings turn out not to reach
+  the canvas, so the sweep cannot pass vacuously.
+
+  Residual limitation: a recorded configuration cannot cover a setting a later
+  Matplotlib adds, and `test_figure_bytes.py` fails loudly if the record names
+  a key the installed Matplotlib does not have.
 - **One commit carries a non-Avin committer.** The initial commit `ed2a3cf` was
   created through the GitHub web UI, so its committer is
   `GitHub <noreply@github.com>` while its author is Avin. Not an AI identity,
