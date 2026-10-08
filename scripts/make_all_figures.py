@@ -440,10 +440,17 @@ def main(argv=None):
         print(f"{name} ...", end=" ", flush=True)
         step = time.perf_counter()
         try:
-            if takes_quick:
-                builder(context, args.figures, quick=args.quick)
-            else:
-                builder(context, args.figures)
+            # viz pins the rendering parameters for its own drawing, but a
+            # builder that assembles its own figure around a viz call -- F3
+            # does -- would otherwise draw the figure-level text under
+            # whatever font the host environment supplies. Applying the pin
+            # here covers every builder, present and future, rather than
+            # leaving each one to remember.
+            with viz.figure_style():
+                if takes_quick:
+                    builder(context, args.figures, quick=args.quick)
+                else:
+                    builder(context, args.figures)
         except Exception as exc:  # noqa: BLE001 - reported, not swallowed
             failures.append((name, exc))
             print(f"FAILED ({type(exc).__name__}: {exc})")

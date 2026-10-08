@@ -1,7 +1,9 @@
 """Visualization of isotherms, envelopes, and system-level results."""
 
+import functools
 from pathlib import Path
 
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
@@ -9,7 +11,85 @@ from matplotlib.patches import Patch
 
 from .heats import isosteric_heat
 
+#: Rendering parameters pinned for every figure this module draws.
+#:
+#: A figure's *bytes* depend on the font its text is drawn with, and Matplotlib
+#: takes that from whichever ``matplotlibrc`` the host environment supplies. A
+#: host that names a different ``font.family`` -- some container images do --
+#: silently changes every label, every tight bounding box, and therefore every
+#: pixel, while leaving all the numbers untouched. Figures built under such a
+#: host cannot be regenerated anywhere else. That is a defect in the figure,
+#: not in the host, and it is invisible unless something compares bytes across
+#: environments: H2STAR's own clean-room check found exactly this, with all
+#: nine PNGs differing and all nine headline numbers reproducing exactly.
+#:
+#: Pinning these removes the host from the question. ``DejaVu Sans`` is named
+#: outright rather than reached through the ``sans-serif`` alias because DejaVu
+#: ships inside the Matplotlib wheel: it is present wherever Matplotlib is, so
+#: the pin relies on no system font being installed and no alias resolving a
+#: particular way. Every value is Matplotlib's own documented default, except
+#: that ``font.family`` names the concrete font the default alias resolves to
+#: on a stock install.
+#:
+#: What this buys is byte-identity for a given Matplotlib and FreeType version,
+#: verified across two Python versions and two independent installs. It does
+#: not buy byte-identity *across* those versions: FreeType rasterises glyphs
+#: differently between releases, so different FreeType draws the same text with
+#: different pixels. ``docs/known_limitations.md`` states the limit.
+FIGURE_RCPARAMS = {
+    "font.family": ["DejaVu Sans"],
+    "font.size": 10.0,
+    "mathtext.fontset": "dejavusans",
+    "text.antialiased": True,
+    "text.hinting": "default",
+    "text.hinting_factor": None,
+    "axes.unicode_minus": True,
+}
 
+
+def figure_style():
+    """Context manager that applies :data:`FIGURE_RCPARAMS`.
+
+    Every plotting function in this module already applies it to its own
+    drawing. Use this directly when a *caller* creates the figure or saves it
+    -- ``scripts/make_all_figures.py`` does, because the isosteric-heat figure
+    is assembled by the caller around :func:`plot_isosteric_heat`, so the
+    figure-level text would otherwise be drawn under the host's font.
+
+    Returns
+    -------
+    matplotlib.rc_context
+        A context manager. Ambient ``rcParams`` are restored on exit, so
+        importing or calling this module never mutates a caller's global
+        Matplotlib configuration.
+
+    Examples
+    --------
+    >>> from h2star import viz
+    >>> with viz.figure_style():
+    ...     fig, ax = plt.subplots()
+    ...     _ = ax.set_title("drawn with the pinned font")
+    """
+    return mpl.rc_context(FIGURE_RCPARAMS)
+
+
+def _styled(func):
+    """Apply :data:`FIGURE_RCPARAMS` for the duration of a plotting call.
+
+    A decorator rather than an indented ``with`` block inside each function
+    body: it keeps the pin in one place, so a new plotting function opts in
+    with one line and cannot half-apply it.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with figure_style():
+            return func(*args, **kwargs)
+
+    return wrapper
+
+
+@_styled
 def eos_parity_plot(isotherms, savepath=None):
     """Parity plot of model vs. reference density for one or more isotherms.
 
@@ -69,6 +149,7 @@ def eos_parity_plot(isotherms, savepath=None):
     return fig, ax
 
 
+@_styled
 def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
                        n_absolute_curve, residuals, rmse_value=None,
                        threshold=None, savepath=None, *,
@@ -167,6 +248,7 @@ def plot_ax21_isotherm(P_data_mpa, n_excess_data, P_curve_mpa, n_excess_curve,
     return fig
 
 
+@_styled
 def plot_isosteric_heat(da, n_over_nmax_min=0.02, n_over_nmax_max=0.60, T=77.0,
                         band=(4000.0, 7000.0), n_points=100, ax=None):
     """Isosteric heat vs. coverage (F3): numerical curve, D-A limit, anchor band.
@@ -226,6 +308,7 @@ def plot_isosteric_heat(da, n_over_nmax_min=0.02, n_over_nmax_max=0.60, T=77.0,
     return ax
 
 
+@_styled
 def plot_system_validation(
     gc_model, vc_model,
     gc_anchor, vc_anchor,
@@ -375,6 +458,7 @@ def _param_label(name):
     return _PARAM_LABELS.get(name, name)
 
 
+@_styled
 def plot_forward_maps(grid, targets=None, title=None, savepath=None):
     """Forward GC and VC maps over the full state (F5).
 
@@ -467,6 +551,7 @@ def plot_forward_maps(grid, targets=None, title=None, savepath=None):
     return fig, (ax_gc, ax_vc)
 
 
+@_styled
 def plot_acceptability_maps(maps, reference_points=None, title=None,
                             savepath=None):
     """Material acceptability maps in two parameter planes (F6).
@@ -599,6 +684,7 @@ def plot_acceptability_maps(maps, reference_points=None, title=None,
     return fig, axes
 
 
+@_styled
 def plot_probability_maps(maps, coherence_curves=None, reference_points=None,
                           title=None, savepath=None,
                           levels=(0.05, 0.50, 0.95)):
@@ -725,6 +811,7 @@ def plot_probability_maps(maps, coherence_curves=None, reference_points=None,
     return fig, axes
 
 
+@_styled
 def plot_sobol_indices(studies, labels, output="GC", title=None, savepath=None):
     """Sobol first- and total-order indices at two envelopes, side by side (F7).
 
@@ -813,6 +900,7 @@ def plot_sobol_indices(studies, labels, output="GC", title=None, savepath=None):
     return fig, axes
 
 
+@_styled
 def plot_cnt_gap(waterfalls, screen, title=None, savepath=None):
     """CNT case study: the material-to-system gap and the consistency screen (F8).
 
