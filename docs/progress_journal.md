@@ -998,3 +998,131 @@ strict Gate V3 marker; whether the ST044 BOP term belongs in the printed
 baseline denominator; the missing `bop_scaling` coefficient; and the Day-8
 covariance-seeding question, which manual §4.1.3 now resolves as a decision to
 be pre-registered before any UQ code is written.
+
+## 2026-10-08 — Stage 2: envelope and inverse layers, F5 and F6 draft
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+Build the two unimplemented modules that stand between the validated forward
+model and the project's signature result: the operating-envelope layer and the
+inverse acceptability-map engine. Produce figure F5 and a deterministic draft
+of F6, with notebooks 05 and 06.
+
+### Artifacts
+- f1e8f37  data/targets/doe_targets.yaml indentation fix; tests/conftest.py;
+           tests/test_data_provenance.py (provenance marker added to pyproject)
+- 824ce2f  src/h2star/envelope.py, src/h2star/inverse.py, viz F5/F6 functions,
+           notebooks 05 and 06, figures F5 and F6 draft, four test modules,
+           CI actions bumped off deprecated Node 20
+- 430d653  test-module import fix after CI went red (see below)
+- Tag: none.
+
+### Gates/tests advanced
+No gate verdict changed; Gate V4 still not run. Suite 62 -> 156 passed, 1
+xfailed. Validation subset unchanged at 18 + 1 xfail. New provenance subset at
+23. Gate V3 metrics recompute bitwise unchanged after every change this stage.
+
+### Physical understanding the work required
+- The operating envelope has to be optimized, not chosen, if two materials are
+  ever to be compared fairly; otherwise the comparison partly measures an
+  arbitrary choice of full state. The optimization is over (P_full, T_full,
+  T_empty) with P_empty pinned at the 5 bar delivery floor, because an
+  optimizer given freedom over the delivery pressure drives it to zero.
+- For AX-21 the answer is a corner. GC rises monotonically with pressure and
+  falls with temperature across the whole region, so the bounds choose the
+  optimum rather than any interior trade-off. That is a real result about this
+  material under this model and not a bug, but it means the reported optimum is
+  only as meaningful as the bounds, so EnvelopeResult.at_bound reports it and a
+  test asserts it.
+- Carrying T_empty as a fraction of the distance from T_full to the cap keeps
+  the search region a box, which differential evolution requires, while
+  enforcing T_empty >= T_full exactly. Clipping instead would have created a
+  flat shelf for the optimizer to wander on.
+- The map holds the envelope fixed while the material varies. Optimizing the
+  envelope per node would make every node a different tank design and the map
+  would confound two effects.
+- Sweeping n_max at fixed v_a is a slice no real material family follows,
+  because assumption A-ISO-4 ties the two. The slice answers "what does this
+  one property buy, all else equal?", which is the right question for a
+  requirements map, but it is not a trajectory through real sorbents and the
+  module docstring says so.
+
+### The result
+At the 100 bar / 80 K baseline the VOLUMETRIC target is the binding constraint
+in both the (n_max, alpha) and (n_max, rho_bulk) planes: the acceptable
+region's boundary tracks the volumetric contour, not the gravimetric one, and
+AX-21 sits outside it. The same ordering appears in the forward map over
+operating states. This is the shape of claim C3, and it survives the Gate V3
+gap because it is a statement about ordering rather than level.
+
+The model also places AX-21 above the DOE 2025 gravimetric target, at 0.0652
+against 0.055 kg/kg. That is not a finding. It is the Gate V3 gap appearing
+exactly where it was predicted to, in an absolute gravimetric number, and a
+real AX-21 system does not clear that target - the HSECoE ST044 baseline is
+0.0312 kg/kg full-state. Notebook 06 states this in those terms rather than
+letting the figure imply a pass, and every figure carrying an absolute capacity
+now prints the Gate V3 caveat from one shared constant.
+
+### Problems
+Two, both found by machines rather than by reading.
+
+An independent adversarial review of the two new modules found that parameter
+NAMES were validated but parameter VALUES were not. A grid node at negative
+n_max and negative packing density inverted the sign of the sorbent mass, which
+shrank the system mass denominator, which returned GC = 0.99 kg/kg - and the
+feasibility mask marked it as clearing every DOE target. An acceptability map
+reporting an impossible material as meeting DOE targets is the worst failure
+this module could have, and it was reachable from any caller. material_domain_
+error now refuses such a vector before the model sees it, the map records why
+each node was rejected, and a regression test asserts the specific case. Eleven
+smaller findings from the same review were fixed alongside it.
+
+Then CI went red on all four matrix jobs with four collection errors. The new
+test modules imported a path constant from tests.conftest, which resolves only
+when the repository root is on sys.path. `python -m pytest` puts it there; a
+bare `pytest` does not, and the workflow runs the bare form. Every local check
+this session had used `python3 -m pytest`, the portfolio's standing convention,
+so the laxer invocation was the one being verified. Reproduced exactly in a
+clean Python 3.11 venv, fixed by deriving the repository root from __file__ in
+the modules that need it at import time, and verified under the bare
+invocation.
+
+### Lessons
+The habit that hid the CI failure is a documented portfolio convention. Always
+invoking `python3 -m` is good advice for avoiding the wrong interpreter, and it
+silently adds the working directory to sys.path, so a suite verified that way
+is verified under weaker conditions than CI applies. The workflow is staying on
+bare `pytest` for that reason: the stricter invocation is the one that caught
+this, and aligning CI to the local habit would only re-hide the next instance.
+The general form is the one the data-integrity rules already state and that I
+keep relearning in new costumes - a check is only as good as the conditions it
+runs under, and "it passes locally" names a condition rather than a result.
+
+The negative-density defect is the stronger lesson. The map was correct for
+every input anyone would actually type, the tests all passed, and the figures
+looked right. It took a hostile reader asking "what if the inputs are absurd?"
+to find a path where the engine confidently reports a material that cannot
+exist as one that meets the targets a whole project is organized around.
+Validating names and not values is a distinction that reads as pedantic until
+it produces a number like 0.99 kg/kg with a green checkmark next to it.
+
+### Next actions
+Stage 3: pre-register the fixed-p0 conditional-covariance seeding decision, the
+uncertainty.yaml distributions and the Gate V4 tolerances in a dated commit
+BEFORE any UQ code exists; then build uq.py and sensitivity.py, pass Gate V4
+against the analytic linear-Gaussian case and the Ishigami function, and redraw
+F6's boundary as a Monte Carlo probability band.
+
+### Open questions
+- The acceptability map holds v_a fixed while n_max sweeps, against assumption
+  A-ISO-4. Should the published F6 instead sweep n_max with v_a tied to it, and
+  show the fixed-v_a slice as the sensitivity? Carried to Stage 3, where the
+  uncertainty layer has to answer the same question about correlated inputs.
+- Material permits unphysical parameter vectors at construction; the domain
+  check lives at the sweep boundary rather than in the type, because the Gate
+  V2 fitter builds a Material on every least-squares residual and a raise in
+  that hot path would risk the gate. Worth revisiting once the fitter is
+  touched again.
+- Carried forward: bop_scaling has no sourced coefficient; the ST044 BOP term's
+  place in the printed denominator; the strict Gate V3 xfail.

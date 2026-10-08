@@ -489,3 +489,50 @@ Verification: 62 passed and 1 xfailed (from 45 passed, 1 xfailed); `ruff check .
 clean; the Gate V3 strict xfail still fails as expected; `.github/workflows/ci.yml`
 re-parsed to confirm the matrix; every placeholder pattern re-grepped to zero
 across `docs/`.
+
+## 2026-10-08 — Stage 2: envelope and inverse layers
+
+Tool: Claude (Opus 5), cloud session running the pipeline directly. One
+isolated verification subagent and one isolated adversarial-review subagent,
+both read-only on the repository.
+
+Purpose: implement the operating-envelope and inverse acceptability-map layers,
+produce F5 and the F6 draft, and notebooks 05 and 06.
+
+What Avin provided: the three ratifications recorded in manual section 0, and
+the push of each bundle. No other input was required at this stage.
+
+What Claude did: designed and wrote envelope.py and inverse.py, the F5 and F6
+figure functions, four test modules, and notebooks 05 and 06; fixed the
+unparseable DOE targets file; ran the suite, lint, the notebooks and the
+figures; wrote this entry and the journal entry for the stage.
+
+Independent re-derivation (no self-certification). A separate agent, given no
+access to this session's reasoning, re-derived from the artifact: the
+forward-map orientation against its own nested loop (bitwise agreement); the
+envelope optimum against its own coarse scan of the design space; the binding-
+constraint claim against its own sweep; the AX-21 baseline capacities; the Gate
+V3 regression; the DOE targets file's value-identity with the Day 1 commit; and
+the spot-check's non-tautology, including by injecting a deliberate error and
+confirming the check fails. All confirmed. It reported one correction worth
+recording: the optimizer stops about 278 Pa short of the 200 bar bound, so
+"the optimum is at exactly 200 bar" is false as stated even though every
+quoted figure is correct to six decimal places.
+
+The same agent reviewed both modules as a hostile reader and found the
+negative-density defect described in the journal, plus eleven smaller issues.
+All were fixed before the work was committed, each with a regression test.
+Finding them was the agent's; the fixes and the decision about which were worth
+fixing were made here.
+
+What was deliberately not done: the Material type still permits unphysical
+parameter vectors at construction. The domain check was placed at the sweep
+boundary instead, because the Gate V2 fitter constructs a Material on every
+least-squares residual and adding a raise to that path would put a passed gate
+at risk for a defect that only arises at the sweep boundary. Recorded as an
+open question rather than quietly accepted.
+
+Verification: 156 passed and 1 xfailed, lint clean, under the exact CI
+invocation (clean Python 3.11 venv, bare `pytest` from the repository root) and
+again on 3.13. Notebooks executed with no errors; both figures regenerated and
+inspected. Gate V3 metrics bitwise unchanged throughout.
