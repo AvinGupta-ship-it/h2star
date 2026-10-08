@@ -119,7 +119,7 @@ as they stood at this commit.
 
 ---
 
-## Run 3 — commit `4d68c34`, 2026-10-08. **PASSED, complete.**
+## Run 3 — commit `4d68c34`, 2026-10-08. Suite, figures and notebooks passed.
 
 Fresh clone into a new directory, fresh `venv`,
 `pip install -e ".[dev,nb]"`, nothing further.
@@ -192,15 +192,97 @@ published name.
 
 ### Headline numbers
 
-Reproduced by the validation-marked tests, which read their tolerances and
-anchors from the YAML at runtime rather than carrying them as literals, and
-which pass in this environment. The gate values themselves are recorded at gate
-precision in `docs/validation_plan.md`; the higher-precision readouts listed
-under Run 1 reproduced exactly there and the numbers have not changed since.
+**Not properly done in this run.** This section originally said the
+validation-marked tests pass and deferred the high-precision values to Run 1 —
+a different commit in a different environment. That is reading from a record,
+which is the one thing Part VII's wording rules out. An adversarial review also
+established that no published number was asserted anywhere in the repository,
+so nothing could have caught a drift. `scripts/report_headline_numbers.py` and
+`tests/test_headline_numbers.py` were written in response, and Run 4 does this
+step properly.
 
 ---
 
-## What the three runs together establish
+---
+
+## Run 4 — commit `756a94c`, 2026-10-08. **PASSED, complete.**
+
+The run after the adversarial review. Fresh clone into a new directory, fresh
+`venv`, `pip install -e ".[dev,nb]"`, nothing further.
+
+| | Clean room | Development environment |
+|---|---|---|
+| Python | 3.11.17 | 3.13 |
+| NumPy | 2.4.6 | 2.5.3 |
+| SciPy | 1.17.1 | 1.18.1 |
+| Matplotlib | 3.11.2 | 3.11.2 |
+| FreeType | 2.14.3 | 2.14.3 |
+| Pillow | 12.3.0 | 12.3.0 |
+| `rcParamsDefault['font.family']` | `['sans-serif']` (stock) | `['Inter', 'sans-serif', 'DejaVu Sans']` (injected) |
+
+### Tests
+
+| Command | Result |
+|---|---|
+| `pytest -q` (bare, the CI invocation) | 394 passed, 1 xfailed, 51.9 s |
+| `ruff check .` | clean |
+| `pytest -m validation` | 22 passed, 1 xfailed, 372 deselected |
+| `pytest -m provenance` | 29 passed, 366 deselected |
+| `scripts/record_figure_style.py --check` | "This environment's stock configuration matches the record" |
+
+That last line is worth stating plainly: the rendering configuration the
+figures are drawn under was recorded from a pristine Matplotlib, and this
+environment's stock configuration agrees with it key for key, 324 of 324.
+
+### Headline numbers
+
+`scripts/report_headline_numbers.py --full`, which recomputes each value by
+calling the package rather than reading it from anywhere. Every one matches
+what `docs/validation_plan.md` and `README.md` publish.
+
+| Quantity | Recomputed |
+|---|---|
+| Gate V1 max relative density error | 4.991664e-05 |
+| Gate V3 `GC_full` | 0.077671 kg/kg (anchor 0.0312 — documented FAIL) |
+| Gate V3 `VC_full` | 0.036308 kg/L (anchor 0.0194 — documented FAIL) |
+| Gate V4.2 worst relative error at 2^14 | 0.1885 % |
+| AX-21 baseline system GC | 0.065215 kg/kg |
+| Coherence limit (fit correlation) | 104.9235 mol/kg |
+| Coherence limit (A-ISO-4) | 124.1021 mol/kg |
+| CNT primary inferred `n_max` | 53.5273 mol/kg |
+| CNT primary system GC | 0.057103 kg/kg |
+| Claim C4 ratio to AX-21 | 0.8756x |
+| Claim C5 P = 0.05 crossing | 109.4167 mol/kg |
+| Claim C5 P = 0.50 crossing | 125.5941 mol/kg |
+| Claim C5 P = 0.95 crossing | 141.5196 mol/kg |
+| Claim C5 separation | 32.1029 mol/kg (25.56% of the median) |
+
+### Figures
+
+`python scripts/make_all_figures.py` — F6 accounting for 452.4 s of the run.
+**Nine of nine PNGs byte-identical** to the committed figures, by SHA-256, and
+identical to the digests Run 3 recorded: the recorded configuration replaced
+the seven-key pin without moving a single byte, because the settings it added
+already matched stock on both hosts.
+
+### Notebooks
+
+`python scripts/run_notebooks.py --check` — all eight executed with no errors:
+01 (4.7 s, 3 outputs), 02 (5.5 s, 8), 03 (4.8 s, 2), 04 (5.0 s, 5),
+05 (16.7 s, 6), 06 (16.9 s, 7), 07 (331.4 s, 19), 08 (6.4 s, 9). Notebook 02
+now carries 8 outputs rather than 6: it was building its published-versus-refit
+comparison and discarding it.
+
+### Working tree afterwards
+
+`git status` clean.
+
+### Afterwards
+
+The only commits after this run change documentation and one help string, and
+cannot affect a number or a byte.
+
+## What the four runs together establish
 
 - The numbers are deterministic under a fixed seed and reproduce across two
   Python minor versions, two NumPy versions, two SciPy versions and three
@@ -214,8 +296,19 @@ under Run 1 reproduced exactly there and the numbers have not changed since.
   version change moves the bytes and not the numbers.
 - Every notebook runs from a fresh clone in a directory of any name, and is
   committed with its outputs.
-- Three defects reached this stage invisible to every check that ran on the
+- Every headline number, including claim C5's contour crossings, is recomputed
+  from the artifact by one command and pinned by the test suite, so "the
+  numbers reproduce" is a thing that fails rather than a thing a session
+  checked once.
+- Defects that reached this stage invisible to every check running on the
   development machine: figures that only reproduced in one container, a
-  notebook that could only execute in one directory, and a notebook that had
-  never been executed. Each is now covered by a test, because a clean room run
-  once before release catches what it catches, and a test catches it every time.
+  notebook that could only execute in one directory, a notebook that had never
+  been executed, a figure computed and discarded, a smoke test that overwrote
+  published figures, and a notebook runner that reported success for a failed
+  run. Each is now covered by a test. A clean room run once before release
+  catches what it catches; a test catches it every time.
+- And the honest one: the first two fixes for the figure defect were each
+  verified by evidence that could not have contradicted them. What found that
+  was not another clean-room run but an adversarial reviewer with no access to
+  the reasoning behind the fix. Runs are necessary; they are not sufficient
+  against a blind spot shared by the diagnosis and its test.

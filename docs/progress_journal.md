@@ -1590,12 +1590,21 @@ what the fix had just added; it does not test that the decorator is the pin.
 The habit worth keeping is the one this round forced: for every guard, build
 the mutation it is supposed to catch and watch it fail first.
 
+### The result
+Run 4, on `756a94c`: 394 passed and 1 xfailed under bare `pytest`, ruff clean,
+validation 22 + 1 xfail, provenance 29; the rendering-configuration audit
+reporting that the clean room's stock settings match the record 324 keys for
+324; **nine of nine PNGs byte-identical** and identical to the digests Run 3
+recorded, so replacing the seven-key pin with the whole configuration moved
+not one byte; all eight notebooks executed; `git status` clean afterwards; and
+every headline number recomputed from the artifact by one command, C5's
+crossings included — 109.4167, 125.5941, 141.5196 mol/kg, separation 32.1029,
+25.56% of the median. Recorded in `docs/clean_room_log.md`.
+
 ### Next actions
-Final clean room against the corrected commit — suite, figures byte-compared,
-notebooks, and every headline number recomputed by
-`scripts/report_headline_numbers.py --full` rather than read from this record.
-Then Mode B, Avin's: Zenodo toggle before the release, tag `v0.2.0`, concept
-DOI to ORCID.
+Mode B, Avin's: enable the Zenodo ↔ GitHub toggle **before** cutting the
+release, tag `v0.2.0`, add the concept DOI to ORCID via Works → Add → Add DOI,
+then add the DOI to `CITATION.cff` and the README badge.
 
 ### Open questions
 - `pyproject.toml` does not pin Matplotlib, FreeType or Pillow, and the byte

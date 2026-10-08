@@ -2,7 +2,7 @@
 """Recompute every headline number H2STAR publishes, from the artifact.
 
     python3 scripts/report_headline_numbers.py           # the fast eight
-    python3 scripts/report_headline_numbers.py --full    # plus claim C5, ~6 min
+    python3 scripts/report_headline_numbers.py --full    # plus claim C5, ~1 min
 
 Manual Part VII requires the clean-room reproduction to show "the headline
 numbers reproduced from the artifact rather than read from a record". This is
@@ -19,9 +19,10 @@ regression check on the published value. ``tests/test_headline_numbers.py``
 imports the functions below and pins the observed values tightly, which is a
 different job from adjudicating a gate and is kept separate from it.
 
-Claim C5's contour crossings need a 19x7 probability map at 1000 system
-evaluations per node, so they sit behind ``--full`` and belong to the
-clean-room run rather than to every push.
+Claim C5's contour crossings need a 33-node probability map at 1000 system
+evaluations per node -- about a minute, against the ten that the full 19x7 map
+behind figure F6 takes. They sit behind ``--full`` because a minute is still
+too long for every push.
 """
 
 import argparse
@@ -176,8 +177,8 @@ def cnt_primary_entry():
 def c5_contour_crossings():
     """Claim C5's P = 0.05, 0.50, 0.95 crossings along alpha = 3080 J/mol.
 
-    The expensive one: a 33-node sweep at 1000 system evaluations per node, on
-    the line and at the resolution pre-registered for the metric.
+    A 33-node sweep at 1000 system evaluations per node, on the line and at
+    the resolution pre-registered for the metric. About a minute.
     """
     ctx = _inputs()
     targets = inverse.load_doe_targets(DATA / "targets" / "doe_targets.yaml",
@@ -201,7 +202,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--full", action="store_true",
-        help="also compute claim C5's contour crossings (about 6 minutes)",
+        help="also compute claim C5's contour crossings (about a minute)",
     )
     args = parser.parse_args(argv)
 
@@ -245,7 +246,7 @@ def main(argv=None):
               f"{c5['separation']:.4f} mol/kg "
               f"({c5['separation_percent']:.2f}% of the median)")
     else:
-        print("\nClaim C5's crossings need --full (about 6 minutes).")
+        print("\nClaim C5's crossings need --full (about a minute).")
 
     return 0
 
