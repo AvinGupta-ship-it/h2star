@@ -12,7 +12,7 @@ import numpy as np
 import yaml
 from scipy.optimize import brentq
 
-from .constants import R
+from .constants import R, mpa_to_pa
 from .eos import molar_density
 
 
@@ -102,7 +102,7 @@ class Material:
         # p0: convert from the declared unit to Pa.
         p0_unit = params["p0"]["unit"]
         if p0_unit == "MPa":
-            p0 = params["p0"]["value"] * 1e6
+            p0 = mpa_to_pa(params["p0"]["value"])
         elif p0_unit == "Pa":
             p0 = params["p0"]["value"]
         else:
