@@ -318,3 +318,46 @@ def test_excessive_model_failures_are_refused(spec, ax21_material,
             seed=0,
             include_material=False,
         )
+
+
+def test_confidence_intervals_are_reproducible(spec, ax21_material,
+                                               engineering_params):
+    """The error bars must reproduce, not just the point estimates.
+
+    SALib's own ``seed`` argument reaches the point estimates but not, in the
+    pinned version, the bootstrap that produces the confidence intervals. Two
+    identical calls returned ST_conf values differing by up to 38% before this
+    was fixed. A published figure whose error bars change between runs is not
+    reproducible, whatever its central values do, so this is asserted
+    separately from the point-estimate check.
+    """
+    kwargs = dict(n=32, seed=0)
+    first = sensitivity.sobol_indices(
+        spec, ax21_material, engineering_params, CRYOGENIC, **kwargs
+    )
+    second = sensitivity.sobol_indices(
+        spec, ax21_material, engineering_params, CRYOGENIC, **kwargs
+    )
+    for key in ("S1_conf_GC", "ST_conf_GC", "S1_conf_VC", "ST_conf_VC"):
+        np.testing.assert_array_equal(first[key], second[key], err_msg=key)
+
+
+def test_analysis_does_not_disturb_the_callers_random_stream(
+    spec, ax21_material, engineering_params
+):
+    """Seeding the global RNG for SALib must not leak out of the call.
+
+    The fix for the bootstrap seeds NumPy's legacy global generator, which is
+    a blunt instrument. Restoring the prior state is what keeps it from being a
+    trap for anything else in the process that draws random numbers.
+    """
+    np.random.seed(12345)
+    expected = np.random.rand(4)
+
+    np.random.seed(12345)
+    sensitivity.sobol_indices(
+        spec, ax21_material, engineering_params, CRYOGENIC, n=16, seed=0
+    )
+    actual = np.random.rand(4)
+
+    np.testing.assert_array_equal(expected, actual)

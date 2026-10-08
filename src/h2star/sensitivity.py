@@ -131,11 +131,31 @@ def _saltelli_sample(problem, n, seed):
 
 
 def _sobol_analyze(problem, y, seed):
-    """Run the Sobol analysis, tolerating either SALib API generation."""
+    """Run the Sobol analysis reproducibly, including its confidence intervals.
+
+    SALib's ``seed`` argument makes the point estimates reproducible but does
+    NOT, in the version pinned here, reach the bootstrap resampling that
+    produces ``S1_conf`` and ``ST_conf``: two identical calls returned
+    confidence intervals differing by up to 38% (0.108 against 0.078 for the
+    largest index). Published error bars that change between runs are not
+    publishable error bars, so the legacy global generator is seeded here as
+    well, which is what the bootstrap draws from.
+
+    Seeding a global RNG inside a library function is not good practice and is
+    done deliberately and narrowly: it is the only lever available over
+    SALib's internals, the alternative is irreproducible published intervals,
+    and the state is restored afterwards so a caller's own stream is not
+    disturbed.
+    """
     from SALib.analyze import sobol as sobol_analyze
 
-    return sobol_analyze.analyze(problem, y, calc_second_order=False,
-                                 seed=seed, print_to_console=False)
+    state = np.random.get_state()
+    try:
+        np.random.seed(seed)
+        return sobol_analyze.analyze(problem, y, calc_second_order=False,
+                                     seed=seed, print_to_console=False)
+    finally:
+        np.random.set_state(state)
 
 
 def sobol_test_ishigami(n=2**18, seed=0, a=ISHIGAMI_A, b=ISHIGAMI_B):

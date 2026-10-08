@@ -1468,3 +1468,52 @@ def material_from_reported_uptake(base_material, reported_mol_per_kg,
 
     solved = brentq(residual, low, high, xtol=1e-10, rtol=1e-14, maxiter=200)
     return replace(base_material, n_max=float(solved))
+
+
+def material_from_corpus_entry(base_material, entry, basis="absolute",
+                               convention="of_total"):
+    """Back-solve a material from one ``cnt_literature.yaml`` entry.
+
+    Convenience wrapper tying the corpus file's schema to
+    :func:`material_from_reported_uptake`, so that a notebook can present the
+    case study without defining a conversion of its own. The architecture rule
+    that notebooks carry narrative and figure calls only is not a stylistic
+    preference here: a weight-percent conversion written in a notebook is
+    physics that no test covers.
+
+    Parameters
+    ----------
+    base_material : h2star.isotherm.Material
+        Reference material supplying every parameter except ``n_max``.
+    entry : dict
+        One element of the corpus file's ``entries`` list.
+    basis : str, optional
+        ``"absolute"`` or ``"excess"``. No paper in the corpus states which its
+        measurement is, so both are run and the pair reported.
+    convention : str, optional
+        Weight-percent convention; see
+        :func:`wt_percent_to_mass_ratio`.
+
+    Returns
+    -------
+    h2star.isotherm.Material
+        A material whose isotherm passes through the entry's reported point.
+
+    Raises
+    ------
+    ValueError
+        Propagated from :func:`material_from_reported_uptake` when no limiting
+        uptake reproduces the reported point -- which is itself a result about
+        that entry, not a failure to be worked around.
+    """
+    uptake = entry["uptake"]
+    moles_per_kg = (
+        wt_percent_to_mass_ratio(uptake["value"], convention) / M_H2
+    )
+    return material_from_reported_uptake(
+        base_material,
+        moles_per_kg,
+        uptake["temperature_K"],
+        uptake["pressure_MPa"] * 1.0e6,
+        basis=basis,
+    )
