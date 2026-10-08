@@ -40,7 +40,7 @@ provenance-tiered measurements is measured here rather than asserted.
 git clone https://github.com/AvinGupta-ship-it/h2star
 cd h2star
 python3 -m pip install -e ".[dev]"
-python3 -m pytest                               # 255 passed, 1 xfailed
+python3 -m pytest                               # 303 passed, 1 xfailed
 python3 scripts/make_all_figures.py --quick      # smoke test, ~20 s
 python3 scripts/make_all_figures.py              # all eight figures, ~9 min
 ```
@@ -123,9 +123,24 @@ to produce is fitting to a known answer.
 
 ## Reproducibility
 
-- Every number behind every figure is deterministic under a fixed seed, and all
-  eight figures are byte-identical on repeat runs on this platform. That is an
-  observation, not a cross-platform byte-reproducibility guarantee.
+- Every number behind every figure is deterministic under a fixed seed, and the
+  eight figures (nine PNGs — F7 draws one per output) are byte-identical for a
+  given Matplotlib and FreeType version. Verified by regenerating them from a
+  fresh clone in a separate virtual environment and comparing SHA-256:
+  nine of nine identical across Python 3.11 vs 3.13, NumPy 2.4.6 vs 2.5.3 and
+  SciPy 1.17.1 vs 1.18.1. Byte-identity does not extend across Matplotlib or
+  FreeType versions, which rasterise glyphs differently between releases; the
+  numbers do.
+- That holds because `viz.FIGURE_RCPARAMS` pins the font and hinting a figure is
+  drawn with, instead of inheriting them from the host. An earlier release drew
+  its figures under a font the development container supplied and no dependency
+  declared, which made them unreproducible anywhere else while leaving every
+  plotted number correct — see `docs/known_limitations.md`.
+- `scripts/make_all_figures.py` is the **sole writer** of `figures/`. The
+  notebooks show their figures inline and write nothing, so executing them
+  cannot replace a published figure; `tests/test_notebook_hygiene.py` enforces
+  that, along with the rule that no notebook defines a function. Every notebook
+  resolves its paths from the repository root and is committed executed.
 - Gates V1–V4 run as `@pytest.mark.validation` tests on every push, so the suite
   certifies the science rather than only the plumbing.
 - `@pytest.mark.provenance` tests walk every file under `data/`: each parses,

@@ -85,6 +85,46 @@ not anticipate.
 
 ### Fixed
 
+- **Every committed figure was reproducible on one machine only.** Matplotlib
+  takes `font.family` and `text.hinting` from whichever configuration the host
+  supplies, and the development container injects
+  `font.family = Inter, sans-serif, DejaVu Sans` and
+  `text.hinting = no_hinting` into `rcParamsDefault` itself — values no
+  dependency here declares. Every label was drawn in a font no other machine
+  has, moving every tight bounding box and so every pixel, while leaving every
+  plotted number correct. The Stage 6 clean room found all nine headline
+  numbers reproducing to the last digit and all nine PNGs differing; forcing
+  those two values in the clean-room environment reproduced the committed bytes
+  exactly, which is what identified the cause. `viz.FIGURE_RCPARAMS` now pins
+  the rendering configuration to Matplotlib's stock defaults, naming the
+  wheel-bundled DejaVu Sans rather than reaching it through the `sans-serif`
+  alias, and `tests/test_viz_style.py` asserts every public plotting function
+  carries the pin. The reproducibility claim in `README.md` and
+  `docs/known_limitations.md` had rested on repeat runs inside a single
+  environment, which cannot detect output that depends on the environment; it
+  is corrected to what a cross-environment comparison actually shows.
+- **Executing notebook 02 replaced the published F2 with a different figure.**
+  Every notebook wrote its figure into `figures/`, which was harmless for six of
+  them and wrong for two. Notebook 02 saved `F2_ax21_isotherm.png` built from
+  the *unconstrained* refit — whose parameters the uncertainty layer
+  deliberately does not use, as `make_all_figures.py`'s own docstring states —
+  and notebook 01 saved an F1 with its isotherms in a different order. The
+  figure script is now the sole writer of `figures/`; notebooks show their
+  figures inline. `tests/test_notebook_hygiene.py` enforces it.
+- **Notebook 02 could not execute off one machine.** It asserted that the
+  working directory ended in `/research/h2star`. Notebook 03 asserted the
+  directory was *named* `h2star`, so it failed from any clone with another
+  name, and its committed output had an absolute container path printed into
+  it. All eight notebooks now resolve paths from the repository root with the
+  same fallback and run from the root or from `notebooks/`.
+- **Notebook 07 had never been executed.** It was committed with zero outputs
+  while every other notebook carried its results, and nothing checked. It now
+  runs — 393 s, the probability maps being the cost — and a test asserts that
+  every notebook is committed with outputs.
+- **F1's legend was ordered by filename, not temperature.** The isotherms were
+  loaded with `sorted(glob(...))`, which orders `100, 160, 298, 77` as strings,
+  so the published figure's legend ran out of temperature sequence and the
+  scatter overlay order was a property of how the files were named.
 - **`data/targets/doe_targets.yaml` never parsed as YAML.** Committed on Day 1
   with `source:` at column 0 and `targets:` indented three spaces, which PyYAML
   rejects. It went unnoticed for four months because nothing had ever loaded

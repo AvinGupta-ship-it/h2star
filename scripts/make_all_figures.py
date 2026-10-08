@@ -93,9 +93,18 @@ def _nist_isotherms(ctx):
 
     from h2star import eos
 
+    def temperature_of(path):
+        return float(re.search(r"nist_h2_(\d+)K\.csv$", path.name).group(1))
+
+    # Sorted by temperature, not by filename. A filename sort orders these
+    # 100, 160, 298, 77 -- string order -- which put the legend of the
+    # published F1 out of temperature sequence and drew the isotherms in that
+    # order, so the overlay order of the scatter points was a property of how
+    # the files happened to be named.
     isotherms = []
-    for path in sorted((DATA / "validation").glob("nist_h2_*.csv")):
-        temperature = float(re.search(r"nist_h2_(\d+)K\.csv$", path.name).group(1))
+    for path in sorted((DATA / "validation").glob("nist_h2_*.csv"),
+                       key=temperature_of):
+        temperature = temperature_of(path)
         pressures, reference = [], []
         with open(path) as handle:
             rows = csv.reader(

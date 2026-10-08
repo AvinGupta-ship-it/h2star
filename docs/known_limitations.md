@@ -226,11 +226,41 @@ Named so their absence is not mistaken for an oversight.
   as kg/L, triangulated against an independent HSECoE pair, and recorded as a
   transcription-error correction with the reasoning written down before the
   comparison was run.
-- **Figures are numerically reproducible, not guaranteed byte-reproducible.**
-  Under a fixed seed every number behind every figure is deterministic, and on
-  this platform all eight are byte-identical on repeat runs. That is an
-  observation, not a cross-platform guarantee. Sibling project RamanUQ claims
-  byte-reproducibility; this project does not.
+- **Figure byte-identity holds within a Matplotlib and FreeType version, not
+  across versions.** Under a fixed seed every number behind every figure is
+  deterministic. The images are byte-identical too, verified by regenerating
+  them from a fresh clone in a separate virtual environment and comparing
+  SHA-256: nine of nine identical across Python 3.11 vs 3.13, NumPy 2.4.6 vs
+  2.5.3 and SciPy 1.17.1 vs 1.18.1. What that does not cover is a different
+  Matplotlib or FreeType, which rasterise glyphs differently between releases.
+  Text is the whole of the difference, so the numbers survive a version change
+  and the bytes need not. Sibling project RamanUQ claims byte-reproducibility
+  outright; this project claims it only within a rendering stack.
+- **The figures shipped before v0.2.0 were reproducible on one machine only,
+  and the project's own reproducibility claim did not notice.** Matplotlib
+  takes `font.family` and `text.hinting` from whatever configuration the host
+  supplies, and the container this work was developed in injects
+  `font.family = Inter, sans-serif, DejaVu Sans` and
+  `text.hinting = no_hinting` into `rcParamsDefault` itself, so even a fresh
+  install inside it inherits them. Neither value is declared by any dependency
+  this repository names. Every label was drawn in a font no other machine has,
+  which moved every tight bounding box and therefore every pixel. The Stage 6
+  clean room caught it: all nine headline numbers reproduced to the last digit
+  and all nine images differed. Forcing those two values in the clean-room
+  environment reproduced the committed bytes exactly, which is what established
+  that the cause was the font configuration and nothing numerical.
+
+  The claim that was wrong said the figures were byte-identical *on repeat runs
+  on this platform*. That was true, and it was the wrong test: repeat runs in
+  one environment cannot detect output that depends on the environment. Only a
+  comparison across environments can, which is the reason the clean-room gate
+  exists and the reason it is run from a fresh clone rather than the working
+  tree. `viz.FIGURE_RCPARAMS` now pins the rendering configuration to
+  Matplotlib's own stock defaults, naming DejaVu Sans — which ships inside the
+  Matplotlib wheel — rather than reaching it through the `sans-serif` alias, so
+  the figures depend on no system font. `tests/test_viz_style.py` asserts that
+  every public plotting function carries the pin, because the defect returns
+  the moment a new plotting function forgets it.
 - **One commit carries a non-Avin committer.** The initial commit `ed2a3cf` was
   created through the GitHub web UI, so its committer is
   `GitHub <noreply@github.com>` while its author is Avin. Not an AI identity,
