@@ -314,6 +314,30 @@ Across those three stacks the suite gives 393 passed / 3 skipped, 394 / 3, and
 397 / 0, the skips being exactly the byte comparisons on a stack that cannot
 produce those bytes.
 
+---
+
+## Run 6 — commit `be9fbd1`, 2026-10-08. **PASSED, complete. Release candidate.**
+
+Fresh clone into a new directory, fresh `venv`, `pip install -e ".[dev,nb]"`.
+Same environment as Runs 4 and 5.
+
+| Check | Result |
+|---|---|
+| `pytest -q` (bare, the CI invocation) | 397 passed, 1 xfailed |
+| `ruff check .` | clean |
+| `record_figure_style.py --check` | stock configuration matches the record, 324 of 324 |
+| Figures | **nine of nine byte-identical**, unchanged from Runs 3, 4 and 5 |
+| Headline numbers (`--full`) | all reproduce, C5 crossings 109.4167 / 125.5941 / 141.5196, separation 32.1029 |
+| Notebooks | all eight executed, no errors |
+| Working tree afterwards | clean |
+
+And, for the first time, **all five CI jobs green**: Ubuntu 3.11 and 3.12,
+macOS 3.11 and 3.12, and `oldest-supported-matplotlib` on Matplotlib 3.9.4.
+That matters more than another clean-room pass, because the macOS jobs are the
+only check in this project that runs on a different operating system, and they
+are what established that byte-identity is platform-specific — something five
+clean-room runs on one machine could not have shown.
+
 ## What a clean room cannot catch
 
 Run 4 passed completely, and the very next CI run went red on both macOS jobs
@@ -343,7 +367,7 @@ the coverage the clean room structurally lacks.
 
 ---
 
-## What the five runs together establish
+## What the six runs together establish
 
 - The numbers are deterministic under a fixed seed and reproduce across two
   Python minor versions, two NumPy versions, two SciPy versions and three

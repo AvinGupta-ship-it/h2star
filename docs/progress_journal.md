@@ -1759,9 +1759,17 @@ pinned old Matplotlib caught that the package would not run at all elsewhere.
 None of them is redundant, and the clean-room procedure as written covers only
 the first.
 
+### The result
+Run 6, on `be9fbd1`: 397 passed and 1 xfailed, ruff clean, nine of nine PNGs
+byte-identical and unchanged since Run 3, every headline number reproduced
+including C5, all eight notebooks executed, working tree clean. And all five
+CI jobs green for the first time — Ubuntu 3.11/3.12, macOS 3.11/3.12 and the
+pinned old Matplotlib.
+
 ### Next actions
-Sixth clean room, then Mode B: Zenodo toggle before the release, tag `v0.2.0`,
-concept DOI to ORCID.
+Mode B, Avin's: enable the Zenodo ↔ GitHub toggle **before** cutting the
+release, tag `v0.2.0`, add the concept DOI to ORCID via Works → Add → Add DOI,
+then the DOI into `CITATION.cff` and the README badge.
 
 ### Open questions
 - Carried forward: no Matplotlib floor in `pyproject.toml`; the clean room and
