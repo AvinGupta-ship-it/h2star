@@ -29,4 +29,5 @@ where = ["src"]
 [tool.pytest.ini_options]
 markers = [
     "validation: gate tests validating physics against reference data or analytic limits",
+    "provenance: tests that walk the data/ files for parseability, units and attribution",
 ]
