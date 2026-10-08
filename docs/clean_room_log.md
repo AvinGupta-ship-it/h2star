@@ -282,6 +282,38 @@ comparison and discarding it.
 The only commits after this run change documentation and one help string, and
 cannot affect a number or a byte.
 
+---
+
+## Run 5 — commit `9e414d0`, 2026-10-08. **PASSED, complete.**
+
+The run after the cross-version fix. Same procedure: fresh clone into a new
+directory, fresh `venv`, `pip install -e ".[dev,nb]"`, nothing further. Same
+environment as Run 4 (Python 3.11.17, NumPy 2.4.6, SciPy 1.17.1, Matplotlib
+3.11.2, FreeType 2.14.3, Pillow 12.3.0).
+
+| Check | Result |
+|---|---|
+| `pytest -q` (bare, the CI invocation) | 397 passed, 1 xfailed |
+| `ruff check .` | clean |
+| `record_figure_style.py --check` | stock configuration matches the record, 324 of 324 |
+| Figures | **nine of nine byte-identical**, unchanged from Runs 3 and 4 |
+| Headline numbers (`--full`) | all reproduce, C5 crossings 109.4167 / 125.5941 / 141.5196, separation 32.1029 |
+| Notebooks | all eight executed, no errors |
+| Working tree afterwards | clean |
+
+The point of this run was that the figure configuration is now *filtered* on
+load to what the running Matplotlib accepts. On the recorded stack nothing is
+filtered, so the bytes had to be unchanged — and they are, matching Run 3's and
+Run 4's digests exactly.
+
+What this run still does not cover is the case the fix was written for, since
+it has the same Matplotlib as the record. That case is covered instead by two
+pinned virtualenvs (Matplotlib 3.9.4 and 3.11.0, the latter being the version
+the macOS CI job had) and by the new `oldest-supported-matplotlib` CI job.
+Across those three stacks the suite gives 393 passed / 3 skipped, 394 / 3, and
+397 / 0, the skips being exactly the byte comparisons on a stack that cannot
+produce those bytes.
+
 ## What a clean room cannot catch
 
 Run 4 passed completely, and the very next CI run went red on both macOS jobs
@@ -311,7 +343,7 @@ the coverage the clean room structurally lacks.
 
 ---
 
-## What the four runs together establish
+## What the five runs together establish
 
 - The numbers are deterministic under a fixed seed and reproduce across two
   Python minor versions, two NumPy versions, two SciPy versions and three

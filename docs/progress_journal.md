@@ -1684,9 +1684,17 @@ was right for the host-leakage problem and wrong by default for every
 Matplotlib that does not have all 324, and nothing in four clean rooms would
 ever have shown that, because they all had the version the record came from.
 
+### The result
+Run 5, on `9e414d0`: 397 passed and 1 xfailed, ruff clean, the configuration
+audit matching 324 of 324, **nine of nine PNGs byte-identical** and unchanged
+from Runs 3 and 4, every headline number reproduced including C5's crossings,
+all eight notebooks executed, working tree clean. Recorded in
+`docs/clean_room_log.md`.
+
 ### Next actions
-Fifth clean room against the corrected commit, then Mode B: Zenodo toggle
-before the release, tag `v0.2.0`, concept DOI to ORCID.
+Mode B, Avin's: enable the Zenodo ↔ GitHub toggle **before** cutting the
+release, tag `v0.2.0`, add the concept DOI to ORCID via Works → Add → Add DOI,
+then the DOI into `CITATION.cff` and the README badge.
 
 ### Open questions
 - `pyproject.toml` still does not constrain Matplotlib. The package now works
