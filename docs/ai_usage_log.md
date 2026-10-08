@@ -170,7 +170,8 @@ reasoning and accepted it: the packing is inconsistent when skeleton plus
 adsorbed phase overfill the tank, independent of bookkeeping route.
 
 ## [2026-08-17] — Day 12 — Pressure-vessel layer (vessel.py)
-Tool: Claude Code (Session [N], implementer) — [model string]
+Tool: Claude Code (Session D12-implementer) — model string not recorded at the
+time; left unstated rather than inferred from the same-day tank session.
 Purpose: Implement src/h2star/vessel.py and tests/test_vessel.py from my
 specification, after I had independently sourced and verified all six
 data/engineering.yaml vessel parameters myself.
@@ -200,7 +201,8 @@ by hand and widened the cross-check band 30%->35% to reflect Type III vs Type IV
 vessel classes. The session did not touch engineering.yaml or the band.
 
 ## [2026-08-18] — Day 13 — System-budget layer (system.py)
-Tool: Claude Code (Session [N], implementer) — [model string]
+Tool: Claude Code (Session D13-implementer) — model string not recorded at the
+time; left unstated rather than inferred.
 Purpose: Implement src/h2star/system.py and tests/test_system.py from my
 specification, after I had independently sourced and verified the insulation and
 BOP values and made every Class-A modeling call myself.
@@ -396,3 +398,94 @@ the failure to the mass denominator by back-solving what m_sys would have to be.
 
 ### Next week
 Week 4: forward maps and the inverse acceptability engine (envelope.py, inverse.py; F5, F6 draft).
+---
+
+## 2026-10-08 — Disclosure transition: v2.0 execution model
+
+**This entry changes how every entry after it should be read.** Entries above
+describe the Weeks 1–3 division of labour accurately for their dates: Avin
+specified, sourced, and verified; Claude Code wrote implementation against that
+specification and ran nothing; Avin wrote all reasoning, verdicts, and prose and
+ran every test, lint, and git command himself.
+
+That division is retired as of this entry, with the adoption of the H2STAR
+Execution Manual v2.0. Under the v2.0 model, Claude performs the work it is
+capable of performing — implementation code, tests, analysis, derivational
+reasoning, figures, documentation prose, lint, commits, bundle construction, and
+clean-room verification — and runs the pipeline itself. Avin retains, per manual
+§5.7: pushing bundles to the remote; the Zenodo deposit, GitHub release, and
+ORCID steps; verification against real publisher or reference pages; any
+hand-pinned scientific anchor or tolerance; and the final scientific verdict on
+what H2STAR can and cannot claim, including sign-off that the Gate V3 FAIL and
+the Gate V2 non-identifiability finding are reported rather than overfit.
+
+Three things do not change. Git authorship remains Avin's alone — that is
+attribution, not concealment, and this log is where the disclosure lives.
+The data-integrity rules (manual §5.5) hold absolutely: no self-certification,
+verification from the artifact rather than from a tool's self-report, no values
+or DOIs from model memory, pre-registration before implementation, and
+documented FAILs kept as results. And prose written by Claude that states a
+scientific verdict still requires Avin's sign-off before it stands.
+
+Readers auditing this project should assume, for every entry dated 2026-10-08 or
+later, that the prose in `docs/` was drafted by Claude unless the entry says
+otherwise.
+
+## 2026-10-08 — Manual v2.0, ground-truth pass, and Stage 1 defect clearance
+
+Tool: Claude (Opus 5), cloud session with repository read access, running the
+full pipeline directly. No Claude Code implementer sessions; no pasted prompts.
+
+Purpose: establish the repository's true state by running it, write the
+Execution Manual v2.0, and clear the defects the ground-truth pass found.
+
+What Avin provided: the completion brief defining the v2.0 working format, and
+three one-word ratifications — keep CI and add macOS; release as v0.2.0 rather
+than retagging the existing v0.1; and adopt the corrected framing of the Gate V2
+finding as single-isotherm *practical* non-identifiability rather than
+structural.
+
+What Claude did:
+- Cloned the repository at 04c4bea (41 commits, full history), installed the
+  package, and ran the suite, the validation subset, and ruff.
+- Independently recomputed the Gate V3 full-state metrics and mass budget in an
+  isolated scratch script outside the repository, reproducing the committed
+  Day-14/15 figures to the digit (GC_full 0.077671, VC_full 0.036308, m_sys
+  75.7259 kg, engineering block light by 4.22x).
+- Confirmed from the module sources that `envelope.py`, `inverse.py`, `uq.py`,
+  and `sensitivity.py` are docstrings only, that Gate V4 has never run, and that
+  F5–F8 and notebooks 05–08 do not exist.
+- Verified the Gate V2 part-1 threshold was not loosened between declaration and
+  measurement: the Week-1 "<0.3 wt%" and the part-1 "<1.5 mol/kg" are the same
+  bar (1.5 mol/kg x 2.016e-3 kg/mol = 0.3024 wt%).
+- Wrote the H2STAR Execution Manual v2.0 and added it to the Claude Project,
+  with v1.0 retained as the superseded record.
+- Implemented the `constants` conversion helpers and `tests/test_constants.py`;
+  routed `Material.from_yaml` through `mpa_to_pa`; extended the CI workflow to
+  an `os x python-version` matrix including `macos-latest`.
+- Wrote out the thirteen documentation placeholders, including the Gate V3
+  Diagnosis, Decision, and What-would-change-the-verdict blocks in
+  `docs/validation_plan.md`.
+- Corrected four CI platform overclaims and recorded the correction as a dated
+  note rather than a silent rewrite.
+
+Independent re-derivation (no self-certification): the Gate V3 recomputation was
+run in a separate script against the repository's own data files, not by reading
+the committed numbers back. After the `constants` refactor the same script was
+re-run and returned bit-identical values, which is the evidence that the change
+is behaviour-neutral — not the fact that the suite stayed green.
+
+What was deliberately not done:
+- The Day-13 hours and the Day-12/Day-13 Claude Code model strings were not
+  reconstructed. The same-day tank-layer entry records Opus 4.8, which would
+  have made a plausible fill for Day 12, but inferring a model string into a
+  disclosure log is fabricating provenance. Both are recorded as not recorded.
+- The Gate V1 and Gate V3 validation tests were left with their own local
+  bar-to-pascal factors rather than being routed through the new helpers, so
+  that a gate certifying the package does not depend on the package code.
+- No gate tolerance, anchor value, or verdict was touched.
+
+Verification: 62 passed and 1 xfailed (from 45 passed, 1 xfailed); `ruff check .`
+clean; the Gate V3 strict xfail still fails as expected; `.github/workflows/ci.yml`
+re-parsed to confirm the matrix; every placeholder pattern re-grepped to zero
+across `docs/`.

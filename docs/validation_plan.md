@@ -120,26 +120,62 @@ Result vs. anchor (±15% pre-registered band, unchanged since Week 1):
 Mass budget (kg): H2 5.882, sorbent 34.827, vessel 16.685, insulation 2.333,
 BOP 16.000, system 75.726.
 
-Diagnosis (physics-first, §5.9): [in your own words —
-  1. units clean;
-  2. numerator m_h2_full sound;
-  3. the GC-vs-VC asymmetry localizes the gap to the mass DENOMINATOR;
-  4. back-solve: matching GC 0.0312 needs m_sys ≈ 188.5 kg; the well-anchored
-     core (sorbent + H2 ≈ 40.7 kg) is sound, so the vessel+insulation+BOP block
-     would need ≈ 147.8 kg vs 35.0 modeled (≈ 4.2×);
-  5. interpretation: the thin-wall composite hoop-stress vessel and fixed 16 kg
-     BOP idealize away most of a real HSECoE Type-3 200-bar tank's dead mass,
-     so the model gives an optimistic upper bound on GC.]
+Diagnosis (physics-first, §5.9):
 
-Decision (settled): [in your own words — report the FAIL honestly rather than
-re-source the vessel after seeing the 147.8 kg target, which would be fitting to
-a known answer; the localized FAIL is the stronger, more defensible result,
-mirroring the Gate V2 FAIL-by-design. Recorded as a strict xfail
-(tests/test_system_validation.py) and in GitHub issue #1.]
+1. Units. Clean. Every pressure crossing a module boundary is in Pa, the anchor's
+   200 bar is converted once at the test boundary, and the volumetric metric is
+   divided by V_sys in litres exactly once. A unit error of the kind §5.9 puts
+   first would have to be a factor of 10, 100, or 1e5; the misses here are 2.49×
+   and 1.87×, and they differ from each other, which no single unit slip
+   produces.
+2. Numerator. Sound. m_h2_full = 5.882 kg is the full-state inventory at
+   80 K / 200 bar on the absolute-adsorption route, and the dual-bookkeeping
+   invariant (absolute + void gas vs. excess + pore-and-void gas) agrees to 1e-9
+   across the (P, T) grid, so the excess/absolute conversion — the FM1 trap — is
+   not the problem. The isotherm feeding it passed Gate V2 part 1 at 1.109
+   mol/kg.
+3. Localization. GC_full and VC_full share that numerator, and GC misses by more
+   than VC (2.49× vs 1.87×). A numerator error would move both by the same
+   factor. The two denominators are different quantities — system mass and
+   system volume — so unequal misses place the dominant error in the mass
+   denominator, with a smaller, separate volume effect.
+4. Back-solve. Matching the anchor GC of 0.0312 kg/kg with my numerator requires
+   m_sys ≈ 188.5 kg against the 75.7 kg I model. The core of that budget is
+   well-anchored: sorbent 34.83 kg follows directly from the AX-21 bulk density
+   and the sized internal volume, and H2 5.88 kg is the validated inventory, so
+   40.7 kg of it is not in question. That forces the whole discrepancy into the
+   engineering block: vessel + insulation + BOP would have to be ≈ 147.8 kg
+   against the 35.0 kg I model, a factor of ≈ 4.2.
+5. Interpretation. The thin-wall composite hoop-stress vessel and the fixed 16 kg
+   BOP idealize away most of a real HSECoE Type-3 200-bar tank's dead mass —
+   end-dome and boss hardware, the full liner, valves, lines, and the cryogenic
+   support structure are either absent or lumped into a single constant. This is
+   FM4 realized, and it is exactly the kind of error the manual anticipated when
+   it called the vessel mass an engineering correlation rather than a design.
+   The consequence is directional and quantified: my system model gives an
+   optimistic upper bound on GC, by roughly the Gate V3 factor.
 
-What would change the verdict: [your words — a design-level vessel mass model and
-a sized BOP correlation; if a future upgrade closes the gap the xfail xpasses and
-forces re-adjudication.]
+Decision (settled): report the FAIL. I considered re-sourcing the vessel model —
+a design-level mass correlation would plausibly move the engineering block
+upward — and rejected it for this gate, because I would be choosing that model
+after already knowing it needs to produce ≈ 147.8 kg. That is fitting to a known
+answer, and a gate passed that way certifies nothing. The honest result is
+stronger than the manufactured one: I can state which part of the model
+reproduces the reference (the inventory physics), which part does not (the
+engineering-mass block), by what factor (≈ 4.2× on that block), and why. This
+mirrors the Gate V2 parameter-recovery FAIL, which was also kept rather than
+tuned away. Recorded as a strict xfail in tests/test_system_validation.py, with
+the tolerance and the anchor values read from the YAML at runtime so the
+pre-registered record stays the single source of truth, and as GitHub issue #1.
+
+What would change the verdict: a design-level vessel mass model — end-dome and
+boss mass, the full liner rather than an areal-mass approximation, and the
+hardware a real Type-3 tank carries — together with a BOP correlation that scales
+with tank size instead of the fixed 16 kg currently in engineering.yaml (the
+bop_scaling coefficient is still 0.0 because no sourced value was found). If such
+an upgrade closes the gap, the strict xfail XPASSes and fails the suite, which is
+deliberate: it forces Gate V3 to be re-adjudicated explicitly rather than letting
+a changed model quietly turn a documented FAIL into an unexamined pass.
 
   ## Gate V4 — Uncertainty & sensitivity machinery
    Target 1: Monte Carlo reproduces an analytic linear-Gaussian propagation within Monte Carlo error.
