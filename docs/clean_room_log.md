@@ -282,6 +282,35 @@ comparison and discarding it.
 The only commits after this run change documentation and one help string, and
 cannot affect a number or a byte.
 
+## What a clean room cannot catch
+
+Run 4 passed completely, and the very next CI run went red on both macOS jobs
+with 65 failures. None of the four runs could have caught it, and the reason is
+worth stating plainly rather than filed as bad luck.
+
+Every clean-room run here is a fresh clone into a new directory with a fresh
+virtual environment — but all four resolved their dependencies from the same
+index on the same machine at the same time, so all four had Matplotlib 3.11.2.
+macOS CI had 3.11.0 and Pillow 12.2.0, a different rendering stack, so the
+regenerated figures legitimately differed from the committed ones and every
+byte comparison failed. The test was asserting on every platform exactly what
+`docs/known_limitations.md` says holds only within one stack.
+
+**"Fresh environment" and "different environment" are not the same property.**
+Four runs of the first gave no evidence for claims that needed the second.
+
+Chasing the fix against a deliberately old Matplotlib then found something
+worse than the failure that prompted it: of the 324 recorded settings, 3.9.4
+rejects 26, and applying them unfiltered made *every plotting call in the
+package* raise. The package was not merely unreproducible on another
+Matplotlib, it was unusable there — and no clean-room run would ever have shown
+that, because each one had the version the configuration was recorded from.
+
+CI now carries an `oldest-supported-matplotlib` job pinned to 3.9.4, which is
+the coverage the clean room structurally lacks.
+
+---
+
 ## What the four runs together establish
 
 - The numbers are deterministic under a fixed seed and reproduce across two

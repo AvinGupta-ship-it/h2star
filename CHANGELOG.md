@@ -85,6 +85,25 @@ not anticipate.
 
 ### Fixed
 
+- **The recorded rendering configuration made the package unusable on any
+  other Matplotlib.** Matplotlib raises on an `rcParams` key it does not have
+  and on a value its validator rejects, and both drift between releases: of
+  the 324 recorded settings, 3.9.4 rejects 26. Applied unfiltered, every
+  plotting call died with `KeyError: axes3d.depthshade` and then
+  `ValueError: hatch.color: 'edge'`. The configuration is now filtered on load
+  to what the running Matplotlib accepts and `viz.FIGURE_STYLE_UNSUPPORTED`
+  reports what was dropped. Verified working on 3.9.4, 3.11.0 and 3.11.2.
+- **The byte tests asserted on every platform what the documentation claims
+  only within one rendering stack.** CI's macOS jobs went red with 65
+  failures: macOS had Matplotlib 3.11.0 and Pillow 12.2.0 against the recorded
+  3.11.2 and 12.3.0, so the regenerated figures legitimately differed and
+  every comparison against the committed bytes failed. `figure_style.json` now
+  records the stack the committed figures were produced under; the
+  committed-bytes comparison runs only when the stack matches and skips with a
+  stated reason otherwise. The host-independence sweep was rewired to compare
+  against a baseline regenerated in the same environment, so it runs
+  everywhere — which widened its reach rather than narrowing it, since that
+  property is now verified on three Matplotlib versions instead of one.
 - **The first fix for the figure-reproducibility defect was itself too
   narrow, and its evidence could not have shown that.** Pinning the seven font
   and text settings the original defect involved left sixteen other

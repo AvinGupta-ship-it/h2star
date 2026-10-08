@@ -296,6 +296,29 @@ Named so their absence is not mistaken for an oversight.
   Residual limitation: a recorded configuration cannot cover a setting a later
   Matplotlib adds, and `test_figure_bytes.py` fails loudly if the record names
   a key the installed Matplotlib does not have.
+
+  `figure_style.json` also records the Matplotlib, FreeType and Pillow versions
+  the committed figures were produced under. Equality with the committed bytes
+  is asserted only when the running stack matches that record, and skips with a
+  stated reason otherwise — because on another stack this document does not
+  claim it. The host-independence sweep is not gated and runs everywhere: that
+  the recorded configuration makes a figure independent of its host is true on
+  any platform, and only equality with one particular set of bytes is not.
+  Until that distinction was drawn, the test suite asserted byte-identity on
+  every platform in CI while this document said it held only within one stack —
+  the suite contradicted the documentation, and CI's macOS jobs went red with
+  65 failures for asserting something this file disclaims.
+
+  One further caveat belongs with it. Matplotlib raises on an `rcParams` key it
+  does not have *and* on a value its validator rejects, and both drift between
+  releases: of the 324 recorded settings, Matplotlib 3.9.4 rejects 26. So the
+  configuration is filtered on load to what the running Matplotlib accepts, and
+  `viz.FIGURE_STYLE_UNSUPPORTED` reports whatever was dropped. Dropped settings
+  fall back to the host, so on such a version the pin is a little weaker than
+  it is on the recorded stack — which is a further reason byte-identity is not
+  claimed there. Without that filter the package was not merely unreproducible
+  on another Matplotlib, it was unusable: every plotting call raised
+  `KeyError`. Verified working on 3.9.4, 3.11.0 and 3.11.2.
 - **One commit carries a non-Avin committer.** The initial commit `ed2a3cf` was
   created through the GitHub web UI, so its committer is
   `GitHub <noreply@github.com>` while its author is Avin. Not an AI identity,

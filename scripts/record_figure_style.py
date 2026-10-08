@@ -65,6 +65,25 @@ def _blacklist():
     }
 
 
+def rendering_stack():
+    """The three libraries a figure's bytes depend on, in this environment.
+
+    Matplotlib lays the figure out, FreeType rasterises the glyphs, and Pillow
+    encodes the PNG. The recorded configuration removes the *host* from the
+    question; it cannot remove these, so the committed figures' bytes are
+    conditional on them and the versions are recorded alongside.
+    """
+    import matplotlib as mpl
+    import matplotlib.ft2font as ft
+    import PIL
+
+    return {
+        "matplotlib": mpl.__version__,
+        "freetype": ft.__freetype_version__,
+        "pillow": PIL.__version__,
+    }
+
+
 def current_configuration():
     """The stock configuration of the Matplotlib in this environment."""
     import matplotlib as mpl
@@ -102,6 +121,14 @@ def check():
 
     print(f"recorded from Matplotlib {document.get('matplotlib_version')}, "
           f"running Matplotlib {version}")
+    recorded_stack = document.get("rendering_stack", {})
+    running_stack = rendering_stack()
+    print(f"recorded rendering stack {recorded_stack}")
+    print(f"running  rendering stack {running_stack}")
+    if recorded_stack and recorded_stack != running_stack:
+        print("The rendering stack differs, so the committed figures are not "
+              "expected to reproduce byte for byte here. The numbers are "
+              "unaffected.")
     print(f"recorded keys {len(recorded)}, this environment {len(current)}")
 
     missing = sorted(set(recorded) - set(current))
@@ -161,8 +188,12 @@ def write(force):
     version, current = current_configuration()
     RECORD_PATH.write_text(
         json.dumps(
-            {"matplotlib_version": version, "rcparams": current},
-            indent=1, sort_keys=True,
+            {
+                "matplotlib_version": version,
+                "rendering_stack": rendering_stack(),
+                "rcparams": current,
+            },
+            indent=1, sort_keys=False,
         )
         + "\n"
     )

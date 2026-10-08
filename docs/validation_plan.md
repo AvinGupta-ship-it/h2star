@@ -642,3 +642,8 @@ uncertainty analysis alone.
 
 Author: Avin Gupta. Claim C4 as rewritten above requires his sign-off per manual
 §5.7 before it is used anywhere outside this record.
+
+**SIGNED OFF — Avin Gupta, 2026-10-08.** C4 in its relative form is approved
+for use outside this record: in the README, the changelog, and any external
+presentation of the project. The absolute form is not approved and is not to
+be reinstated without a vessel-mass model that closes Gate V3.

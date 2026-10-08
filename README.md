@@ -40,12 +40,17 @@ provenance-tiered measurements is measured here rather than asserted.
 git clone https://github.com/AvinGupta-ship-it/h2star
 cd h2star
 python3 -m pip install -e ".[dev]"
-python3 -m pytest                               # 303 passed, 1 xfailed
+python3 -m pytest                               # 397 passed, 1 xfailed
 python3 scripts/make_all_figures.py --quick      # smoke test, ~20 s
 python3 scripts/make_all_figures.py              # all eight figures, ~11 min
 ```
 
 The xfail is deliberate and is Gate V3 (below). Python 3.11 or later.
+
+On a Matplotlib, FreeType or Pillow other than the one the committed
+figures were produced under, three tests skip rather than fail: the ones
+that compare figure *bytes*. Everything else, including every number,
+runs everywhere. Verified on Matplotlib 3.9.4, 3.11.0 and 3.11.2.
 
 To re-execute the notebooks as well — the last step of the clean-room
 reproduction — add the notebook extra:

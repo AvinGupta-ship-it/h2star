@@ -120,6 +120,21 @@ HOSTILE_RCPARAMS = {
     "pcolor.shading": "nearest",
 }
 
+def _covered_hostile_settings():
+    """The hostile settings the recorded configuration actually pins here.
+
+    On a Matplotlib that rejects some recorded settings they are dropped and
+    fall back to the host, so the pin does not claim to cover them and the
+    sweep must not either. On the recorded stack nothing is dropped and this
+    is the whole set, which
+    :func:`test_the_hostile_sweep_is_complete_on_the_recorded_stack` asserts.
+    """
+    return {
+        key: value for key, value in HOSTILE_RCPARAMS.items()
+        if key not in viz.FIGURE_STYLE_UNSUPPORTED
+    }
+
+
 #: The cheap figures. F1 is drawn entirely inside a ``viz`` function; F3 is
 #: assembled by the *caller* around :func:`viz.plot_isosteric_heat`, so the two
 #: together exercise both paths by which a published figure is produced. The
@@ -158,9 +173,45 @@ def committed_digests():
     digests = {}
     for name, filename in CHEAP_FIGURES.items():
         path = FIGURE_DIR / filename
-        assert path.is_file(), f"{path} is missing; the committed figure is the reference"
+        assert path.is_file(), (
+            f"{path} is missing; the committed figure is the reference"
+        )
         digests[name] = hashlib.sha256(path.read_bytes()).hexdigest()
     return digests
+
+
+@pytest.fixture(scope="module")
+def baseline_digests(script, tmp_path_factory):
+    """SHA-256 of each figure regenerated *here*, with no host interference.
+
+    The hostile sweep compares against this rather than against the committed
+    bytes, which is what lets it run anywhere. The property under test is that
+    the recorded configuration makes a figure independent of the host, and
+    that is true on every platform; only equality with the *committed* bytes
+    is specific to the rendering stack those were produced under.
+
+    Checking against the committed bytes on a stack that cannot produce them
+    was a real defect: CI runs macOS, and this module asserted byte-identity
+    unconditionally while `docs/known_limitations.md` said byte-identity holds
+    only within one stack. The test contradicted the documentation.
+    """
+    out = tmp_path_factory.mktemp("baseline")
+    return _regenerate(script, CHEAP_FIGURES, out)
+
+
+def stack_matches():
+    """Whether this environment can produce the committed figures' bytes."""
+    return viz.FIGURE_STYLE_STACK == viz.rendering_stack()
+
+
+#: Reason shown when the committed-bytes comparison is not applicable.
+STACK_SKIP_REASON = (
+    f"rendering stack differs from the one the committed figures were "
+    f"produced under: recorded {viz.FIGURE_STYLE_STACK}, running "
+    f"{viz.rendering_stack()}. Byte-identity is claimed only within one "
+    f"stack (docs/known_limitations.md); the numbers are unaffected and the "
+    f"host-independence tests in this module still run."
+)
 
 
 def _regenerate(script, names, out_dir):
@@ -179,21 +230,43 @@ def _regenerate(script, names, out_dir):
     return digests
 
 
-def test_the_recorded_configuration_covers_this_environment():
-    """Every recorded key must exist in this Matplotlib.
+@pytest.mark.skipif(not stack_matches(), reason=STACK_SKIP_REASON)
+def test_the_recorded_configuration_covers_the_recorded_stack():
+    """On the stack it was recorded from, nothing may be dropped.
 
-    A recorded configuration cannot pin a setting a later Matplotlib renamed
-    or removed, and silently skipping such a key would hand it back to the
-    host. This fails loudly instead.
+    A recorded configuration cannot pin a setting another Matplotlib lacks or
+    rejects, and such a setting falls back to the host. On the recorded stack
+    that must never happen: a non-empty drop list there means the record and
+    the library disagree, which is the record being broken.
+
+    Off the recorded stack, dropping is expected -- 3.9.4 rejects 26 of these
+    324 -- and is reported by :data:`viz.FIGURE_STYLE_UNSUPPORTED` rather than
+    failed on, which is why byte-identity is not claimed there either.
     """
-    unknown = sorted(k for k in viz.FIGURE_RCPARAMS if k not in mpl.rcParams)
-    assert not unknown, (
-        f"the recorded configuration names {len(unknown)} rcParams this "
-        f"Matplotlib ({mpl.__version__}) does not have: {unknown}. It was "
-        f"recorded from {viz.FIGURE_STYLE_VERSION}. Re-record it with "
+    assert not viz.FIGURE_STYLE_UNSUPPORTED, (
+        f"on the recorded stack, {len(viz.FIGURE_STYLE_UNSUPPORTED)} recorded "
+        f"settings were rejected by Matplotlib {mpl.__version__}: "
+        f"{list(viz.FIGURE_STYLE_UNSUPPORTED)}. Re-record with "
         "scripts/record_figure_style.py on a pristine install, regenerate "
         "every figure, and re-run the clean room."
     )
+
+
+def test_an_unsupported_setting_is_dropped_rather_than_raised():
+    """Applying the configuration must never raise, on any Matplotlib.
+
+    Matplotlib raises on an unknown key and on a value its validator rejects.
+    A configuration recorded against one version and applied unfiltered to
+    another therefore made *every* plotting call raise -- recorded against
+    3.11.2 and run against 3.9.4, ``figure_style()`` died on
+    ``hatch.color: 'edge'`` and the package was unusable. The filter is what
+    keeps a version difference a caveat instead of an outage.
+    """
+    with viz.figure_style():
+        pass
+    assert isinstance(viz.FIGURE_STYLE_UNSUPPORTED, tuple)
+    for key in viz.FIGURE_STYLE_UNSUPPORTED:
+        assert key not in viz.FIGURE_RCPARAMS
 
 
 def test_the_recorded_configuration_is_not_a_short_list():
@@ -218,25 +291,32 @@ def test_recorded_file_is_json_with_a_version():
     assert document["rcparams"]["font.family"] == ["DejaVu Sans"]
 
 
-def test_figures_reproduce_with_no_hostile_settings(script, committed_digests,
-                                                    tmp_path):
-    """The control. Without this passing, nothing below means anything."""
-    digests = _regenerate(script, CHEAP_FIGURES, tmp_path)
-    for name, digest in digests.items():
+@pytest.mark.skipif(not stack_matches(), reason=STACK_SKIP_REASON)
+def test_regenerated_figures_match_the_committed_bytes(baseline_digests,
+                                                       committed_digests):
+    """On the recorded stack, regenerating reproduces the committed figures.
+
+    This is the claim README and docs/known_limitations.md make, and it is the
+    only test here that is specific to a rendering stack. On any other stack
+    it skips rather than failing, because the documentation does not claim it
+    there -- FreeType rasterises glyphs differently between builds, Matplotlib
+    stamps its version into the PNG, and Pillow encodes the file.
+    """
+    for name, digest in baseline_digests.items():
         assert digest == committed_digests[name], (
-            f"{name} does not reproduce even with no host interference, so "
-            "the committed figure and the current code already disagree"
+            f"{name} does not reproduce on the stack it was recorded under, "
+            "so the committed figure and the current code disagree"
         )
 
 
-@pytest.mark.parametrize("key", sorted(HOSTILE_RCPARAMS, key=str))
+@pytest.mark.parametrize("key", sorted(_covered_hostile_settings(), key=str))
 def test_figures_reproduce_under_one_hostile_setting(key, script,
-                                                     committed_digests,
+                                                     baseline_digests,
                                                      tmp_path):
     """One hostile setting at a time, so a failure names the culprit."""
     with mpl.rc_context({key: HOSTILE_RCPARAMS[key]}):
         digests = _regenerate(script, ["F1"], tmp_path)
-    assert digests["F1"] == committed_digests["F1"], (
+    assert digests["F1"] == baseline_digests["F1"], (
         f"a host setting {key} = {HOSTILE_RCPARAMS[key]!r} changed F1's bytes "
         "despite the recorded configuration, so that setting reaches the "
         "canvas and is not covered"
@@ -244,7 +324,7 @@ def test_figures_reproduce_under_one_hostile_setting(key, script,
 
 
 def test_figures_reproduce_under_every_hostile_setting_at_once(
-    script, committed_digests, tmp_path
+    script, baseline_digests, tmp_path
 ):
     """The whole hostile environment, against both figure code paths.
 
@@ -252,17 +332,17 @@ def test_figures_reproduce_under_every_hostile_setting_at_once(
     the *caller* assembles, and the caller's own ``subplots`` and ``savefig``
     were the part the first fix nearly missed.
     """
-    with mpl.rc_context(HOSTILE_RCPARAMS):
+    with mpl.rc_context(_covered_hostile_settings()):
         digests = _regenerate(script, CHEAP_FIGURES, tmp_path)
     for name, digest in digests.items():
-        assert digest == committed_digests[name], (
+        assert digest == baseline_digests[name], (
             f"{name} does not reproduce under a hostile host even though "
             "every setting individually was covered; something in the "
             "combination reaches the canvas"
         )
 
 
-def test_the_test_can_fail(script, committed_digests, tmp_path):
+def test_the_test_can_fail(script, baseline_digests, tmp_path):
     """Without the pin, a hostile host does move the bytes.
 
     If this passed trivially the sweep above would prove nothing: it would be
@@ -277,12 +357,24 @@ def test_the_test_can_fail(script, committed_digests, tmp_path):
     """
     isotherms = script._nist_isotherms(script.load_inputs())
     target = tmp_path / CHEAP_FIGURES["F1"]
-    with mpl.rc_context(HOSTILE_RCPARAMS):
+    with mpl.rc_context(_covered_hostile_settings()):
         viz.eos_parity_plot.__wrapped__(isotherms, savepath=target)
         plt.close("all")
     unpinned = hashlib.sha256(target.read_bytes()).hexdigest()
-    assert unpinned != committed_digests["F1"], (
+    assert unpinned != baseline_digests["F1"], (
         "a hostile host left F1's bytes unchanged with the pin genuinely "
         "bypassed, so this module's hostile settings do not reach the canvas "
         "and the sweep above is vacuous"
     )
+
+
+@pytest.mark.skipif(not stack_matches(), reason=STACK_SKIP_REASON)
+def test_the_hostile_sweep_is_complete_on_the_recorded_stack():
+    """On the recorded stack the sweep must cover every hostile setting.
+
+    The sweep is scoped to the settings the configuration actually pins, so
+    that a Matplotlib which rejects some of them does not fail a test for not
+    covering what it never claimed to. That scoping must not quietly shrink
+    the sweep where it is supposed to be whole.
+    """
+    assert _covered_hostile_settings() == HOSTILE_RCPARAMS

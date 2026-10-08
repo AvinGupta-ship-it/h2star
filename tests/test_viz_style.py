@@ -45,7 +45,7 @@ AMBIENT_OVERRIDE = {
 #: name pattern: the previous version of this test discovered functions by the
 #: ``plot_*`` / ``*_plot`` naming convention, and an adversarial review showed
 #: an unstyled ``draw_parity_grid`` sailing past it.
-NON_DRAWING_PUBLIC_NAMES = {"figure_style"}
+NON_DRAWING_PUBLIC_NAMES = {"figure_style", "rendering_stack"}
 
 
 @pytest.fixture
@@ -189,3 +189,22 @@ def test_plot_call_draws_with_the_pinned_font(ambient_override):
         plt.close(fig)
     # And the host's configuration is intact for whatever runs next.
     assert mpl.rcParams["font.family"] == ["Palatino", "serif"]
+
+
+def test_the_rendering_stack_is_recorded_and_real():
+    """The committed figures' bytes are conditional on three libraries.
+
+    `figure_style.json` records which Matplotlib, FreeType and Pillow produced
+    them, so `tests/test_figure_bytes.py` can tell whether this environment is
+    one where byte-identity is claimed at all. Before that was recorded, the
+    byte comparison ran unconditionally and CI's macOS jobs asserted something
+    `docs/known_limitations.md` explicitly does not claim.
+    """
+    recorded = viz.FIGURE_STYLE_STACK
+    assert set(recorded) == {"matplotlib", "freetype", "pillow"}, recorded
+    assert all(recorded.values()), recorded
+
+    running = viz.rendering_stack()
+    assert set(running) == set(recorded)
+    # The running values must be read from the libraries, not echoed back.
+    assert running["matplotlib"] == mpl.__version__

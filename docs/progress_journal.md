@@ -1619,3 +1619,81 @@ then add the DOI to `CITATION.cff` and the README badge.
 - The three clean-room environments were separate virtual environments on one
   machine. OS, libc and CPU were never varied, so byte-identity on a genuinely
   different machine remains untested.
+
+---
+
+## 2026-10-08 — CI caught what four clean rooms could not
+
+Hours: not applicable (v2.0 execution model).
+
+### Objectives
+Diagnose the macOS CI failure on `f6baf02` and fix it.
+
+### What happened
+The first CI run that included the new byte tests went red on both macOS jobs
+with 65 failures, every one of them in `tests/test_figure_bytes.py`. Both
+Ubuntu jobs passed. Reproduced on Avin's own Mac: Matplotlib 3.11.0 and Pillow
+12.2.0 against the 3.11.2 and 12.3.0 the committed figures were produced under.
+A different rendering stack renders text differently, so the regenerated
+figures legitimately did not match the committed bytes, and every comparison
+against them failed.
+
+The test was asserting, on every platform in the matrix, precisely what
+`known_limitations.md` says holds only within one stack. The suite contradicted
+the documentation. That is the third variation of the same mistake in two days,
+and the pattern is now unmistakable: each time, the check and the thing checked
+shared an assumption, and each time the thing that caught it was a *different*
+environment or a *different* reader.
+
+### The fix, and the worse defect it uncovered
+`figure_style.json` now records the Matplotlib, FreeType and Pillow the
+committed figures were produced under. The committed-bytes comparison runs only
+when the running stack matches and skips with a stated reason otherwise. The
+hostile sweep was rewired to compare against a baseline regenerated in the same
+environment, which makes it platform-independent: the property it tests — that
+the recorded configuration makes a figure independent of its host — is true
+everywhere, and only equality with one particular set of bytes is not. That
+widened its reach instead of narrowing it.
+
+Checking the fix against a deliberately older Matplotlib then found something
+worse. Matplotlib raises on an `rcParams` key it does not have *and* on a value
+its validator rejects, and both drift between releases: of the 324 recorded
+settings, 3.9.4 rejects 26. Applied unfiltered, `figure_style()` raised on
+every call, so **every plotting function in the package was broken on any
+Matplotlib but 3.11.2**. The complete-configuration fix, which was the right
+answer to the host-leakage problem, had quietly introduced a worse one — not
+"figures do not reproduce elsewhere" but "the package does not run elsewhere".
+Filtering the configuration to what the running Matplotlib accepts, and
+reporting the remainder through `viz.FIGURE_STYLE_UNSUPPORTED`, fixes it.
+
+The suite now passes on Matplotlib 3.9.4 (393 passed, 3 skipped), 3.11.0
+(394 passed, 3 skipped) and 3.11.2 (397 passed), the skips being exactly the
+byte comparisons on a stack that cannot produce those bytes.
+
+### Lessons
+Four clean-room runs did not find this, and could not have: every one of them
+ran in a fresh environment built from the same `pip install` on the same
+machine, so all four had the same Matplotlib. The CI matrix had the thing the
+clean room lacked, which is a *different* dependency resolution. "Fresh
+environment" and "different environment" are not the same property, and I had
+been treating the first as evidence for claims that needed the second.
+
+And the narrower lesson: a fix whose shape is "cover everything" needs testing
+against the case where everything cannot be covered. Pinning all 324 settings
+was right for the host-leakage problem and wrong by default for every
+Matplotlib that does not have all 324, and nothing in four clean rooms would
+ever have shown that, because they all had the version the record came from.
+
+### Next actions
+Fifth clean room against the corrected commit, then Mode B: Zenodo toggle
+before the release, tag `v0.2.0`, concept DOI to ORCID.
+
+### Open questions
+- `pyproject.toml` still does not constrain Matplotlib. The package now works
+  across versions and only the byte claim is version-conditional, so a floor is
+  no longer needed for correctness; whether to declare one anyway is Avin's
+  call.
+- The three clean-room environments and CI's four jobs still all resolve
+  dependencies from the same index at the same moment. A genuinely old
+  resolution is only tested by the two pinned virtualenvs used for this fix,
+  which are not part of CI.

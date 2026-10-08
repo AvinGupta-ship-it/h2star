@@ -50,8 +50,38 @@ from .heats import isosteric_heat
 FIGURE_STYLE_PATH = Path(__file__).resolve().parent / "figure_style.json"
 
 
+def rendering_stack():
+    """The three library versions a figure's bytes depend on, right now.
+
+    The recorded configuration removes the *host* from a figure's bytes. It
+    cannot remove these: Matplotlib lays the figure out, FreeType rasterises
+    the glyphs and Pillow encodes the PNG, and all three change their output
+    between releases. So byte-identity with the committed figures is claimed
+    only when this matches :data:`FIGURE_STYLE_STACK`, and the numbers are
+    claimed regardless.
+    """
+    import matplotlib.ft2font as ft
+    import PIL
+
+    return {
+        "matplotlib": mpl.__version__,
+        "freetype": ft.__freetype_version__,
+        "pillow": PIL.__version__,
+    }
+
+
 def _load_figure_style(path=FIGURE_STYLE_PATH):
-    """Read the recorded configuration into an ``rcParams``-shaped dict."""
+    """Read the recorded configuration into an ``rcParams``-shaped dict.
+
+    Keys the running Matplotlib does not have are dropped rather than applied.
+    Matplotlib raises ``KeyError`` on an unknown ``rcParams`` key, so a
+    recorded configuration taken from one version and applied unfiltered to
+    another makes *every* plotting call raise: recorded against 3.11.2 and run
+    against 3.9.4, 21 keys are unknown and the package is unusable. Dropping
+    them hands those few settings back to the host, which is why
+    :data:`FIGURE_STYLE_UNSUPPORTED` reports them and why byte-identity with
+    the committed figures is only asserted when the rendering stack matches.
+    """
     with open(path) as handle:
         document = json.load(handle)
     recorded = dict(document["rcparams"])
@@ -64,11 +94,39 @@ def _load_figure_style(path=FIGURE_STYLE_PATH):
             for c in cycle["__cycler_color__"]
         ]
         recorded["axes.prop_cycle"] = cycler("color", colors)
-    return document.get("matplotlib_version"), recorded
+
+    # Filter by what this Matplotlib actually accepts, not merely by which
+    # keys it has. Values drift as well as keys: ``hatch.color: 'edge'`` is
+    # valid in 3.11 and rejected in 3.9, so checking membership alone still
+    # left every plotting call raising. The trial application happens inside
+    # an ``rc_context``, so the caller's global configuration is untouched.
+    unsupported = []
+    with mpl.rc_context():
+        for key, value in list(recorded.items()):
+            try:
+                mpl.rcParams[key] = value
+            except (KeyError, ValueError):
+                unsupported.append(key)
+                del recorded[key]
+    unsupported = sorted(unsupported)
+
+    return (
+        document.get("matplotlib_version"),
+        document.get("rendering_stack", {}),
+        recorded,
+        tuple(unsupported),
+    )
 
 
-#: The Matplotlib version the configuration was recorded from.
-FIGURE_STYLE_VERSION, FIGURE_RCPARAMS = _load_figure_style()
+#: The Matplotlib version the configuration was recorded from, the rendering
+#: stack the committed figures were produced under, the configuration itself,
+#: and any recorded keys this Matplotlib does not have.
+(
+    FIGURE_STYLE_VERSION,
+    FIGURE_STYLE_STACK,
+    FIGURE_RCPARAMS,
+    FIGURE_STYLE_UNSUPPORTED,
+) = _load_figure_style()
 
 
 def figure_style():
