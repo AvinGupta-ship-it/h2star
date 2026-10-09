@@ -185,11 +185,10 @@ to produce is fitting to a known answer.
 
 ## How this fits together
 
-Three projects, one question. [**HyCAN-DB**](https://doi.org/10.5281/zenodo.23231985)
-curates what the field has measured. **H2STAR** converts measurements into
-system-level consequence and derives what a material would have to be.
-Laboratory work on electron-irradiated carbon nanomaterials supplies the
-experimental ground.
+[**HyCAN-DB**](https://doi.org/10.5281/zenodo.23231985) curates what the field
+has measured. **H2STAR** converts those measurements into system-level
+consequence and derives what a material would have to be. Laboratory work on
+electron-irradiated carbon nanomaterials supplies the experimental ground.
 
 The connection is not thematic. H2STAR's carbon-nanotube case study is drawn
 entirely from HyCAN-DB's corpus, and H2STAR's central finding — that the
