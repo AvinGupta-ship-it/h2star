@@ -1774,3 +1774,46 @@ then the DOI into `CITATION.cff` and the README badge.
 ### Open questions
 - Carried forward: no Matplotlib floor in `pyproject.toml`; the clean room and
   CI still resolve from the same index at the same moment.
+
+---
+
+## 2026-10-09 — v0.2.0 released
+
+Hours: not applicable (v2.0 execution model).
+
+### What shipped
+GitHub release `v0.2.0` on commit `43350ee`, archived by Zenodo. Concept DOI
+`10.5281/zenodo.23257816`, which always resolves to the newest version; version
+DOI `10.5281/zenodo.23257817` for this release specifically. The concept DOI is
+in the README badge, the README citation and `CITATION.cff`; the version DOI is
+recorded in `CHANGELOG.md`; the concept DOI is on ORCID.
+
+All five CI jobs green on the released commit: Ubuntu 3.11 and 3.12, macOS 3.11
+and 3.12, and `oldest-supported-matplotlib` on 3.9.4. Six clean-room
+reproductions recorded in `docs/clean_room_log.md`, two of which failed and are
+written up in full.
+
+### One thing worth recording about the DOIs
+Zenodo's repository badge on its GitHub settings page shows the **version**
+DOI, not the concept DOI. Taking the badge at face value would have put
+`…23257817` into `CITATION.cff` and ORCID, which freezes the citation on v0.2.0
+and never follows a later release. The concept DOI was read off the record's own
+Versions panel instead, where it is stated outright. It happens to be one below
+the version DOI, but that relationship was confirmed rather than assumed: the
+same check on RamanUQ gives a concept DOI about 98,600 below its latest version
+DOI, because its concept DOI was allocated at a much earlier first release.
+
+The archived v0.2.0 snapshot carries a `CITATION.cff` with no `doi` field, since
+the DOI did not exist until the release that minted it. README says so. A
+placeholder written in advance would have been a wrong DOI in a citation file,
+which is worse than a missing one.
+
+### Open
+- **HyCAN-DB does not link back.** Manual Part VII requires the two READMEs to
+  cross-link, each describing the interlock in one sentence. h2star's side is
+  done; the hycan-db repository contains no mention of h2star anywhere. That is
+  a one-sentence change to a separate published repository and is Avin's call.
+- Carried forward: no Matplotlib floor in `pyproject.toml`; the Ishigami closed
+  form is derived and numerically checked rather than confirmed against the
+  primary text; `bop_scaling` has no sourced coefficient; the strict Gate V3
+  xfail; whether a correlated-input sensitivity method is worth adding.
