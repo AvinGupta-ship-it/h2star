@@ -23,7 +23,11 @@ authors:
 repository-code: "https://github.com/AvinGupta-ship-it/h2star"
 license: MIT
 version: 0.2.0
-date-released: "2026-10-08"
+date-released: "2026-10-09"
+# Concept DOI: always resolves to the newest version, which is what a reader
+# citing "H2STAR" means. The v0.2.0 version DOI, 10.5281/zenodo.23257817, is
+# recorded in CHANGELOG.md for anyone citing this exact release.
+doi: 10.5281/zenodo.23257816
 keywords:
   - hydrogen storage
   - physisorption

@@ -1,5 +1,7 @@
 # h2star
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23257816.svg)](https://doi.org/10.5281/zenodo.23257816)
+
 **An open, uncertainty-aware materials-to-system model for sorbent-based
 hydrogen storage.**
 
@@ -207,8 +209,21 @@ the author's.
 
 ## Citation
 
-See [`CITATION.cff`](CITATION.cff). A Zenodo DOI will be minted at the `v0.2.0`
-release and added here.
+Cite the concept DOI, which always resolves to the newest version:
+
+> Gupta, A. *H2STAR: an open, uncertainty-aware materials-to-system model for
+> sorbent-based hydrogen storage.* Zenodo.
+> [10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816)
+
+To cite this exact release rather than the project, use the v0.2.0 version DOI,
+[10.5281/zenodo.23257817](https://doi.org/10.5281/zenodo.23257817). Machine-
+readable metadata is in [`CITATION.cff`](CITATION.cff).
+
+The archived v0.2.0 snapshot carries a `CITATION.cff` with no `doi` field, since
+the DOI did not exist until the release that minted it. The field is present
+from this commit onward and will appear in the next archived version. Adding a
+placeholder beforehand would have put a wrong DOI in a citation file, which is
+worse than a missing one.
 
 ## License
 

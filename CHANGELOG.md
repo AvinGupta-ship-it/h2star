@@ -10,7 +10,11 @@ passes would misrepresent the project.
 
 ## [Unreleased]
 
-## [0.2.0] — 2026-10-08
+## [0.2.0] — 2026-10-09
+
+Archived on Zenodo. Concept DOI [10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816),
+which always resolves to the newest version; v0.2.0's own version DOI is
+[10.5281/zenodo.23257817](https://doi.org/10.5281/zenodo.23257817).
 
 The release that completes the model: the inverse engine, the uncertainty and
 sensitivity layers, and the carbon-nanotube case study. Gate V4 closed, two
