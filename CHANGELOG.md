@@ -313,3 +313,40 @@ Initial release: the validated forward model.
 [Unreleased]: https://github.com/AvinGupta-ship-it/h2star/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/AvinGupta-ship-it/h2star/compare/v0.1...v0.2.0
 [0.1.0]: https://github.com/AvinGupta-ship-it/h2star/releases/tag/v0.1
+
+## [1.0.0] - unreleased
+
+Rebuild in response to the 2026-10-27 adversarial review, executed under the
+externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
+gate code existed; amendment A1 pre-code). API-breaking (hence the major
+version).
+
+### Added
+- Component-resolved engineering model (`h2star.engineering`): netting-
+  analysis type-3 vessels, back-derived type-1 walls, liner, MLI, shell,
+  internal-HX structure, supports, component-class BOP with volume;
+  dormancy-set design pressure; usable basis throughout. Calibrated (E1) on
+  the FEDSM2017 HexCell system to +0.0% mass / -0.7% volume; held-out gate
+  E2 run once and FAILED on H1 (+41% GC at 200 bar; 3 of 4 passed) — the
+  pre-registered fork rule governs every claim.
+- Dual-digitized, frozen-rule-reconciled multi-temperature AX-21 dataset
+  (172 points, 11 isotherms, per-point uncertainties) and SWCNT dataset
+  (Panella Fig. 2b).
+- Identifiability layer: errors-in-P weighted objective, bisected profile
+  likelihoods for all parameters (77 K and 60-298 K), Fisher spectrum,
+  propagation of profile regions through the frozen engineering model.
+- MCMC posterior (ESS > 16,800, R-hat <= 1.003), model-form comparison
+  (m = 2 / free-m / Toth), declared input uncertainties, 20,000-sample
+  propagation, Shapley effects for dependent inputs, separate elasticities.
+- Requirement map in observable axes under two engineering models.
+- v1 figure set, archival lock file, v1 test files.
+
+### Changed
+- README, assumptions, model derivations, references and limitations
+  rewritten; process narrative moved to docs/history/.
+- DOE targets presented Ultimate-first; all capacities usable-basis.
+
+### Removed / superseded (kept in git history and docs/history/)
+- The v0.2 claims C1-C5, the lumped engineering block as a claim surface,
+  the coherence screen, the independent-box Sobol study, and the CNT system
+  case study (dropped by the pre-registered 8-point rule).

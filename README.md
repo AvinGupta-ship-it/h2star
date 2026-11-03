@@ -2,39 +2,90 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23257816.svg)](https://doi.org/10.5281/zenodo.23257816)
 
-**An open, uncertainty-aware materials-to-system model for sorbent-based
-hydrogen storage.**
+**An open, tested materials-to-system model for cryo-adsorbent hydrogen
+storage, with an identifiability analysis of the modified Dubinin–Astakhov
+isotherm and system requirements stated in observable quantities.**
 
-A materials paper reports that a sorbent holds *x* weight percent hydrogen. A
-vehicle engineer needs to know how many kilograms a complete tank delivers per
-kilogram of tank. Those are different numbers, and the gap between them is large
-and systematically misread. H2STAR computes the translation, then inverts it to
-ask the question the literature almost never does: *what would a material have
-to be* for a real system to meet the DOE targets?
+Version 1.0.0. The analysis plan, validation gates, tolerances and
+calibration/validation split were externally pre-registered before the gate
+code existed (Zenodo record
+[10.5281/zenodo.23931242](https://doi.org/10.5281/zenodo.23931242)); the gate
+outcomes, including one pre-registered FAIL and its consequences, are
+recorded in `docs/validation_plan.md`.
 
-![Material acceptability as a probability band](figures/F6_acceptability_probability.png)
+## What this repository contains
 
-The answer is a region, not a point, and the reason is the project's central
-finding.
+`h2star` is a Python package that translates measured adsorption properties
+of a sorbent into the gravimetric and volumetric capacity of a complete
+onboard hydrogen storage system — real-gas hydrogen thermodynamics (CoolProp,
+NIST-validated wrapper), the modified Dubinin–Astakhov (D–A) isotherm with
+excess/absolute bookkeeping, isosteric heats, and a component-resolved
+engineering model (composite or aluminium vessel, liner, MLI, outer shell,
+internal heat-exchanger structure, supports, component-class balance of
+plant), calibrated on one published HSECoE system and tested out-of-sample on
+others. On top of that sit an error-model-weighted fitting and profile-
+likelihood layer, an MCMC posterior, Shapley-effect sensitivity analysis for
+dependent inputs, and requirement maps drawn in observable axes.
 
-## The finding
+This is a model validated against published data and published models. It is
+not a hardware demonstration.
 
-The modified Dubinin–Astakhov parameters that describe a sorbent **are not
-identifiable from the single-temperature isotherms the literature routinely
-publishes.** Refitting 11 digitized points from a published AX-21 isotherm put
-all four free parameters outside their pre-registered recovery bands, with
-pairwise correlations of 0.91–0.99 and cond(JᵀJ) ≈ 1e14. The curve is
-identifiable; the parameter vector is not.
+## Findings
 
-Propagating that through the system model blurs the DOE-2025 feasibility
-boundary over **32.1 mol/kg in limiting uptake — a quarter of the requirement
-itself** (5–95% range 109.4 to 141.5 mol/kg, median crossing 125.6). A point
-prediction of "the required limiting uptake" would quote three significant
-figures for a quantity whose own range spans a quarter of its value.
+**1. Single-isotherm practical non-identifiability.** Fitting the modified
+D–A model to the one 77 K AX-21 excess isotherm of the kind the literature
+routinely publishes leaves the parameter vector loose: the 95% profile-
+likelihood region spans n_max 37–142 mol/kg and more than four decades of
+pseudo-saturation pressure, and the temperature coefficient β is wholly
+undetermined. Fitting seven temperatures (60–298 K) jointly pins the same
+parameters to about ±1% (n_max 61.2–62.6 mol/kg). The underlying degeneracy
+at a single temperature follows from ε = α + βT and is visible in the source
+data's own published alternative fits (Richard, Bénard & Chahine 2009,
+Table 3); the contribution here is its quantification by profile likelihood
+with an explicit measurement-error model, and the measurement of how much
+identifiability each added temperature restores.
 
-So the deliverable is an uncertainty-quantified acceptability region with a
-probability-banded boundary, and the case for curating multi-temperature,
-provenance-tiered measurements is measured here rather than asserted.
+**2. Loose parameters, tight predictions.** Across the full 77 K profile
+region — a 3.8× range in n_max — the predicted usable system capacity at the
+baseline envelope varies by only about ±2.5%. The model is sloppy in the
+sense of Gutenkunst et al. (2007): the Fisher-information eigenvalue spectrum
+spans many decades. A requirement stated as "n_max = X at fixed α, β, P0" is
+therefore conditional on an arbitrary point along a ridge the data do not
+resolve.
+
+**3. Requirements belong in observables.** The requirement maps here use
+deliverable uptake between the stated full and empty states, together with
+packing density, as axes — quantities a laboratory can measure without
+inverting an isotherm model — following the practice of the HSECoE Adsorbent
+Acceptability Envelope (Hardy, Tamburello & Corgnale 2018) and Argonne's
+Level-1 sorbent targets (Ahluwalia, Peng & Hua 2015). The map is drawn under
+two independent engineering models, and the shift between them is reported
+rather than hidden.
+
+**4. The engineering block is the dominant uncertainty.** With the material
+parameters sampled from their joint posterior, Shapley effects attribute most
+of the variance of predicted system capacity to engineering inputs (internal
+heat-exchanger structure, MLI conductivity, heat-leak budget, balance of
+plant), not to material-parameter uncertainty. Design-leverage elasticities
+are reported separately from variance attribution.
+
+**5. A pre-registered held-out gate failed, and the paper's claims follow the
+pre-registered fork.** The component-resolved engineering model, calibrated
+to +0.0% mass / −0.7% volume on the HSECoE HexCell system, was evaluated once
+against frozen held-out targets: it matched the 60 bar/40 K AX-21 system to
+−0.2% in mass and passed the 200-bar volumetric check (+5.8%), but predicted
+200-bar gravimetric capacity 41% above the anchor midpoint, outside the
+pre-registered ±20% band (the anchor family itself drifts 21% across HSECoE
+report years). Per the fork rule frozen in the pre-registration, no absolute
+system-capacity claim is made anywhere in this project; relative statements
+appear only where shown robust under two independent engineering models.
+
+## DOE targets used
+
+U.S. DRIVE Target Explanation Document (May 2017), system-level usable
+capacities, end of life — Ultimate: 0.065 kg H2/kg system and 0.050 kg/L;
+2025: 0.055 and 0.040; 2020: 0.045 and 0.030. Delivery pressure 5–12 bar;
+delivery temperature −40 to 85 °C.
 
 ## Quickstart
 
@@ -42,188 +93,66 @@ provenance-tiered measurements is measured here rather than asserted.
 git clone https://github.com/AvinGupta-ship-it/h2star
 cd h2star
 python3 -m pip install -e ".[dev]"
-python3 -m pytest                               # 397 passed, 1 xfailed
-python3 scripts/make_all_figures.py --quick      # smoke test, ~20 s
-python3 scripts/make_all_figures.py              # all eight figures, ~11 min
+python3 -m pytest -q                      # full suite incl. validation gates
+python3 scripts/make_figures_v1.py        # rebuild every figure
+python3 scripts/run_identifiability.py    # S5 analysis record
 ```
 
-The xfail is deliberate and is Gate V3 (below). Python 3.11 or later.
+The archival environment is pinned in `requirements-lock.txt`.
 
-On a platform, Matplotlib, FreeType or Pillow other than the one the committed
-figures were produced under, three tests skip rather than fail: the ones that
-compare figure *bytes*. Everything else, including every number, runs
-everywhere. Verified on Matplotlib 3.9.4, 3.11.0 and 3.11.2, and on Linux and
-macOS.
+## Data and provenance
 
-To re-execute the notebooks as well — the last step of the clean-room
-reproduction — add the notebook extra:
+Every number in `data/` carries a citation. The multi-temperature AX-21
+dataset (`data/validation/ax21_fig1a_multiT.csv`) was digitized from Richard,
+Bénard & Chahine, *Adsorption* 15 (2009) 43–51, Fig. 1a by two independent
+routes (one visual, one scripted template-matching), reconciled under a rule
+frozen before either output was read, with per-point uncertainties and the
+axis resolution recorded (`..._reconciliation.md`). The SWCNT dataset from
+Panella, Hirscher & Roth, *Carbon* 43 (2005) Fig. 2b was produced the same
+way; because it reconciles to five 77 K points against a pre-registered
+eight-point floor, the CNT case study appears only as a documented notebook
+example, consistent with the established literature result that CNTs do not
+exceed high-surface-area activated carbon (Tibbetts et al. 2001; Panella et
+al. 2005; Zhou, Zhou & Sun 2004).
 
-```bash
-python3 -m pip install -e ".[dev,nb]"
-python3 scripts/run_notebooks.py --check         # all eight, ~8 min
-```
+H2STAR is the companion model to
+[HyCAN-DB](https://doi.org/10.5281/zenodo.23231985), an open corpus of
+hydrogen-uptake measurements on carbon materials: the database curates what
+is knowable from the literature, and this model converts it into system-level
+meaning.
 
-`--check` runs them without writing them back, so it answers "do these still
-run?" without producing a diff. Notebook 07 is most of that time.
+## Validation record
 
-```python
-from h2star import envelope, isotherm, system
-
-material = isotherm.Material.from_yaml("data/materials/ax21.yaml")
-engineering = system.EngineeringParams.from_yaml("data/engineering.yaml")
-
-budget = envelope.evaluate_envelope(
-    material, isotherm.ModifiedDA(material), engineering,
-    P_full=100e5, T_full=80.0,      # Pa, K
-    P_empty=5e5, T_empty=160.0,     # fuel-cell delivery floor
-)
-print(budget["GC"], budget["VC"])   # kg H2 per kg system, per litre system
-```
-
-## Read this before using a number from here
-
-**The system mass model is optimistic by about a factor of 4.2.** That is
-measured, not estimated: Gate V3 compared the model against the HSECoE AX-21
-baseline and localized the discrepancy to the vessel, insulation and
-balance-of-plant block. The model consequently places AX-21 activated carbon
-*above* the DOE 2025 gravimetric target, which AX-21 does not achieve in
-reality.
-
-Relative comparisons at a fixed envelope survive this, because a bias in a
-shared denominator cancels in a ratio. Absolute capacities do not.
-[`docs/known_limitations.md`](docs/known_limitations.md) states every limitation
-with its magnitude and what each one forbids.
-
-## Validation gates
-
-Tolerances were pre-registered in
-[`docs/validation_plan.md`](docs/validation_plan.md) before each comparison ran;
-that file's git history is the evidence.
-
-| Gate | What it tests | Verdict |
+| Gate | Definition | Outcome |
 |---|---|---|
-| V1 | EOS wrapper vs NIST hydrogen density | **PASS** — max error 4.992e-5 vs a <0.1% floor |
-| V2.1 | Isotherm curve vs digitized AX-21 | **PASS** — RMSE 1.109 vs 1.5 mol/kg |
-| V2.2 | Parameter recovery from one isotherm | **FAIL by design** — the likelihood is a ridge |
-| V2.3 | Isosteric heat vs the 4–7 kJ/mol carbon band | **PASS** — analytic agreement to ~1e-15 |
-| V3 | System capacity vs the HSECoE AX-21 anchor | **documented FAIL** — mass block ~4.2× light |
-| V4 | UQ and Sobol machinery | **PASS** on all clauses |
+| V1 (v0.2) | EOS wrapper vs NIST tables | PASS (4.99e-5 max rel.) |
+| V2.1 (v0.2) | isotherm curve RMSE | PASS |
+| V2.2 (v0.2) | parameter recovery, single isotherm | FAIL (pre-registered recovery bands not met) — superseded by the v1.0 profile-likelihood analysis |
+| V3 (v0.2) | lumped system model vs HSECoE anchor | FAIL (documented) — superseded by E1/E2 |
+| E1 (v1.0) | component-model calibration, HexCell | criterion met (+0.0% mass, −0.7% volume) |
+| E2 (v1.0) | held-out AX-21 systems, frozen tolerances | **FAIL on H1 (+41% GC at 200 bar); 3 of 4 pass; fork rule in force** |
 
-Two gates failed. Both are results. V2.2 is the non-identifiability finding
-above. V3 localizes a model limitation to a named block and quantifies it, which
-is what makes every other number here interpretable — and it was not chased to a
-pass, because re-sourcing the vessel model after seeing the mass it would have
-to produce is fitting to a known answer.
+All v0.2 adjudications stand as records; `docs/validation_plan.md` carries
+every block verbatim, including deviations (pre-registration §9).
 
-## What the model finds
+## AI involvement
 
-- **Volumetric capacity is the binding constraint**, not gravimetric, across
-  both swept material-property planes and the whole forward operating map.
-- **Binding energetics matter an order of magnitude more at ambient than at
-  cryogenic conditions** (Sobol total-order index for α: 0.017 → 0.165). At
-  cryogenic conditions the adsorbed-phase volume and the limiting uptake
-  dominate. A materials chemist optimising for a cryogenic system should work
-  on how much the sorbent holds; one optimising for ambient has to work on how
-  tightly it binds.
-- **The requirement sits at the edge of physical coherence.** The adsorbed phase
-  grows with limiting uptake by two independent accounts and must fit the pore
-  volume the packing leaves, which caps uptake at 104.9–124.1 mol/kg — at or
-  below the 125.6 mol/kg the map requires. Meeting the target needs uptake
-  *and* pore volume together, and more pore volume means packing less densely,
-  which costs the volumetric capacity that is already binding.
-- **Carbon nanotubes, on the best available provenance, deliver 0.88× the
-  system capacity of AX-21 activated carbon** — a sorbent characterised in the
-  1980s. No entry passing a physical-consistency screen exceeds AX-21.
-- **That screen rejects exactly the two contested CNT values in the corpus.**
-  Liu 1999's 4.2 wt% implies a limiting uptake beyond both pore-volume limits;
-  Wang Qikun 2002's 8.0 wt% is reproduced by no limiting uptake at all. Neither
-  rejection uses the experimental evidence raised against those values at the
-  time — and Liu's own laboratory later published a correction.
-
-## Reproducibility
-
-- Every number behind every figure is deterministic under a fixed seed, and the
-  eight figures (nine PNGs — F7 draws one per output) are byte-identical
-  **on one platform, given the same Matplotlib, FreeType and Pillow**. Not
-  across platforms: CI runs Ubuntu and macOS on identical library versions and
-  only Ubuntu reproduces the committed bytes. Verified two ways:
-  regenerating them from a fresh clone in a separate virtual environment and
-  comparing SHA-256, nine of nine identical across Python 3.11 vs 3.13, NumPy
-  2.4.6 vs 2.5.3 and SciPy 1.17.1 vs 1.18.1; and
-  `tests/test_figure_bytes.py`, which regenerates figures under 60-odd hostile
-  ambient `rcParams` and demands the committed bytes back, with a control that
-  fails if the hostile settings turn out not to reach the canvas.
-- Byte-identity is **not** claimed across platforms, nor across Matplotlib,
-  FreeType or Pillow versions. FreeType rasterises glyphs differently between releases, Matplotlib
-  stamps its own version into the PNG's `Software` chunk, and Pillow writes the
-  file. The numbers survive all three; the bytes need not. Only `figures/` is
-  byte-claimed — the notebooks' inline images are rendered by IPython's inline
-  backend and are not.
-- That holds because `viz.figure_style()` applies an entire recorded rendering
-  configuration — every `rcParams` key Matplotlib considers settable, at its
-  stock value, in `src/h2star/figure_style.json` — rather than inheriting any
-  of it from the host. The first attempt pinned only the seven font settings
-  the original defect involved, and an adversarial review then found sixteen
-  more host-settable parameters that still moved the bytes. See
-  `docs/known_limitations.md`; `scripts/record_figure_style.py --check` reports
-  whether an environment agrees with the record.
-- `scripts/make_all_figures.py` is the **sole writer** of `figures/`. The
-  notebooks show their figures inline and write nothing, so executing them
-  cannot replace a published figure; `tests/test_notebook_hygiene.py` enforces
-  that, along with the rule that no notebook defines a function. Every notebook
-  resolves its paths from the repository root and is committed executed.
-- Gates V1–V4 run as `@pytest.mark.validation` tests on every push, so the suite
-  certifies the science rather than only the plumbing.
-- `@pytest.mark.provenance` tests walk every file under `data/`: each parses,
-  attributes its numbers, declares its units, and — for the engineering
-  parameters — parses as numbers rather than strings, which is the PyYAML
-  scientific-notation trap.
-- No value, DOI or reference in this repository comes from model memory. Two
-  papers in the CNT corpus print no DOI, and the corpus records that rather than
-  supplying one.
-- CI runs on `ubuntu-latest` and `macos-latest`, Python 3.11 and 3.12.
-
-## How this fits together
-
-[**HyCAN-DB**](https://doi.org/10.5281/zenodo.23231985) curates what the field
-has measured. **H2STAR** converts those measurements into system-level
-consequence and derives what a material would have to be. Laboratory work on
-electron-irradiated carbon nanomaterials supplies the experimental ground.
-
-The connection is not thematic. H2STAR's carbon-nanotube case study is drawn
-entirely from HyCAN-DB's corpus, and H2STAR's central finding — that the
-published data does not determine the parameters a system model needs — is the
-argument for HyCAN-DB's provenance tiering, reached independently from the model
-side.
-
-## AI assistance
-
-Disclosed in full in [`docs/ai_usage_log.md`](docs/ai_usage_log.md), session by
-session, including a dated entry recording where the division of labour changed.
-Implementation code, analysis, derivational reasoning and documentation prose
-were produced with AI assistance under the working format that log describes.
-Scientific sign-off, every hand-pinned anchor and tolerance, verification
-against publisher records, and the final verdict on what the model may claim are
-the author's.
+This project was built with substantial AI assistance (Anthropic Claude)
+under the project's execution manual: implementation, analysis,
+derivational reasoning, figure generation and documentation prose, with the
+author verifying load-bearing inputs against primary sources, ratifying
+every pre-registered decision, and holding the final scientific sign-off on
+all claims. The contemporaneous record is `docs/ai_usage_log.md`; the
+pre-registration and its deviation table are external and citable
+(10.5281/zenodo.23931242). Commits are authored by the repository owner,
+who is responsible for every line.
 
 ## Citation
 
-Cite the concept DOI, which always resolves to the newest version:
-
-> Gupta, A. *H2STAR: an open, uncertainty-aware materials-to-system model for
-> sorbent-based hydrogen storage.* Zenodo.
-> [10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816)
-
-To cite this exact release rather than the project, use the v0.2.0 version DOI,
-[10.5281/zenodo.23257817](https://doi.org/10.5281/zenodo.23257817). Machine-
-readable metadata is in [`CITATION.cff`](CITATION.cff).
-
-The archived v0.2.0 snapshot carries a `CITATION.cff` with no `doi` field, since
-the DOI did not exist until the release that minted it. The field is present
-from this commit onward and will appear in the next archived version. Adding a
-placeholder beforehand would have put a wrong DOI in a citation file, which is
-worse than a missing one.
+See `CITATION.cff`. Cite the concept DOI
+[10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816) for the
+software; the paper preprint cites the v1.0.0 version DOI.
 
 ## License
 
-MIT. See [`LICENSE`](LICENSE).
+MIT.

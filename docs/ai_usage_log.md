@@ -691,3 +691,35 @@ Verification: suite under the exact CI invocation in a fresh Python 3.11 venv,
 eight notebooks executed, and every headline number recomputed from the
 artifact by `scripts/report_headline_numbers.py` rather than read from a
 record. Recorded in `docs/clean_room_log.md`.
+
+## 2026-11-03 — v1.0 rebuild under the externally pre-registered plan
+
+Tool: Claude (Anthropic), cloud session under the H2STAR Execution Manual
+v3.0 (Claude Project record) and the external pre-registration
+10.5281/zenodo.23931242.
+
+Division of labour for everything dated 2026-11-03 onward: Claude performed
+implementation, analysis, derivational reasoning, figure generation,
+documentation prose, literature retrieval and DOI verification, the dual
+figure digitizations (two isolated agents per figure) and their frozen-rule
+reconciliation; Avin Gupta verified every load-bearing input against the
+primary source (DOE targets; Richard Table 3 and its DOI; the ST044
+2012/2013 and FY2011 anchors; the Argonne Level-1 table), ratified the
+manual and the pre-registration including the E2 tolerances and fork rule,
+published the pre-registration deposit from his own account, and holds the
+final scientific sign-off on all claims (S8/S10). Git commits are authored
+by Avin Gupta; this log, the Methods section and the manuscript's AI
+declaration are the disclosure of AI involvement, and none of them is to be
+weakened.
+
+Note moved from assumptions.md (recorded there in error on 2026-07-01):
+
+## 2026-07-01 — Isotherm and isosteric-heat implementation
+Tool: Claude Code (Opus 4.8)
+Purpose: Implement isotherm.py (Material, ModifiedDA) and heats.py from my CC-3 spec.
+What I provided: The CC-3 prompt plus my model_derivations.md and assumptions.md to read first.
+What it produced: src/h2star/isotherm.py, heats.py, tests/test_isotherm.py, tests/test_heats.py.
+What I verified: Read every diff line before accepting; checked the D-A equation, the MPa->Pa
+  conversion in from_yaml, the p0 clamp / no-NaN guards, molar (not mass) density in n_excess,
+  and the -R sign in q_st; ran all six tests and ruff myself; eyeballed the overlay vs my points.
+What I changed: nothing
