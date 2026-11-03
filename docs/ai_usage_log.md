@@ -723,3 +723,25 @@ What I verified: Read every diff line before accepting; checked the D-A equation
   conversion in from_yaml, the p0 clamp / no-NaN guards, molar (not mass) density in n_excess,
   and the -R sign in q_st; ran all six tests and ruff myself; eyeballed the overlay vs my points.
 What I changed: nothing
+
+## 2026-11-03 — S8 independent verification and fixes; manuscript draft
+Tool: Claude (claude.ai, Fable-5 class), per the v3.0 execution manual.
+Purpose: Independent re-derivation of every headline number by an isolated agent
+  on a fresh clone (no access to the main session's work); fixes for its seven
+  non-numeric findings; first full draft of the preprint manuscript.
+What it produced: s8 re-derivation report (verdict: no headline number failed);
+  release-metadata bump to 1.0.0 (pyproject, CITATION.cff); corrected MATI
+  family-check record with the compacted-MOF-5 parameter set committed
+  (data/materials/mof5_compacted_hsecoe.yaml) and a pinning test; seeded,
+  bit-reproducible MCMC chain (two-run md5 agreement) with regenerated
+  downstream analysis records and figures; manuscript/main.tex compiling
+  against machine-generated macros only, with the Elsevier-format AI
+  declaration and a Methods paragraph describing AI involvement in the
+  research process.
+Checks the tool ran on its own output: the corrected MATI numbers re-derived
+  from the committed YAML before recording; md5 agreement of the two MCMC
+  runs; the compiled PDF inspected page by page.
+What I verified: pending — this entry is written ahead of my review. My
+  scientific sign-off on the re-derivation report and on every claim in the
+  manuscript is required before submission and has not yet been given.
+What I changed: nothing yet — review pending.

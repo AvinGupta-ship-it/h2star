@@ -676,7 +676,21 @@ Residuals against Table 5: m_sys 140.99/140.99 kg (+0.00%); V_sys
 calibrated quantity). Criterion (within ±10% with factors in bounds): **MET**.
 
 Secondary, non-binding family check — MATI (0.32 g/cc compacted MOF-5, FEDSM
-Table 2): m_sys +6.11%, V_sys +0.57%, t_wall -1.93%.
+Table 2, committed as `data/materials/mof5_compacted_hsecoe.yaml`): with the
+E1-frozen factors, sized to 5.6 kg usable on the same 100 bar/80 K ->
+5 bar/140 K envelope, against the FEDSM Table 5 MATI column (141.59 kg,
+246.03 L, 13.06 mm; internal volume 180.1 L): m_sys +5.07%, V_sys -0.43%,
+t_wall -2.34%. At the published internal volume (180.1 L) the wall solves to
+13.79 mm (+5.6%), the sigma_design cross-check. Reproduced by
+`tests/test_engineering_v1.py::test_mati_family_check`.
+
+*Correction (2026-11-03, S8 re-derivation):* this record initially read
+"m_sys +6.11%, V_sys +0.57%, t_wall -1.93%", computed before the compacted
+parameter set was committed and not reproducible from the repository. The
+independent re-derivation flagged it; the figures above are the recomputation
+from the committed artifact and are what the regression test pins. The
+check's conclusion (family agreement well inside ±10%, non-binding) is
+unchanged.
 
 ## Gate E2 — held-out validation, run ONCE, adjudicated 2026-11-03
 
@@ -702,7 +716,7 @@ re-adjudication). The failure is mass-side and pressure-dependent, in the same
 direction the 2026-10-27 review found for v0.2 but much reduced (v0.2 GC_full
 2.49x the 2013 anchor; v1.0 usable-basis GC 1.23x the FY2011 anchor, 1.30x the
 2012 anchor, 1.53x the 2013 anchor, 1.41x their midpoint). Volumes agree well
-everywhere (VC ratios 0.93/0.98/1.15; H3 volume -11%), and the low-pressure
+everywhere (VC ratios 0.93/0.98/1.14; H3 volume -11%), and the low-pressure
 type-1 case closes to -0.2% in mass. A pure netting-analysis composite wall at
 200 bar (11.5 kg composite + 9.3 kg liner here) is substantially lighter than
 whatever the HSECoE Phase-1 baseline carried; the anchor's own 21% report-to-
@@ -729,3 +743,51 @@ as a documented notebook example, presented as agreement with prior
 literature (Tibbetts 2001; Panella 2005; Zhou et al. 2004), with the v0.2
 qikun2002 wording and F8 labelling errors corrected wherever they appeared.
 No system-level CNT ratio is claimed in any public artifact.
+
+## Post-adjudication correction record — S8 independent audit, 2026-11-03
+
+Two isolated S8 agents (a full re-derivation from a fresh clone, and a
+reference audit against the primary sources) reviewed the adjudicated state.
+The re-derivation reproduced every headline number (its seven non-numeric
+findings are fixed in the repository; see CHANGELOG). The reference audit
+found one load-bearing provenance error, recorded here because it touches the
+gate-E2 model:
+
+**BOP anchor abscissa (audit finding D2).** The 16 kg miscellaneous
+balance-of-system mass taken from ST001-2011 slide 26 was anchored at
+100 bar design-class; the deck in fact states it (together with a 10 L
+miscellaneous volume that this repo's 11 L had mis-recorded as "not stated")
+as a fixed assumption of its MOF-5 on-board analysis, whose design point is
+150 atm storage / 187.5 atm vent (slides 12/26/27). Verified independently
+from the deck itself (fetched 2026-11-03), not only from the audit report.
+
+Treatment: gate E2 was pre-registered to run ONCE and was adjudicated on the
+model as frozen at E1, so the frozen anchors and the adjudicated record above
+stand unchanged. The corrected placements are quantified post hoc, labelled,
+in `scripts/bop_anchor_sensitivity.py` -> `data/analysis/bop_anchor_sensitivity.json`:
+
+| Variant | c_bop_mass | E1 V_sys | H1 GC dev | H2 VC dev | H3 m dev | H3 V dev | Gate |
+|---|---|---|---|---|---|---|---|
+| Frozen (adjudicated) | 1.0864 | -0.73% | +40.99% | +5.77% | -0.23% | -10.58% | **FAIL** |
+| Corrected (anchors at the sources' storage pressures, 152/350 bar, 16 kg/10 L and 30 kg/25 L) | 1.5340 | -6.24% | +37.19% | +12.18% | -1.53% | -18.53% | **FAIL** |
+| Pressure-independent (16 kg/10 L fixed, as the deck itself treats them) | 1.1815 | -2.82% | +50.78% | +16.64% | +2.82% | -10.09% | **FAIL** |
+
+The held-out failure is robust to the anchor placement: H1 misses the +-20%
+band by a wide margin under every variant, every other comparison passes
+under every variant, and the pre-registered fork rule therefore remains in
+force exactly as adjudicated. The paper discloses this correction.
+
+**Data-attribution footnote (audit finding D6).** The pre-registration (S2)
+attributes the Fig. 1a measurements to Benard & Chahine, Langmuir 17 (2001).
+Richard 2009's Table 1 footnote attributes the 30-77 K isotherms to
+"Michelsen, J., Chahine, R.: Private communication (2005)" (same carbon,
+same apparatus family), with 77-298 K from Benard & Chahine 2001. The
+deposited pre-registration text cannot change; this footnote corrects the
+attribution for the primary fit set (whose 60 K isotherm is from the private
+communication). No analysis is affected.
+
+Audit items only Avin's library access can close (carried to his sign-off
+list): the Ahluwalia & Peng 2009 in-paper values (SF 2.35, T700S Table 2
+pair, 30 kg/25 L at 350 bar, translation 82.5%/63% — note ANL-10/24 prints
+80.0% at 700 bar), Benard 2001 content claims, and the NREL MP-5400-73571
+report number.

@@ -94,6 +94,8 @@ Excluded as not unambiguously present/identifiable (pre-registered exclusion, co
 Final dataset: 172 points. Axis resolution 0.00492 MPa/px, 0.0616 (mol/kg)/px.
 
 On-axis handling: 2 points whose reconciled pressure lies within one pixel of the
-P = 0 axis are recorded at the half-pixel bound P = 0.0025 MPa with sigma_P = 0.0050 MPa
-and quality "on_axis": their abscissa is unresolved below one pixel, and the errors-in-P
-measurement model (pre-registration section 6) weights them accordingly.
+P = 0 axis are recorded at the half-pixel bound P = 0.0025 MPa with quality "on_axis";
+their sigma_P is the larger of the route per-point uncertainty and the half-pixel bound
+(here 0.0100 and 0.0400 MPa — the route sigmas dominate, the conservative direction).
+Their abscissa is unresolved below one pixel, and the errors-in-P measurement model
+(pre-registration section 6) weights them accordingly.

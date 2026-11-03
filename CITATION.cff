@@ -4,16 +4,18 @@ title: "H2STAR: an open, uncertainty-aware materials-to-system model for sorbent
 abstract: >-
   H2STAR translates the measurable adsorption properties of carbon sorbents into
   the system-level gravimetric and volumetric performance of a complete onboard
-  hydrogen-storage tank, and inverts that translation to derive the
-  material-property requirements implied by DOE system targets. It couples
-  real-gas hydrogen thermodynamics, a modified Dubinin-Astakhov supercritical
-  isotherm, tank inventory with a dual-bookkeeping invariant, vessel and system
-  mass budgets, Monte Carlo uncertainty propagation and Sobol global sensitivity
-  analysis, under pre-registered validation gates. Its central finding is
-  methodological: the isotherm parameters are not identifiable from the
-  single-temperature data the literature routinely publishes, so the defensible
-  deliverable is an uncertainty-quantified acceptability region rather than a
-  point prediction of the material requirement.
+  hydrogen-storage tank, under externally pre-registered calibration and
+  held-out validation gates whose outcome - including one disclosed failure and
+  the fork rule it triggered - is binding on the claims. It couples real-gas
+  hydrogen thermodynamics, a modified Dubinin-Astakhov supercritical isotherm
+  fitted to dual-digitized, uncertainty-tagged data under an errors-in-pressure
+  measurement model, a component-resolved vessel and system model, profile-
+  likelihood identifiability analysis, MCMC uncertainty propagation and Shapley-
+  effect attribution. Its central finding is methodological: a single published
+  isotherm leaves the isotherm parameters practically non-identifiable while
+  constraining system predictions to a few per cent, so requirements should be
+  stated in observable quantities - deliverable uptake and packing density -
+  rather than as isotherm parameters.
 type: software
 authors:
   - given-names: Avin
@@ -22,11 +24,11 @@ authors:
     orcid: "https://orcid.org/0009-0009-4133-2275"
 repository-code: "https://github.com/AvinGupta-ship-it/h2star"
 license: MIT
-version: 0.2.0
-date-released: "2026-10-09"
+version: 1.0.0
+date-released: "2026-11-03"
 # Concept DOI: always resolves to the newest version, which is what a reader
-# citing "H2STAR" means. The v0.2.0 version DOI, 10.5281/zenodo.23257817, is
-# recorded in CHANGELOG.md for anyone citing this exact release.
+# citing "H2STAR" means. Version DOIs for each release (v0.2.0:
+# 10.5281/zenodo.23257817) are recorded in CHANGELOG.md.
 doi: 10.5281/zenodo.23257816
 keywords:
   - hydrogen storage
@@ -35,8 +37,9 @@ keywords:
   - carbon nanotubes
   - Dubinin-Astakhov
   - uncertainty quantification
-  - Sobol sensitivity analysis
-  - inverse design
+  - identifiability
+  - Shapley effects
+  - pre-registration
   - reproducibility
 references:
   - type: article
@@ -61,6 +64,6 @@ references:
     title: "HyCAN-DB: a FAIR database of hydrogen sorption measurements in carbon nanomaterials"
     doi: 10.5281/zenodo.23231985
     notes: >-
-      Companion project. HyCAN-DB supplies the measurements this model converts
-      into system-level consequence; the carbon-nanotube case study is drawn
-      entirely from its corpus.
+      Companion project. HyCAN-DB curates the multi-temperature, provenance-
+      tiered measurements that make the materials-to-system translation
+      identifiable; used here only as released data.

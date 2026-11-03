@@ -1,0 +1,102 @@
+{
+ "note": "Post-adjudication BOP-anchor correction sensitivity (S8 audit, finding D2).\n\nThe S8 reference audit found that the ST001-2011 '16 kg miscellaneous\nbalance-of-system' anchor was recorded at the wrong abscissa: slide 26 states\n16 kg miscellaneous weight and 10 L miscellaneous volume as fixed assumptions\nof the MOF-5 on-board analysis, whose design point is 150 atm (152.0 bar)\nstorage with a 187.5 atm vent (slides 12, 26, 27) -- not a 100-bar system,\nand the volume is stated (10 L), not unassigned.\n\nGate E2 was adjudicated ONCE on the model as frozen at E1 (anchors 16 kg/11 L\nat 100 bar design-class, 30 kg/25 L at 350 bar). That record stands and is\nnever re-run. This script quantifies, post hoc and labelled as such, what the\ncorrected anchor placement does to the E1 calibration and the E2 held-out\ncomparisons:\n\n* variant 'frozen'   : the adjudicated model, reproduced as a check;\n* variant 'corrected': anchors at the sources' own storage pressures,\n  (152 bar, 16 kg, 10 L) and (350 bar, 30 kg, 25 L), interpolated linearly in\n  FULL (storage) pressure -- the coordinate in which both sources state their\n  systems -- and the E1 factors re-solved by the frozen E1 procedure\n  (c_bop_mass exact on m_sys; c_bop_vol exact on V_sys, clamped to its\n  declared bounds; c_hx = 1);\n* variant 'fixed'    : BOP mass/volume pressure-independent at 16 kg/10 L\n  (the ST001 deck itself treats them as fixed assumptions), same re-solve.\n\nOutput: data/analysis/bop_anchor_sensitivity.json and a printed table for\ndocs/validation_plan.md. The adjudicated gate verdict is NOT changed by this\nscript under any variant it reports; if a variant had changed a verdict, that\nwould be reported here and in the paper, but the gate record itself would\nstill stand (pre-registration section 4: run once).\n",
+ "variants": {
+  "frozen": {
+   "factors": {
+    "c_bop_mass": 1.086426,
+    "c_bop_vol": 2.5,
+    "c_hx": 1.0
+   },
+   "E1": {
+    "m_sys": 140.9899946241723,
+    "V_sys_L": 285.5897779943216,
+    "t_wall_mm": 13.58622570440199,
+    "m_dev_pct": -3.812914173284554e-06,
+    "V_dev_pct": -0.7334800158770971
+   },
+   "E2": {
+    "H1_GC": 0.04779556140184725,
+    "H1_dev_pct": 40.98985664261725,
+    "H2_VC": 0.022210872491536554,
+    "H2_dev_pct": 5.766059483507391,
+    "H3_m": 99.56825859898908,
+    "H3_m_dev_pct": -0.23220581263619922,
+    "H3_V_L": 184.74770306028591,
+    "H3_V_dev_pct": -10.577104036647667,
+    "verdicts": {
+     "H1_GC": "FAIL",
+     "H2_VC": "PASS",
+     "H3_m": "PASS",
+     "H3_V_L": "PASS"
+    },
+    "gate": "FAIL"
+   }
+  },
+  "corrected": {
+   "factors": {
+    "c_bop_mass": 1.53399832771061,
+    "c_bop_vol": 2.5,
+    "c_hx": 1.0,
+    "c_bop_mass_clamped": false,
+    "c_bop_vol_clamped": true
+   },
+   "E1": {
+    "m_sys": 140.99,
+    "V_sys_L": 269.7412931458368,
+    "t_wall_mm": 13.58622570440199,
+    "m_dev_pct": 0.0,
+    "V_dev_pct": -6.242164356678215
+   },
+   "E2": {
+    "H1_GC": 0.04650885914251695,
+    "H1_dev_pct": 37.19427475668717,
+    "H2_VC": 0.02355715766160062,
+    "H2_dev_pct": 12.176941245717243,
+    "H3_m": 98.2716756459383,
+    "H3_m_dev_pct": -1.531387128318329,
+    "H3_V_L": 168.32346063604348,
+    "H3_V_dev_pct": -18.526882557578183,
+    "verdicts": {
+     "H1_GC": "FAIL",
+     "H2_VC": "PASS",
+     "H3_m": "PASS",
+     "H3_V_L": "PASS"
+    },
+    "gate": "FAIL"
+   }
+  },
+  "fixed": {
+   "factors": {
+    "c_bop_mass": 1.1814886109892306,
+    "c_bop_vol": 2.5,
+    "c_hx": 1.0,
+    "c_bop_mass_clamped": false,
+    "c_bop_vol_clamped": true
+   },
+   "E1": {
+    "m_sys": 140.99,
+    "V_sys_L": 279.58977799432165,
+    "t_wall_mm": 13.58622570440199,
+    "m_dev_pct": 0.0,
+    "V_dev_pct": -2.818985751017844
+   },
+   "E2": {
+    "H1_GC": 0.05111321159945991,
+    "H1_dev_pct": 50.7764353966369,
+    "H2_VC": 0.024493855073460868,
+    "H2_dev_pct": 16.637405111718408,
+    "H3_m": 102.61025677481676,
+    "H3_m_dev_pct": 2.815888551920609,
+    "H3_V_L": 185.74770306028591,
+    "H3_V_dev_pct": -10.093076931129763,
+    "verdicts": {
+     "H1_GC": "FAIL",
+     "H2_VC": "PASS",
+     "H3_m": "PASS",
+     "H3_V_L": "PASS"
+    },
+    "gate": "FAIL"
+   }
+  }
+ }
+}

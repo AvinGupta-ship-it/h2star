@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "h2star"
-version = "0.2.0"
+version = "1.0.0"
 description = "An open, uncertainty-aware materials-to-system model for sorbent-based hydrogen storage."
 readme = "README.md"
 requires-python = ">=3.11"

@@ -5,7 +5,7 @@ Computes, at the baseline sensitivity envelope (AX-21 type-3, 100 bar/80 K ->
 
 * the joint output distributions of usable GC and VC with N >= 20,000 samples
   (plan floor 10,000), with split-half convergence of the reported quantiles;
-* SHAPLEY EFFECTS over 14 players — the correlated material block (one
+* SHAPLEY EFFECTS over 16 players — the correlated material block (one
   player, sampled from the MCMC posterior) and 13 mutually independent
   engineering/envelope inputs (data/uncertainty_v1.yaml) — by the random-
   permutation estimator (Song, Nelson & Staum 2016), with bootstrap CIs;

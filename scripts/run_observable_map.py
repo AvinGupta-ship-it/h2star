@@ -52,7 +52,7 @@ TARGETS = {"2020": (0.045, 0.030), "2025": (0.055, 0.040),
 U_GRID = np.linspace(0.005, 0.20, 40)        # deliverable uptake, kg/kg
 RHO_GRID = np.linspace(100.0, 900.0, 41)     # packing density, kg/m^3
 RHO_SKEL = 2300.0                            # AX-21 class skeletal density
-V_A = 1.156e-3                               # posterior median, for gas swing
+V_A = 1.1563e-3                              # posterior median, for gas swing
 
 
 def gas_swing_per_bed_volume(rho_pack, v_a=V_A, rho_skel=RHO_SKEL):
@@ -174,8 +174,9 @@ def main():
     # AX-21 reference point on these axes (posterior median parameters)
     mat = isotherm.Material.from_yaml(
         os.path.join(ROOT, "data", "materials", "ax21.yaml"))
-    mat = replace(mat, n_max=61.9047, alpha=3561.96, beta=16.61,
-                  p0=10 ** 9.1509, v_a=1.15627e-3)
+    # Medians of the committed (seeded, bit-reproducible) posterior chain.
+    mat = replace(mat, n_max=61.9031, alpha=3561.59, beta=16.6088,
+                  p0=10 ** 9.15063, v_a=1.1563e-3)
     iso = isotherm.ModifiedDA(mat)
     du = (iso.n_absolute(P_FULL, T_FULL)
           - iso.n_absolute(P_EMPTY, T_EMPTY)) * M_H2

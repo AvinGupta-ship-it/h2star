@@ -47,7 +47,7 @@ identifiability each added temperature restores.
 
 **2. Loose parameters, tight predictions.** Across the full 77 K profile
 region — a 3.8× range in n_max — the predicted usable system capacity at the
-baseline envelope varies by only about ±2.5%. The model is sloppy in the
+baseline envelope varies by only ±2.4% (volumetric: ±3.0%). The model is sloppy in the
 sense of Gutenkunst et al. (2007): the Fisher-information eigenvalue spectrum
 spans many decades. A requirement stated as "n_max = X at fixed α, β, P0" is
 therefore conditional on an arbitrary point along a ridge the data do not

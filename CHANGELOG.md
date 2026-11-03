@@ -321,6 +321,26 @@ externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
 gate code existed; amendment A1 pre-code). API-breaking (hence the major
 version).
 
+Before release, two isolated agents verified the adjudicated state
+(2026-11-03). A re-derivation from a fresh clone reproduced every headline
+number; its seven non-numeric findings were fixed — release metadata brought
+to 1.0.0; a rounding slip and two stale docstring/prose statements corrected;
+the MATI family-check record, which was not reproducible from the repository,
+recomputed from a newly committed compacted-MOF-5 parameter file and pinned
+by a test (corrected record in docs/validation_plan.md); emcee's RNG seeded
+so the committed MCMC chain is bit-reproducible (verified by two-run md5
+agreement), with the posterior and all downstream analysis records
+regenerated from the seeded chain. A reference audit against the primary
+sources confirmed every checkable value exactly but found the ST001 16 kg
+BOP anchor mis-attributed to 100 bar (its source states it, with a 10 L
+volume, as a fixed assumption of a 150-atm analysis): the adjudicated gate
+record stands, the corrected placements are quantified in
+scripts/bop_anchor_sensitivity.py (H1 +37% to +51%; no verdict flips), and
+provenance was corrected here and in a zhou2004 citation title, a
+MOF-5 validity range, a ln-P span statement, and a Fig. 1a 30-77 K
+data-attribution footnote (Michelsen & Chahine private communication, per
+Richard 2009 Table 1).
+
 ### Added
 - Component-resolved engineering model (`h2star.engineering`): netting-
   analysis type-3 vessels, back-derived type-1 walls, liner, MLI, shell,
@@ -335,7 +355,9 @@ version).
 - Identifiability layer: errors-in-P weighted objective, bisected profile
   likelihoods for all parameters (77 K and 60-298 K), Fisher spectrum,
   propagation of profile regions through the frozen engineering model.
-- MCMC posterior (ESS > 16,800, R-hat <= 1.003), model-form comparison
+- MCMC posterior (ESS > 16,200 per parameter against the pre-registered
+  10,000 floor, split-chain R-hat <= 1.0031; bit-reproducible — emcee's own
+  RNG is seeded, an S8 re-derivation fix), model-form comparison
   (m = 2 / free-m / Toth), declared input uncertainties, 20,000-sample
   propagation, Shapley effects for dependent inputs, separate elasticities.
 - Requirement map in observable axes under two engineering models.

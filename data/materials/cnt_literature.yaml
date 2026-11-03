@@ -164,7 +164,7 @@ entries:
 
   - key: "zhou2004"
     label: "Zhou 2004 (purified MWNT)"
-    citation: "Zhou, L.; Zhou, Y.; Sun, Y. Enhanced storage of hydrogen at the temperature of liquid nitrogen. International Journal of Hydrogen Energy 2004, 29, 475-479."
+    citation: "Zhou, L.; Zhou, Y.; Sun, Y. A comparative study of hydrogen adsorption on superactivated carbon versus carbon nanotubes. International Journal of Hydrogen Energy 2004, 29, 475-479."
     doi: "10.1016/S0360-3199(03)00092-2"
     doi_source: "printed in the PDF, p. 475"
     hycan_id: "HYC-0052"

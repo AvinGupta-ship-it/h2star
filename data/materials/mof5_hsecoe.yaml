@@ -26,6 +26,7 @@ validity:
   temperature_range_K: [80.0, 160.0]
   note: >
     HSECoE system-model fit used for system design in the source; validity range is the HSECoE
-    operating envelope (5-100 bar, 80-160 K), not a statement about the underlying isotherm data
+    operating envelope (5-100 bar, 80-140 K per FEDSM Table 5; Purewal 2019 describes the same
+    design family at 100 bar/80 K -> 5.5 bar/160 K), not a statement about the underlying isotherm data
     range. Used here only to reproduce the source's own system designs (calibration case E1),
     never as a material-property claim about MOF-5.

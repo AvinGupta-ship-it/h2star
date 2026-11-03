@@ -1,0 +1,31 @@
+name: "Compacted MOF-5, 0.32 g/cc (HSECoE system-model parameter set)"
+citation: >
+  Tamburello, Hardy, Corgnale, Sulic, Anton, "Cryo-Adsorbent Hydrogen Storage Systems for Fuel
+  Cell Vehicles", Proc. ASME FEDSM2017, paper FEDSM2017-69411 (open manuscript
+  SRNL-STI-2017-00079), Table 2, column "Compacted MOF-5 (0.32 g/cc)": rho_ads 322.0 kg/m3,
+  alpha 2095.25 J/mol, beta 22.632 J/(mol*K), nmax 154.815 mol/kg, P0 3.156e9 Pa,
+  Va 0.00220 m3/kg, Vv 0.00261 m3/kg. DOI 10.1115/FEDSM2017-69411. Read from the open
+  manuscript PDF 2026-11-03.
+date_accessed: "2026-11-03"
+parameters:
+  n_max: {value: 154.815, unit: "mol/kg"}
+  alpha: {value: 2095.25, unit: "J/mol"}
+  beta: {value: 22.632, unit: "J/(mol*K)"}
+  p0: {value: 3156.0, unit: "MPa"}          # source-native 3.156e9 Pa = 3156 MPa
+  v_a: {value: 0.00220, unit: "m3/kg"}
+material_anchors:
+  bulk_density_kg_per_m3: 322.0
+  skeletal_density_kg_per_m3: 2262.4
+  skeletal_density_source: >
+    Derived from the same Table 2 row, not independently published: the source gives the void
+    volume Vv = 0.00261 m3/kg, and 1/rho_skel = 1/rho_bulk - Vv = 1/322.0 - 0.00261
+    = 4.4203e-4 m3/kg, so rho_skel = 2262.4 kg/m3. Same bookkeeping convention as the powder
+    set (data/materials/mof5_hsecoe.yaml).
+validity:
+  pressure_range_MPa: [0.0, 10.0]
+  temperature_range_K: [80.0, 160.0]
+  note: >
+    HSECoE system-model fit used for system design in the source; validity range is the HSECoE
+    operating envelope (5-100 bar, 80-160 K). Used here ONLY for the secondary, non-binding
+    MATI family check of calibration E1 (docs/validation_plan.md, Part v1.0) -- the MATI
+    system of FEDSM Table 5 uses this material. Never used in any gate, claim, or figure.

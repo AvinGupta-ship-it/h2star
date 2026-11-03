@@ -130,8 +130,14 @@ bop:
   bop_source: >
     Two published anchors interpolated linearly in design pressure (and extrapolated to
     200 bar): (a) Ahluwalia et al., ST001 (2011), slide 26: 16 kg miscellaneous balance-of-
-    system mass for the 100-bar MOF-5 system; volume not stated — 11 L assigned at 100 bar so
-    the pressure slope matches the mass anchors' source pair, and calibrated by c_bop_vol;
+    system mass; (b below). CORRECTION (S8 audit D2, 2026-11-03, post-E2): slide 26 states the
+    16 kg — and a 10 L miscellaneous volume this file's 11 L mis-recorded as 'not stated' —
+    as fixed assumptions of the deck's MOF-5 on-board analysis, whose design point is 150 atm
+    storage / 187.5 atm vent (slides 12/26/27), NOT a 100-bar system. The anchors here are
+    KEPT as frozen because gate E2 was adjudicated once on this model; the corrected and
+    pressure-independent placements are quantified in scripts/bop_anchor_sensitivity.py and
+    docs/validation_plan.md (H1 deviation +37.2% to +50.8% vs the adjudicated +40.99%;
+    the gate verdict, FAIL, is unchanged under every placement).
     (b) Ahluwalia & Peng, IJHE 34 (2009): 30 kg and 25 L ex-vessel miscellaneous components
     at 350 bar, with the component inventory enumerated (piping, PRV, regulator, check valve,
     sensors, fill/shut-off/vent valves, cryo-valve housing, H2-warming heat exchanger, tank
@@ -152,7 +158,9 @@ calibration_factors:
     V_internal 172.1/188.4 L (-8.65%, sizing residual: this inventory model stores more H2
     per litre than the HSECoE lumped model; disclosed, not calibrated). c_hx kept at its
     source value 1.0. Secondary non-binding family check, MATI (0.32 g/cc compacted MOF-5,
-    FEDSM Table 2): m_sys +6.11%, V_sys +0.57%, t_wall -1.93%. No value in this file may
+    FEDSM Table 2, data/materials/mof5_compacted_hsecoe.yaml): m_sys +5.07%, V_sys -0.43%,
+    t_wall -2.34% (recomputed from the committed artifact after the S8 re-derivation; see
+    the corrected record in docs/validation_plan.md). No value in this file may
     change before gate E2 is adjudicated (docs/preregistration_v1.0.md section 4).
   calibration_source: >
     The three pre-registered free scalars (preregistration section 3, amendment A1): BOP mass

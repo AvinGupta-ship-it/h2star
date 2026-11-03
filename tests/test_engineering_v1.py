@@ -123,3 +123,25 @@ def test_bad_vessel_type_rejected(params):
     with pytest.raises(ValueError):
         eng.SystemDesignV1(mat, isotherm.ModifiedDA(mat), params, "type4",
                            100e5, 80.0, 5e5, 160.0)
+
+
+def test_mati_family_check(params):
+    """Secondary, non-binding E1 family check (validation_plan Part v1.0).
+
+    MATI system of FEDSM2017-69411 Table 5: 0.32 g/cc compacted MOF-5
+    (Table 2, committed YAML), E1-frozen factors, sized to 5.6 kg usable on
+    the 100 bar/80 K -> 5 bar/140 K envelope. Pins the recomputed record
+    (S8 re-derivation correction): m_sys +5.07%, V_sys -0.43%,
+    t_wall -2.34%; and the sigma_design cross-check at the published
+    internal volume, t = 13.79 mm.
+    """
+    mat = isotherm.Material.from_yaml(os.path.join(
+        ROOT, "data", "materials", "mof5_compacted_hsecoe.yaml"))
+    d = eng.SystemDesignV1(mat, isotherm.ModifiedDA(mat), params, "type1",
+                           100e5, 80.0, 5e5, 140.0)
+    b = eng.evaluate_sized(d)
+    assert abs(100 * (b["m_sys"] / 141.59 - 1) - 5.07) < 0.01
+    assert abs(100 * (b["V_sys"] * 1e3 / 246.03 - 1) - (-0.43)) < 0.01
+    assert abs(100 * (b["t_wall"] * 1e3 / 13.06 - 1) - (-2.34)) < 0.01
+    at_published_v = d.evaluate(0.1801)
+    assert abs(at_published_v["t_wall"] * 1e3 - 13.79) < 0.01

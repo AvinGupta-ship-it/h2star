@@ -54,7 +54,8 @@ Raw parameter magnitudes span ~12 decades (p0 ~ 1.5e9 Pa against v_a ~ 1.4e-3 m�
 so the fit uses log10 p0 and characteristic scales (x_scale) to keep internal steps
 O(1) (manual Sec. 5.9). Separately, p0 is weakly identified: in x = ln P,
 ln n_abs = ln n_max − (R·T/E)²·(ln p0 − x)² is a parabola with vertex at ln p0 ≈ 21.1,
-while the data occupy x ≈ 10.8–15.6 — about 2.4 decades below the vertex. Observing
+while the data occupy x ≈ 6.8–15.6 (the bulk above ≈ 10.8) — the top of the range
+still ≈ 2.4 decades below the vertex. Observing
 only the far tail of a parabola makes its vertex location (p0) and curvature
 ((R·T/E)²) trade off strongly: ill-conditioned, not degenerate. A decade-scale
 uncertainty on log10 p0 is therefore expected, which is why its pre-registered band
@@ -148,8 +149,10 @@ sensitivity of every conclusion to relaxing that bound is reported.
 Log-posterior = Gaussian log-likelihood under the section-8 error model
 (normalization retained, since sigma_eff depends on theta) plus uniform
 priors on the frozen bounds; sampled with emcee (40 walkers, 30,000 steps,
-5,000 burn-in). Diagnostics per parameter: ESS > 16,800 and split-chain
-R-hat <= 1.003, with split-half quantile agreement recorded
+5,000 burn-in; both the walker initialization and emcee's own RNG are seeded,
+so the committed chain is bit-reproducible). Diagnostics per parameter:
+ESS > 16,200 (pre-registered floor 10,000) and split-chain R-hat <= 1.0031,
+with split-half quantile agreement recorded
 (data/analysis/uq_mcmc_v1.json).
 
 ## 11. Sensitivity: Shapley effects and elasticities (v1.0)

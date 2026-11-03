@@ -31,6 +31,15 @@ throughout:
   volumetric agreement (VC ratios 0.93–1.15 across anchors) and the exact
   60 bar/40 K mass agreement bound the problem to the high-pressure
   composite mass accounting.
+- A post-adjudication audit found the BOP interpolation's 16 kg anchor
+  mis-attributed to a 100-bar system (its source states it, with a 10 L
+  volume, as a fixed assumption of a 150-atm-storage analysis). The gate
+  record stands as adjudicated; re-anchoring at the source's own pressures
+  moves the failed comparison between +37% and +51% and flips no verdict
+  (`data/analysis/bop_anchor_sensitivity.json`; correction record in
+  `docs/validation_plan.md`). The BOP pressure law itself — two
+  component-class points, linear — is the weakest-sourced part of the model
+  either way, and its declared uncertainty is carried in the UQ.
 
 ## 2. What the identifiability result is, and is not
 

@@ -39,6 +39,9 @@ def main():
     p0 = np.clip(p0, uq_v1.LO * 1.0001, uq_v1.HI * 0.9999)
     sampler = emcee.EnsembleSampler(
         nwalk, 5, uq_v1.log_posterior, args=(fd,))
+    # Seed emcee's own RNG too (not just walker init), so the chain is
+    # bit-reproducible — S8 re-derivation finding 6.
+    sampler.random_state = np.random.RandomState(SEED).get_state()
     sampler.run_mcmc(p0, nstep, progress=False)
     chain = sampler.get_chain(discard=burn)  # (nstep-burn, nwalk, 5)
 
