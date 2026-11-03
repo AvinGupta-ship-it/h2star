@@ -6,6 +6,8 @@ Repository: https://github.com/AvinGupta-ship-it/h2star, frozen against the v0.2
 External timestamp: this document is deposited on Zenodo as its own record before any code
 implementing the gates below is committed or run. The Zenodo DOI, once minted, is added to this
 header by a dated amendment commit that changes nothing else.
+Deposited 2026-11-03: DOI 10.5281/zenodo.23931242 (version v1; concept DOI for all versions
+10.5281/zenodo.23931241), verified live on the published record.
 
 Status of this document: FROZEN at deposit. Amendments after deposit are permitted only as dated
 commits that preserve the original text as SUPERSEDED, state the reason, and land before the code
