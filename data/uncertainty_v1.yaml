@@ -1,0 +1,84 @@
+name: "H2STAR v1.0 input uncertainty specification"
+description: >
+  Input distributions for the v1.0 uncertainty and sensitivity study
+  (pre-registration docs/preregistration_v1.0.md section 7, DOI
+  10.5281/zenodo.23931242). Declared, with justification per entry, BEFORE any
+  propagation run, as the plan requires. The material-parameter block is the
+  joint MCMC posterior of the multi-temperature fit (data/analysis/
+  uq_posterior_v1.npz) — a correlated block, never factored into independent
+  marginals. The engineering inputs below are mutually independent of each
+  other and of the material block; each distribution's basis is its
+  justification field. Baseline sensitivity envelope: AX-21, type-3,
+  100 bar/80 K full to 5 bar/160 K empty, sized to 5.6 kg usable
+  (the v0.2 baseline envelope, retained for comparability; the ambient 298 K
+  configuration appears only as the labelled supplementary contrast).
+
+material_block:
+  source: "data/analysis/uq_posterior_v1.npz (joint posterior; section-6 error model)"
+  note: "Sampled jointly. Where a map fixes any of these on an axis, sampling is conditional on the fixed values or no band is shown (frozen conditionality rule)."
+
+engineering:
+  sigma_factor_t3:
+    distribution: {type: normal, mean: 1.0, sd: 0.08, truncate: [0.7, 1.3]}
+    applies_to: "multiplier on type3 effective composite stress"
+    justification: >
+      The ANL-10/24 quality adjustment (0.90) and the A&P translation
+      efficiency are themselves estimates; the plausible combined spread of
+      the two knockdowns is ~8% (0.90 +/- 0.05 quality; +/- 0.06 translation
+      ambiguity between capped extrapolation and the 350-bar value).
+  composite_density:
+    distribution: {type: uniform, low: 1580.0, high: 1630.0}
+    applies_to: "type3 composite density, kg/m3"
+    justification: "Two sources for the same T700S/epoxy class: 1600 (A&P 2009 Table 2) and 1609 kg/m3 (ANL-10/24 derived); interval covers both with margin."
+  liner_thickness:
+    distribution: {type: uniform, low: 0.0017, high: 0.0030}
+    applies_to: "type3 Al 2024 liner thickness, m"
+    justification: "A&P 2009 use 2.4 mm at 350 bar; the superseded v0.2 pressure-scaled rule gave 1.73 mm at 100 bar; Type-3 liners in this class span roughly 1.7-3.0 mm. No single-source value for a 100-200 bar cryo liner exists in the corpus."
+  shell_thickness:
+    distribution: {type: uniform, low: 0.002, high: 0.003}
+    applies_to: "outer shell thickness, m (type3)"
+    justification: "2.0 mm (FEDSM/Purewal type-1 family) to 3.0 mm (A&P type-3) — the two published shell gauges of the reference designs."
+  mli_k_eff_factor:
+    distribution: {type: lognormal, median: 1.0, sigma_ln: 0.405}
+    applies_to: "multiplier on MLI effective conductivity"
+    justification: "Installed MLI apparent conductivity commonly deviates from flat-sample values by a factor ~1.5 (seams, penetrations, compression); sigma_ln = ln(1.5) makes x1.5 the one-sigma factor. Both sources quote the same 5.2e-4 W/(m K), so the spread is installation, not source, uncertainty."
+  mli_density:
+    distribution: {type: uniform, low: 47.0, high: 71.0}
+    applies_to: "MLI blanket density, kg/m3"
+    justification: "+/-20% around the single published 59.3 kg/m3 (layup/compression variation)."
+  heat_leak_budget:
+    distribution: {type: uniform, low: 2.0, high: 7.0}
+    applies_to: "type3 MLI sizing budget, W"
+    justification: "Published budgets for this tank class: ~1-2 W (A&P 2009 sizing), 5 W (HSECoE ST001/FY2011), < 7 W DOE automotive-cryo ceiling (Meneghelli 2017)."
+  hx_vol_fraction:
+    distribution: {type: uniform, low: 0.013, high: 0.054}
+    applies_to: "internal HX/heater aluminium volume fraction of bed"
+    justification: "Factor-2 band around the single small-scale HexCell datum (0.027, ST044-2013 slide 25); the generic-heater structure of the type-3 baseline is unpublished."
+  supports_mass:
+    distribution: {type: uniform, low: 0.64, high: 1.92}
+    applies_to: "boss/plug/support mass, kg"
+    justification: "+/-50% around the single published 1.28 kg (ST044-2013 slide 27)."
+  bop_mass_factor:
+    distribution: {type: normal, mean: 1.0, sd: 0.15, truncate: [0.55, 1.45]}
+    applies_to: "multiplier on the calibrated BOP mass"
+    justification: "The two anchors (16 kg at 100 bar, 30 kg at 350 bar) define the interpolation; the E1-calibrated scale carries ~15% residual class uncertainty (anchor scatter and component-count differences between the HexCell and A&P inventories)."
+  bop_volume_factor:
+    distribution: {type: normal, mean: 1.0, sd: 0.15, truncate: [0.55, 1.45]}
+    applies_to: "multiplier on the calibrated BOP volume"
+    justification: "Same basis as bop_mass_factor; the 100-bar volume anchor is itself assigned (see engineering_v1.yaml bop_source)."
+  model_error_mass:
+    distribution: {type: normal, mean: 1.0, sd: 0.05, truncate: [0.85, 1.15]}
+    applies_to: "multiplier on the summed engineering (non-media, non-H2) mass"
+    justification: "Omitted-component model error calibrated from the E1 residuals, as the frozen plan prescribes: the calibration family closed to 0.0 to +6.1% (HexCell exact; MATI +6.1%); sd 5%. NOTE: the held-out gate E2 showed a +41% GC miss at 200 bar — absolute-capacity claims are already removed by the fork rule, and this term is NOT inflated post-hoc to cover E2."
+  model_error_volume:
+    distribution: {type: normal, mean: 1.0, sd: 0.03, truncate: [0.9, 1.1]}
+    applies_to: "multiplier on the summed engineering (non-internal) volume"
+    justification: "E1 volume residuals: -0.73% (HexCell), +0.57% (MATI); sd 3%."
+  T_empty:
+    distribution: {type: uniform, low: 150.0, high: 170.0}
+    applies_to: "empty-state temperature, K"
+    justification: "Envelope input (frozen plan): the HSECoE family uses 140-160 K empty states; the v0.2 baseline used 160 K; band covers the plausible discharge-end temperature at fixed hardware."
+  P_empty:
+    distribution: {type: uniform, low: 4.0e+5, high: 6.0e+5}
+    applies_to: "empty-state pressure, Pa"
+    justification: "Envelope input: fuel-cell rail minimum 3-8 bar across target years; 5 bar nominal with +/-1 bar band."
