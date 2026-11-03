@@ -647,3 +647,71 @@ Author: Avin Gupta. Claim C4 as rewritten above requires his sign-off per manual
 for use outside this record: in the README, the changelog, and any external
 presentation of the project. The absolute form is not approved and is not to
 be reinstated without a vessel-mass model that closes Gate V3.
+
+---
+
+# Part v1.0 — Externally pre-registered gates (DOI 10.5281/zenodo.23931242)
+
+Everything above this line is the v0.2.0 record and is SUPERSEDED as a plan
+(its adjudications stand as results). The v1.0 gates below were frozen in
+`docs/preregistration_v1.0.md`, deposited on Zenodo (DOI 10.5281/zenodo.23931242,
+published 2026-11-03) BEFORE any code in `src/h2star/engineering.py` existed;
+amendment A1 (calibration case moved to the FEDSM2017-69411 Table 5 HexCell
+specification, original preserved as SUPERSEDED) landed before any gate code ran.
+
+## Calibration E1 — adjudicated 2026-11-03
+
+Model: `src/h2star/engineering.py` at the freeze commit, parameters
+`data/engineering_v1.yaml`. Calibration case: FEDSM2017-69411 Table 5 HexCell
+system (powder MOF-5, FEDSM Table 2 parameters; 100 bar/80 K -> 5 bar/140 K;
+5.6 kg usable; type-1 aluminium).
+
+Fitted factors (the only fitted values, now FROZEN): c_bop_mass = 1.086426
+(bounds 0.5-2.5); c_bop_vol = 2.5 — solved to 2.6702 and CLAMPED at its
+declared bound; c_hx = 1.0 (kept at source value).
+
+Residuals against Table 5: m_sys 140.99/140.99 kg (+0.00%); V_sys
+285.59/287.70 L (-0.73%); t_wall 13.59/14.00 mm (-2.96%); V_internal
+172.1/188.4 L (-8.65%, inventory-model sizing residual, disclosed — not a
+calibrated quantity). Criterion (within ±10% with factors in bounds): **MET**.
+
+Secondary, non-binding family check — MATI (0.32 g/cc compacted MOF-5, FEDSM
+Table 2): m_sys +6.11%, V_sys +0.57%, t_wall -1.93%.
+
+## Gate E2 — held-out validation, run ONCE, adjudicated 2026-11-03
+
+Frozen targets and tolerances (pre-registration §4). Model exactly as frozen at
+E1; AX-21 by the Richard global set (rho_bulk 300, rho_skel 2300 kg/m3); usable
+basis; sized to 5.6 kg usable.
+
+| Case | Quantity | Predicted | Target | Ratio-1 | Band | Verdict |
+|---|---|---|---|---|---|---|
+| H1: AX-21, type-3, 200 bar/80 K -> 5 bar/160 K | GC | 0.04780 | 0.0339 | +40.99% | ±20% | **FAIL** |
+| H2: same system | VC | 0.02221 | 0.0210 | +5.77% | ±20% | PASS |
+| H3: AX-21, type-1 Al, 60 bar/40 K -> 5 bar/110 K | m_sys | 99.6 kg | 99.8 kg | -0.23% | ±25% | PASS |
+| H3: same system | V_sys | 184.7 L | 206.6 L | -10.58% | ±25% | PASS |
+
+**GATE E2: FAIL** (passes only iff all four pass). **The pre-registered fork
+rule is in force**: the paper drops every claim that uses an absolute system
+capacity; it keeps the material-level and identifiability results; relative
+claims beyond monotone orderings appear only if demonstrated robust under at
+least two independent engineering models, reported in the supplement.
+
+Diagnostic detail, recorded for the paper's limitations section (not a
+re-adjudication). The failure is mass-side and pressure-dependent, in the same
+direction the 2026-10-27 review found for v0.2 but much reduced (v0.2 GC_full
+2.49x the 2013 anchor; v1.0 usable-basis GC 1.23x the FY2011 anchor, 1.30x the
+2012 anchor, 1.53x the 2013 anchor, 1.41x their midpoint). Volumes agree well
+everywhere (VC ratios 0.93/0.98/1.15; H3 volume -11%), and the low-pressure
+type-1 case closes to -0.2% in mass. A pure netting-analysis composite wall at
+200 bar (11.5 kg composite + 9.3 kg liner here) is substantially lighter than
+whatever the HSECoE Phase-1 baseline carried; the anchor's own 21% report-to-
+report drift and unstated capacity basis add irreducible target uncertainty.
+Conclusion consistent with the project's central claim: absolute system-level
+capacities are engineering-model-dependent at the tens-of-percent level, which
+is precisely why requirements should be stated in observables.
+
+Non-binding cross-checks reported with E2: performance-factor route vs netting
+wall (type-3): -12.4% at 100 bar, -36.0% at 200 bar (reported both, per the
+M1 exit test; the netting route is the sizing route). MOF-5 rows of ST044-2012
+slide 12 under this model are reported in the S6 analysis records.
