@@ -715,3 +715,17 @@ Non-binding cross-checks reported with E2: performance-factor route vs netting
 wall (type-3): -12.4% at 100 bar, -36.0% at 200 bar (reported both, per the
 M1 exit test; the netting route is the sizing route). MOF-5 rows of ST044-2012
 slide 12 under this model are reported in the S6 analysis records.
+
+## D6 adjudication — CNT case study (pre-registration section 8), 2026-11-03
+
+The dual independent digitization of Panella, Hirscher & Roth, Carbon 43
+(2005) 2209-2214, Fig. 2(b) (purified SWCNTs; the corpus's only traceable
+77 K high-pressure CNT isotherm, HYC-0001) reconciled to **5 points at 77 K**
+(routes agreed to <= 0.02 bar and <= 0.001 wt%; dataset
+`data/validation/panella_fig2b_swcnt.csv`, published error bars included).
+Criterion (a) of the frozen rule requires eight or more reconciled points.
+**The CNT case study is therefore DROPPED from the paper** and survives only
+as a documented notebook example, presented as agreement with prior
+literature (Tibbetts 2001; Panella 2005; Zhou et al. 2004), with the v0.2
+qikun2002 wording and F8 labelling errors corrected wherever they appeared.
+No system-level CNT ratio is claimed in any public artifact.

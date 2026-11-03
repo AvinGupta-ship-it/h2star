@@ -1,0 +1,24 @@
+# Archival environment lock for H2STAR v1.0.0 (review minor 14 / D10).
+# The figure-byte reproducibility additionally depends on the FreeType BUILD,
+# not only its version (observed 2026-11-03: identical matplotlib/FreeType/
+# Pillow versions, different builds, different F1 bytes), so v1.0 figure
+# tests compare DATA, and byte-level reproduction is scoped to this lock on
+# the CI images.
+CoolProp==8.0.0
+PyYAML==6.0.3
+SALib==1.6.0
+contourpy==1.4.0
+cycler==0.12.1
+emcee==3.1.6
+fonttools==4.67.0
+kiwisolver==1.5.1
+matplotlib==3.11.2
+numpy==2.5.3
+packaging==26.3
+pillow==12.3.0
+pyparsing==3.3.3
+pytest==9.1.1
+python-dateutil==2.9.0.post0
+ruff==0.15.17
+scipy==1.18.1
+six==1.17.0
