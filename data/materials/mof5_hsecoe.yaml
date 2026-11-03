@@ -1,0 +1,31 @@
+name: "Powder MOF-5 (HSECoE system-model parameter set)"
+citation: >
+  Tamburello, Hardy, Corgnale, Sulic, Anton, "Cryo-Adsorbent Hydrogen Storage Systems for Fuel
+  Cell Vehicles", Proc. ASME FEDSM2017, paper FEDSM2017-69411 (open manuscript
+  SRNL-STI-2017-00079), Table 2, column "Powder MOF-5": rho_ads 130.0 kg/m3, alpha 2895.13 J/mol,
+  beta 15.2912 J/(mol*K), nmax 96.4317 mol/kg, P0 1.387e9 Pa, Va 0.00170 m3/kg, Vv 0.00725 m3/kg.
+  DOI 10.1115/FEDSM2017-69411. Read from the manuscript PDF 2026-11-03.
+date_accessed: "2026-11-03"
+parameters:
+  n_max: {value: 96.4317, unit: "mol/kg"}
+  alpha: {value: 2895.13, unit: "J/mol"}
+  beta: {value: 15.2912, unit: "J/(mol*K)"}
+  p0: {value: 1387.0, unit: "MPa"}          # source-native 1.387e9 Pa = 1387 MPa
+  v_a: {value: 0.00170, unit: "m3/kg"}
+material_anchors:
+  bulk_density_kg_per_m3: 130.0
+  skeletal_density_kg_per_m3: 2260.9
+  skeletal_density_source: >
+    Derived from the same Table 2 row, not independently published: the source gives the void
+    volume Vv = 0.00725 m3/kg, and 1/rho_skel = 1/rho_bulk - Vv = 1/130.0 - 0.00725
+    = 4.4231e-4 m3/kg, so rho_skel = 2260.9 kg/m3. This reproduces the source's own void
+    bookkeeping exactly (V_void per kg = Vv at full packing); the tank layer subtracts v_a
+    separately, giving the source's interstitial gas volume Vg = Vv - Va = 0.00555 m3/kg.
+validity:
+  pressure_range_MPa: [0.0, 10.0]
+  temperature_range_K: [80.0, 160.0]
+  note: >
+    HSECoE system-model fit used for system design in the source; validity range is the HSECoE
+    operating envelope (5-100 bar, 80-160 K), not a statement about the underlying isotherm data
+    range. Used here only to reproduce the source's own system designs (calibration case E1),
+    never as a material-property claim about MOF-5.

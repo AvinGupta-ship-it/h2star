@@ -1,0 +1,164 @@
+name: "H2STAR v1.0 component-resolved engineering parameters"
+description: >
+  Component-resolved system mass/volume model parameters for src/h2star/engineering.py,
+  replacing the v0.2 lumped model (data/engineering.yaml, retained as the superseded record).
+  Two vessel classes are parameterized: 'type1' (all-metal aluminium, HSECoE HexCell/MATI
+  family) and 'type3' (aluminium-lined carbon-fibre overwrap, netting analysis, HSECoE
+  Phase-1-baseline family). Values are SI; each _source records provenance. Calibration factors
+  (c_*) are the ONLY values fitted in this project (pre-registration
+  docs/preregistration_v1.0.md, DOI 10.5281/zenodo.23931242, section 3 as amended A1); their
+  fitted values are recorded by the E1 calibration with bounds declared here.
+date_accessed: "2026-11-03"
+
+design_pressure:
+  vent_ratio: {value: 1.25, unit: "dimensionless"}
+  vent_ratio_source: >
+    Pre-registered rule (preregistration section 3): design pressure P_design = 1.25 * P_full,
+    the relief-valve set-point practice of Ahluwalia & Peng, IJHE 34 (2009) 5476-5487
+    (10.1016/j.ijhydene.2009.05.023), whose dormancy analysis vents at 25% above maximum
+    storage pressure. Safety factors below are stated by their sources AGAINST P_full
+    (operating), so the code applies SF_eff = SF_source / 1.25 to P_design; the sizing is
+    numerically identical to each source's own practice while honoring the dormancy-set
+    design pressure.
+
+type1:
+  sigma_design: {value: 4.00e+8, unit: "Pa"}
+  sigma_design_source: >
+    Back-derived EXACTLY from the calibration source's own published design: Tamburello et al.,
+    FEDSM2017-69411 (SRNL-STI-2017-00079), Table 5, HexCell system: aluminium Type-1 wall
+    14.00 mm at safety factor 2.5, 100 bar full pressure, internal volume 188.4 L, 2:1 L-to-D
+    (cylindrical length = 4r, hemispherical caps): r = (0.1884/(pi*(4+4/3)))^(1/3) = 0.22402 m;
+    sigma = SF*P*r/t = 2.5*1.0e7*0.22402/0.01400 = 4.000e8 Pa. Cross-check on the same table's
+    MATI system (180.1 L): predicted t = 13.79 mm vs published 13.06 mm (+5.6%). Consistent
+    with aluminium 6061-T6 ultimate strength at ~80 K; a published cryogenic datasheet citation
+    is to be added at the S8 reference audit (flagged, not load-bearing: the number is
+    artifact-derived).
+  safety_factor: {value: 2.5, unit: "dimensionless"}
+  safety_factor_source: "FEDSM2017-69411 text: Type-1 vessels 'designed with a safety factor of 2.5' (applied to the full/operating pressure; see design_pressure note)."
+  wall_density: {value: 2700.0, unit: "kg/m3"}
+  wall_density_source: "Aluminium 6061 density, Kaiser Aluminum Rod & Bar Alloy 6061 datasheet (as already cited in data/engineering.yaml)."
+  aspect_LR_cyl_over_r: {value: 4.0, unit: "dimensionless"}
+  aspect_LR_source: "FEDSM2017-69411 Table 5: 2:1 L-to-D (cylindrical section length = 2 diameters = 4r); exact back-out above confirms the convention."
+  ln2_channel_thickness: {value: 0.0, unit: "m"}
+  ln2_channel_areal_mass: {value: 0.0, unit: "kg/m2"}
+  ln2_channel_source: >
+    Set to zero for the type-1 family: in the final published design the LN2 cooling channels
+    are EMBEDDED in the outer shell, not a discrete layer — Purewal et al., IJHE 44 (2019):
+    'The outer shell contains a layer of embedded liquid N2 channels', and FEDSM2017-69411
+    Table 5 lists only PV wall + MLVI + 2.0 mm outer shell with no channel line. The discrete
+    19.24 kg / 16.42 L channel (6.8 mm, 7.82 kg/m2 effective) belongs to the superseded
+    4.4:1 2013 variant (DOE AMR ST044-2013 slide 27) and is retained here, in this note, as
+    the record of that earlier design; carrying it into the FEDSM-family model double-counts
+    a function the 2.0 mm shell already carries. The type-3 Phase-1 baseline has no wall
+    channel on its record (flow-through cooling), so this zeroing cannot affect gate E2.
+
+type3:
+  fiber_strength: {value: 2.55e+9, unit: "Pa"}
+  fiber_strength_source: "Toray T700S composite strength 2550 MPa: Ahluwalia & Peng, IJHE 34 (2009), Table 2 (T700S carbon fiber, 2550 MPa, 1600 kg/m3); same value in Hua et al., ANL-10/24 (2010), Table 1."
+  quality_knockdown: {value: 0.90, unit: "dimensionless"}
+  quality_knockdown_source: "Hua et al., ANL-10/24 (2010), Table 1: CF quality adjustment -10% (as in the superseded data/engineering.yaml)."
+  translation_at_350bar: {value: 0.825, unit: "dimensionless"}
+  translation_at_700bar: {value: 0.63, unit: "dimensionless"}
+  translation_cap: {value: 0.90, unit: "dimensionless"}
+  translation_source: >
+    Ahluwalia & Peng, IJHE 34 (2009), text: 'carbon fiber translation strength can be linearly
+    interpolated between 82.5% at 350 bar and 63% at 700 bar and ... extrapolated to pressures
+    outside the 350-700 bar range.' Linear in P_full (bar): eff(P) = 0.825 - (0.825-0.63)/350
+    * (P - 350), extrapolated per the source but capped at 0.90 below ~215 bar so the
+    extrapolation never exceeds the ANL quality-adjusted ceiling; the cap is a modelling
+    guard, disclosed here, active for P_full < 215 bar.
+  safety_factor: {value: 2.35, unit: "dimensionless"}
+  safety_factor_source: "Ahluwalia & Peng, IJHE 34 (2009): 'we applied a safety factor of 2.35' in the netting-analysis carbon-fibre sizing (applied to storage pressure; see design_pressure note). ANL-10/24 uses 2.25 for 350/700-bar compressed vessels; 2.35 is kept because the held-out systems are A&P-class cryo vessels."
+  composite_density: {value: 1600.0, unit: "kg/m3"}
+  composite_density_source: "Ahluwalia & Peng, IJHE 34 (2009), Table 2: T700S composite 1600 kg/m3 (32% resin by volume). (ANL-10/24 derived 1609 kg/m3 for a wound CF/epoxy layer; the A&P value is used for class consistency.)"
+  helical_angle_deg: {value: 12.0, unit: "degree"}
+  helical_angle_source: >
+    Representative near-axial geodesic helical angle on the cylinder for polar-boss composite
+    vessels (boss radius << cylinder radius). The TOTAL netting composite thickness on the
+    cylinder, t = 1.5*P*r/sigma, is exactly independent of this angle (helical
+    t_h = P*r/(2 sigma cos^2 a) carrying axial load; hoop t_th = P*r/sigma - t_h sin^2 a);
+    the angle only partitions helical vs hoop plies and thus sets the dome thickness (helical
+    plies only). Sensitivity of dome mass to 8-25 deg is reported with the E1 residuals.
+  liner_thickness: {value: 0.0024, unit: "m"}
+  liner_density: {value: 2780.0, unit: "kg/m3"}
+  liner_source: "Ahluwalia & Peng, IJHE 34 (2009), Table 2: liner Al 2024 alloy, 2.4 mm. Al 2024 density 2780 kg/m3 (standard alloy value; datasheet citation to be added at S8 audit). Fixed thickness (permeation barrier), not pressure-scaled: replaces the superseded v0.2 pressure-scaled areal-mass rule that the 2026-10-27 review faulted (M1)."
+  aspect_LR_cyl_over_r: {value: 4.0, unit: "dimensionless"}
+  aspect_LR_source: "No L/D is published for the ST044 Phase-1 baseline tank; the type-1 family value (2:1 L-to-D) is used for class consistency and the LR sensitivity is quantified and reported (closes review minor 13). A&P use L/D = 3 (LR = 6) for their 350-bar vessel; both are reported."
+  performance_factor: {value: 73500, unit: "Pa*m3/kg"}
+  performance_factor_source: "Newhouse, Hexagon Lincoln, DOE AMR ST047 (2013), slide 14 Tank 5: Type IV, 100 bar, 735 bar*L/kg (unchanged from the superseded file). Cross-check only, reported at BOTH 100 and 200 bar per the traceability matrix (M1 exit test); the netting route is the sizing route."
+
+shell:
+  thickness_type1: {value: 0.002, unit: "m"}
+  thickness_type1_source: "FEDSM2017-69411 Table 5 and Purewal et al. IJHE 44 (2019): 2.0 mm aluminium outer shell (dormancy/impact) on the type-1 systems."
+  thickness_type3: {value: 0.003, unit: "m"}
+  thickness_type3_source: "Ahluwalia & Peng, IJHE 34 (2009), Table 2: shell Al 2024 alloy, 3 mm (vacuum shell of the cryo type-3 system)."
+  density: {value: 2780.0, unit: "kg/m3"}
+  density_source: "Al 2024 (A&P shell material); type-1 shells are reported as aluminium without alloy — the 2024 density is applied to both (0.1% class difference, immaterial)."
+
+mli:
+  k_eff: {value: 5.2e-4, unit: "W/(m*K)"}
+  k_eff_source: "Ahluwalia et al., DOE ST001 (2011), slide 26: MLVI effective conductivity 5.2e-4 W/(m*K), aluminized Mylar/Dacron, 28 layers/cm (unchanged from the superseded file). Consistent with Ahluwalia & Peng IJHE 34 (2009) Table 2."
+  density: {value: 59.3, unit: "kg/m3"}
+  density_source: "Ahluwalia et al., ST001 (2011), slide 26; identical value in Ahluwalia & Peng (2009) Table 2."
+  thickness_type1: {value: 0.0254, unit: "m"}
+  thickness_type1_source: "FEDSM2017-69411 Table 5: MLVI thickness 25.4 mm (1 inch) on both the HexCell and MATI designs. Fixed design input for the type-1 family; the implied heat leak at the worst-case ambient is computed and REPORTED (dormancy metric), not used for sizing."
+  heat_leak_budget_type3: {value: 5.0, unit: "W"}
+  heat_leak_budget_type3_source: "FY2011 DOE Hydrogen Program APR, ch. IV.D.1 (Anton), adsorbent system description: 'multilayer vacuum insulated jacket with a 5 W heat leak at 80 K'. Sizing driver for the type-3 Phase-1-baseline family: t_mli = k_eff*A*dT/Q."
+  T_env: {value: 333.15, unit: "K"}
+  T_env_source: "Pre-registered worst-case ambient 60 C (preregistration section 3, from the DOE targets' 60 C maximum operating temperature; U.S. DRIVE Target Explanation Document, May 2017). Replaces the superseded 300 K (review M10)."
+
+internal_hx:
+  al_volume_fraction: {value: 0.027, unit: "dimensionless"}
+  al_volume_fraction_source: >
+    DOE AMR ST044-2013 (Tamburello), slide 25: aluminium HexCell structure 39.0 g occupying
+    15 ml of aluminium within a bed holding 88.6 g MOF-5 at 160 kg/m3 (bed volume 0.554 L):
+    aluminium fraction 15/554 = 2.7 vol% of bed. Applied as the generic internal-HX/heater
+    structure fraction for both families (the type-3 baseline's 'generic resistance heater'
+    has no published mass; same-class assumption, flagged in the uncertainty budget).
+  al_density: {value: 2700.0, unit: "kg/m3"}
+  al_density_source: "Al 6063/6061 class; ST044-2013 slide 26 HexCell thermal properties assume 6063-T83, rho 2700 kg/m3."
+
+supports:
+  mass: {value: 1.28, unit: "kg"}
+  mass_source: "DOE AMR ST044-2013, slide 27: 'Boss, Plug, & Support Rings' 1.28 kg, 0.00 L. Applied as a constant to both families (volume-free)."
+
+bop:
+  mass_at_100bar: {value: 16.0, unit: "kg"}
+  mass_at_350bar: {value: 30.0, unit: "kg"}
+  volume_at_100bar: {value: 11.0, unit: "L"}
+  volume_at_350bar: {value: 25.0, unit: "L"}
+  bop_source: >
+    Two published anchors interpolated linearly in design pressure (and extrapolated to
+    200 bar): (a) Ahluwalia et al., ST001 (2011), slide 26: 16 kg miscellaneous balance-of-
+    system mass for the 100-bar MOF-5 system; volume not stated — 11 L assigned at 100 bar so
+    the pressure slope matches the mass anchors' source pair, and calibrated by c_bop_vol;
+    (b) Ahluwalia & Peng, IJHE 34 (2009): 30 kg and 25 L ex-vessel miscellaneous components
+    at 350 bar, with the component inventory enumerated (piping, PRV, regulator, check valve,
+    sensors, fill/shut-off/vent valves, cryo-valve housing, H2-warming heat exchanger, tank
+    support stand, N2/air blower). Component identity per FEDSM2017-69411 Table 3. The
+    H2-conditioning (delivery-warming to >= -40 C) heat exchanger is INSIDE this block (M10
+    delivery-warming mass is therefore carried, not omitted). m_bop(P) = c_bop_mass *
+    [16 + (30-16)*(P_design_bar-100)/250]; V_bop(P) = c_bop_vol * [11 + (25-11)*
+    (P_design_bar-100)/250].
+
+calibration_factors:
+  c_bop_mass: {value: 1.086426, unit: "dimensionless", bounds: [0.5, 2.5]}
+  c_bop_vol: {value: 2.5, unit: "dimensionless", bounds: [0.5, 2.5]}
+  c_hx: {value: 1.0, unit: "dimensionless", bounds: [0.5, 4.0]}
+  frozen: >
+    FROZEN at calibration E1, 2026-11-03, against FEDSM2017-69411 Table 5 (HexCell):
+    m_sys 140.99/140.99 kg (+0.00%), V_sys 285.59/287.70 L (-0.73%; c_bop_vol solved to
+    2.6702, clamped at its declared bound 2.5), t_wall 13.59/14.00 mm (-2.96%),
+    V_internal 172.1/188.4 L (-8.65%, sizing residual: this inventory model stores more H2
+    per litre than the HSECoE lumped model; disclosed, not calibrated). c_hx kept at its
+    source value 1.0. Secondary non-binding family check, MATI (0.32 g/cc compacted MOF-5,
+    FEDSM Table 2): m_sys +6.11%, V_sys +0.57%, t_wall -1.93%. No value in this file may
+    change before gate E2 is adjudicated (docs/preregistration_v1.0.md section 4).
+  calibration_source: >
+    The three pre-registered free scalars (preregistration section 3, amendment A1): BOP mass
+    scale, BOP volume scale, internal-HX mass factor (covers heater rods, manifolds and
+    headers above the bare HexCell structure). Fitted ONCE at E1 against FEDSM2017-69411
+    Table 5 (HexCell total system mass 140.99 kg, total system volume 287.70 L, wall
+    14.00 mm), then frozen for the held-out gate E2. Fitted values and per-component
+    residuals are recorded in docs/validation_plan.md v1.0; this file is updated with the
+    frozen values by the E1 commit.
