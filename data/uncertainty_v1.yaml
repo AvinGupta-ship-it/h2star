@@ -1,4 +1,14 @@
 name: "H2STAR v1.0 input uncertainty specification"
+date_accessed: "2026-11-03"
+citation: >
+  Distribution bases are the per-entry justification fields below; underlying
+  sources: Ahluwalia & Peng IJHE 34 (2009) 10.1016/j.ijhydene.2009.05.023;
+  Hua et al. ANL-10/24; Tamburello et al. FEDSM2017-69411; Purewal et al.
+  IJHE 44 (2019) 10.1016/j.ijhydene.2019.04.082; DOE AMR ST001-2011 and
+  ST044-2012/2013; Meneghelli FY2017 APR IV.D.4; the E1 calibration record
+  (docs/validation_plan.md); and the joint posterior
+  data/analysis/uq_posterior_v1.npz. Declared before any propagation run per
+  the pre-registration 10.5281/zenodo.23931242 section 7.
 description: >
   Input distributions for the v1.0 uncertainty and sensitivity study
   (pre-registration docs/preregistration_v1.0.md section 7, DOI

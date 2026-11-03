@@ -228,8 +228,10 @@ def fisher_spectrum(base, theta, T, P, n, sP, sn, params=PARAM_ORDER):
     J = np.zeros((r0.size, len(params)))
     for j, k in enumerate(params):
         h = 1e-4 * max(abs(theta[k]), 1e-12)
-        tp = dict(theta); tp[k] += h
-        tm = dict(theta); tm[k] -= h
+        tp = dict(theta)
+        tp[k] += h
+        tm = dict(theta)
+        tm[k] -= h
         d = (weighted_residuals(tp, base, T, P, n, sP, sn)
              - weighted_residuals(tm, base, T, P, n, sP, sn)) / (2 * h)
         # d r / d ln theta = theta * d r / d theta  (per-decade for log10_p0)

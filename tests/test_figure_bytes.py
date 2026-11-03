@@ -200,8 +200,21 @@ def baseline_digests(script, tmp_path_factory):
 
 
 def stack_matches():
-    """Whether this environment can produce the committed figures' bytes."""
-    return viz.FIGURE_STYLE_STACK == viz.rendering_stack()
+    """Whether this environment can produce the committed figures' bytes.
+
+    Version equality is necessary but NOT sufficient: the glyph rasteriser's
+    BUILD also matters (observed 2026-11-03: identical matplotlib/FreeType/
+    Pillow versions, differently built FreeType, different F1 bytes). Builds
+    are not introspectable, so byte-identity is asserted only on the
+    repository's own CI images (where the committed digests were recorded)
+    or where H2STAR_BYTE_CHECK=1 is set explicitly; elsewhere the comparison
+    is skipped with this stated reason (requirements-lock.txt,
+    docs/known_limitations.md section 7)."""
+    import os
+    if viz.FIGURE_STYLE_STACK != viz.rendering_stack():
+        return False
+    return bool(os.environ.get("GITHUB_ACTIONS")
+                or os.environ.get("H2STAR_BYTE_CHECK"))
 
 
 #: Reason shown when the committed-bytes comparison is not applicable.

@@ -253,7 +253,8 @@ def main():
     # ---- local elasticities (design leverage, separate) ---------------
     elas = {}
     for k in ENG_KEYS:
-        e_hi = dict(nom_e); e_lo = dict(nom_e)
+        e_hi = dict(nom_e)
+        e_lo = dict(nom_e)
         e_hi[k] = nom_e[k] * 1.02
         e_lo[k] = nom_e[k] * 0.98
         g_hi, v_hi = model(mat_nom, e_hi)
@@ -261,8 +262,10 @@ def main():
         elas[k] = {"GC": float((g_hi - g_lo) / (gc0 * 0.04)),
                    "VC": float((v_hi - v_lo) / (vc0 * 0.04))}
     for j, k in enumerate(("n_max", "alpha", "beta", "log10_p0", "v_a")):
-        m_hi = mat_nom.copy(); m_lo = mat_nom.copy()
-        m_hi[j] *= 1.02; m_lo[j] *= 0.98
+        m_hi = mat_nom.copy()
+        m_lo = mat_nom.copy()
+        m_hi[j] *= 1.02
+        m_lo[j] *= 0.98
         g_hi, v_hi = model(m_hi, nom_e)
         g_lo, v_lo = model(m_lo, nom_e)
         elas[k] = {"GC": float((g_hi - g_lo) / (gc0 * 0.04)),

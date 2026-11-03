@@ -14,10 +14,10 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 import emcee  # noqa: E402
-from scipy.optimize import differential_evolution, least_squares  # noqa: E402
+from scipy.optimize import differential_evolution  # noqa: E402
 
 from h2star import identifiability as ident  # noqa: E402
-from h2star import isotherm, uq_v1  # noqa: E402
+from h2star import uq_v1  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 DATA = os.path.join(ROOT, "data", "validation", "ax21_fig1a_multiT.csv")
@@ -78,8 +78,10 @@ def main():
     H = np.zeros((5, 5))
     for i in range(5):
         for j in range(i, 5):
-            ei = np.zeros(5); ei[i] = h[i]
-            ej = np.zeros(5); ej[j] = h[j]
+            ei = np.zeros(5)
+            ei[i] = h[i]
+            ej = np.zeros(5)
+            ej[j] = h[j]
             H[i, j] = H[j, i] = (
                 nlp(theta0 + ei + ej) - nlp(theta0 + ei - ej)
                 - nlp(theta0 - ei + ej) + nlp(theta0 - ei - ej)

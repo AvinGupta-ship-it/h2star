@@ -74,7 +74,7 @@ def main():
     temps = sorted({r["T"] for r in A} | {r["T"] for r in B})
 
     out_rows, report = [], []
-    n_match = n_disagree = n_only = 0
+    n_match = n_only = 0
     for T in temps:
         a = sorted([r for r in A if r["T"] == T], key=lambda r: r["P"])
         b = sorted([r for r in B if r["T"] == T], key=lambda r: r["P"])

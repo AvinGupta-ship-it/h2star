@@ -43,7 +43,7 @@ Where to start, depending on what you want.
 |---|---|---|
 | V1 | EOS wrapper against NIST hydrogen density | **PASS** — max error 4.992e-5 vs a <0.1% floor |
 | V2 part 1 | Isotherm curve against digitized AX-21 | **PASS** — RMSE 1.109 vs 1.5 mol/kg |
-| V2 part 2 | Parameter recovery from one isotherm | **FAIL by design** — the likelihood is a ridge |
+| V2 part 2 | Parameter recovery from one isotherm | **FAIL (pre-registered recovery bands not met)** — the likelihood is a ridge; superseded by the v1.0 profile-likelihood analysis |
 | V2 part 3 | Isosteric heat against the carbon band | **PASS** — 4.24–5.33 kJ/mol, analytic to ~1e-15 |
 | V3 | System capacity against the HSECoE AX-21 anchor | **documented FAIL** — mass block ~4.2× light |
 | V4 | UQ and sensitivity machinery | **PASS** on all clauses |
@@ -63,3 +63,13 @@ makes every other number in the project interpretable.
 | C3 | Binding energetics matter an order of magnitude more at ambient than at cryogenic conditions | Indices are of an independent-input surrogate |
 | C4 | The best-provenanced CNT uptake implies 0.88× the system capacity of AX-21 activated carbon | Reported as a ratio, not a shortfall against the DOE target, because of the Gate V3 bias |
 | C5 | Material-parameter uncertainty alone blurs the feasibility boundary over 32.1 mol/kg, a quarter of the requirement | A lower bound: the covariance is conditional on a fixed p₀ |
+
+## v1.0 additions
+
+| File | What it is |
+|---|---|
+| `preregistration_v1.0.md` | The frozen plan (Zenodo 10.5281/zenodo.23931242) with amendment A1 and the v0.2 deviation table |
+| `validation_plan.md` (Part v1.0) | E1 calibration and Gate E2 adjudications; D6 adjudication |
+| `history/progress_journal.md` | The v0.2 process narrative (moved out of the claim surface) |
+| `../data/analysis/` | Machine-readable S5/S6 records: identifiability, MCMC diagnostics, sensitivity, observable map |
+| `../requirements-lock.txt` | Archival environment lock |
