@@ -192,8 +192,7 @@ the published HexCell system specification~\cite{tamburello2017} and
 evaluate once against held-out HSECoE AX-21 anchors with fixed targets,
 tolerances, and a fork rule. Calibration closed to $\vEOneMsys$\,kg against
 140.99\,kg and $\vEOneVsys$\,L against 287.70\,L (wall \vEOneTwall\,mm vs
-14.00\,mm). The held-out gate (Table~\ref{tab:gates},
-Fig.~\ref{fig:anchors}): the 60\,bar/40\,K aluminium system matched to
+14.00\,mm). The held-out gate (Table~\ref{tab:gates}): the 60\,bar/40\,K aluminium system matched to
 $\vHthreeMdev$\% in mass and $\vHthreeVdev$\% in volume (both PASS at
 $\pm25\%$), the 200-bar composite system's volumetric capacity passed
 (+\vEtwoVCdev\% at $\pm20\%$), and its gravimetric capacity failed
@@ -237,20 +236,16 @@ E2 & 60\,bar/40\,K system volume & $\vHthreeVdev\%$ ($\pm25\%$) & pass \\
 \midrule
 \multicolumn{4}{l}{Gate E2 (pass iff all four): \textbf{FAIL} --- the
 pre-registered fork rule governs all claims.} \\
+\midrule
+ & \multicolumn{3}{l}{Context: the same 200-bar prediction against the
+   anchor family's} \\
+ & \multicolumn{3}{l}{other report years (not gate criteria): FY2011
+   $+22.6\%$; ST044-2012} \\
+ & \multicolumn{3}{l}{$+30.4\%$; ST044-2013 $+53.2\%$ --- the family itself
+   spans 21\%.} \\
 \bottomrule
 \end{tabular}
 \end{table}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{F4_anchors}
-\caption{Component-resolved model against the HSECoE anchor family:
-calibration point (E1) and held-out anchors (E2), with the pre-registered
-tolerance bands. The 200-bar gravimetric failure is plotted, not hidden; the
-spread of the anchor family itself across report years is shown for
-context.}
-\label{fig:anchors}
-\end{figure}
 
 \section{Identifiability}
 
@@ -269,8 +264,8 @@ the same intervals collapse to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ and
 reporting practice, not of the model class, and multi-temperature fitting
 restores identifiability by nearly two orders of magnitude in interval
 width. The Fisher-information spectrum in log-parameter coordinates spans
-several decades at the optimum (Fig.~\ref{fig:sloppy}) --- the signature of
-a sloppy model~\cite{gutenkunst2007}.
+several decades at the optimum --- the signature of a sloppy
+model~\cite{gutenkunst2007}.
 
 An MCMC posterior over the same objective (uniform priors on the frozen
 bounds; effective sample size $\ge\vESSmin$ per parameter, split-chain
@@ -289,16 +284,6 @@ restores identifiability.}
 \label{fig:profiles}
 \end{figure}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.8\linewidth]{F6_sloppiness}
-\caption{Fisher-information eigenvalue spectrum in log-parameter
-coordinates at the multi-temperature optimum. The many-decade spread is the
-signature of a sloppy model~\cite{gutenkunst2007}: a few stiff parameter
-combinations are well determined while the remaining directions are
-soft, which is why loose parameters coexist with tight predictions.}
-\label{fig:sloppy}
-\end{figure}
 
 \subsection{Model form}
 \label{sec:modelform}
@@ -314,7 +299,20 @@ the reported intervals rather than ignored.
 Propagating the full 77\,K profile region --- a 3.8-fold range in
 $n_{\max}$ --- through the frozen engineering model at the baseline envelope
 (100\,bar/80\,K to 5\,bar/160\,K) changes predicted usable gravimetric
-capacity only between \vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%).
+capacity only between \vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%;
+Fig.~\ref{fig:ridge}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{F6_sloppiness}
+\caption{Loose parameters, tight predictions. Left: the 77\,K profile ridge
+--- equally admissible $(n_{\max},\log_{10}P_0)$ pairs spanning a 3.8-fold
+range in $n_{\max}$. Right: usable system gravimetric capacity along the
+same ridge under the frozen engineering model; points inside the 95\%
+profile region are highlighted. The data leave the parameters loose while
+pinning the prediction.}
+\label{fig:ridge}
+\end{figure}
 The practical consequence is the paper's central point: a requirement stated
 as ``$n_{\max}=X$ at fixed $\alpha,\beta,P_0$'' is conditional on an
 arbitrary point along a ridge that single-isotherm data do not resolve ---

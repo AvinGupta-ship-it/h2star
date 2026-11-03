@@ -120,9 +120,7 @@ def f2_fit():
             ax.set_xlabel("Pressure (MPa)")
     axes[0].set_ylabel("Excess adsorption (mol/kg)")
     axes[0].legend(ncol=2, frameon=False)
-    fig.suptitle("AX-21 H$_2$ excess isotherms (dual-digitized, reconciled; "
-                 "posterior-median fit); resolution 0.0049 MPa, "
-                 "0.062 mol/kg per pixel", fontsize=8)
+    # No headline title: the manuscript caption carries it (journal style).
     savefig(fig, "F2_multiT_fit")
 
 
@@ -147,8 +145,7 @@ def f3_profiles():
         ax.set_xlabel(labels[p])
     axes[0].set_ylabel(r"$\Delta$ objective")
     axes[0].legend(frameon=False)
-    fig.suptitle("Profile likelihoods: one isotherm leaves the parameters "
-                 "loose; seven temperatures pin them", fontsize=9)
+    # No headline title: the manuscript caption carries it (journal style).
     savefig(fig, "F3_profiles")
 
 
@@ -208,11 +205,7 @@ def f5_observable_map():
         ax.set_title(lab, fontsize=8)
     axes[0].set_ylabel("deliverable uptake, full$\\to$empty (kg H$_2$/kg)")
     axes[0].legend(frameon=False, loc="upper left")
-    fig.suptitle("DOE-2025 feasibility in observable axes (shaded). No "
-                 "probability band: axes are measured, not sampled "
-                 "(conditionality rule). Two engineering models shown; the "
-                 "boundary shift is the model-dependence the E2 FAIL "
-                 "quantifies.", fontsize=7.5)
+    # No headline title: the manuscript caption carries it (journal style).
     savefig(fig, "F5_observable_map")
 
 
@@ -267,9 +260,7 @@ def f7_shapley():
     axes[1].invert_yaxis()
     axes[1].set_xlabel(r"elasticity $\partial \ln GC / \partial \ln x$")
     axes[1].set_title("design leverage (separate, nominal point)", fontsize=8)
-    fig.suptitle("Variance attribution vs design leverage, kept distinct "
-                 "(N=20,000; permutation Shapley, dependent inputs)",
-                 fontsize=8)
+    # No headline title: the manuscript caption carries it (journal style).
     savefig(fig, "F7_shapley_elasticity")
 
 
