@@ -89,16 +89,38 @@ The v1.0 engineering block models system mass and volume component by component:
   BOP heat-exchanger component with mass and volume.
 
 Correlations and component values come only from the independent published sources named in §2.
-**Calibration case:** the HSECoE powder-MOF-5 HexCell type-1 system (Tamburello 2017 /
-Purewal 2019 / ST044-2013 slides 17 and 27), at 100 bar/80 K full, 5.5 bar/160 K empty, sized to
-5.6 kg usable, using the HSECoE MOF-5 modified-D–A parameter set of ST044-2013 slide 10.
-Calibration means: free scalar factors, at most three, each named, bounded, and physically
-interpretable (anticipated: a BOP mass scale, a support/mounting mass term, a packaging/void
-volume factor), chosen to reproduce the slide-27 component masses and volumes. Everything else is
-fixed by the sources. Calibration quality is disclosed as per-component residuals; if the
-calibrated model cannot reproduce the calibration case's tank-only mass and volume within ±10%
-with the factors in bounds, that is reported as a calibration shortfall and §4 still proceeds
-unchanged.
+
+> **SUPERSEDED (original calibration-case text, deposited 2026-11-03):**
+> *Calibration case: the HSECoE powder-MOF-5 HexCell type-1 system (Tamburello 2017 /
+> Purewal 2019 / ST044-2013 slides 17 and 27), at 100 bar/80 K full, 5.5 bar/160 K empty, sized to
+> 5.6 kg usable, using the HSECoE MOF-5 modified-D–A parameter set of ST044-2013 slide 10.
+> Calibration means: free scalar factors, at most three, each named, bounded, and physically
+> interpretable (anticipated: a BOP mass scale, a support/mounting mass term, a packaging/void
+> volume factor), chosen to reproduce the slide-27 component masses and volumes.*
+
+**Amendment A1 (2026-11-03, before any §3/§4 code exists; reason follows).** On full reading of
+Tamburello, Hardy, Corgnale, Sulic & Anton, FEDSM2017-69411 (SRNL-STI-2017-00079) after the
+deposit, its Table 5 gives the final published HexCell system specification in complete,
+mutually consistent form — operating envelope 5–100 bar and 80–140 K, 5.6 kg usable, internal
+volume 188.4 L, 2:1 L-to-D, aluminium Type-1 wall 14.00 mm at safety factor 2.5, MLVI 25.4 mm,
+2.0 mm aluminium outer shell, total system mass 140.99 kg, total system volume 287.70 L,
+GC 0.03974, VC 19.47 g/L — together with its own powder-MOF-5 modified-D–A parameter set
+(Table 2: ρ_ads 130 kg/m³, α 2895.13 J/mol, β 15.2912 J/(mol·K), n_max 96.4317 mol/kg,
+P0 1.387e9 Pa, Va 1.70e-3 m³/kg, Vv 7.25e-3 m³/kg). The 2013 slide-27 table is an earlier
+4.4:1-geometry variant of the same design family and is internally less complete (tank-only, no
+system totals, no envelope statement). **The calibration case is therefore the FEDSM Table 5
+HexCell system, at 100 bar/80 K full and 5 bar/140 K empty, sized to 5.6 kg usable, using the
+FEDSM Table 2 powder-MOF-5 parameter set.** Calibration means: free scalar factors, at most
+three, each named, bounded, and physically interpretable (anticipated: a BOP mass scale, a BOP
+volume scale, and an internal-HX mass factor), chosen to reproduce Table 5's total system mass,
+total system volume, and wall thickness. The ST044-2013 slide-27 component table and the FEDSM
+Table 5 MATI system become secondary, non-binding calibration-family checks reported alongside.
+The held-out gate E2 (§4) — its cases, targets, tolerances and fork rule — is unchanged by this
+amendment.
+
+Calibration quality is disclosed as per-component residuals; if the calibrated model cannot
+reproduce the calibration case's total system mass and volume within ±10% with the factors in
+bounds, that is reported as a calibration shortfall and §4 still proceeds unchanged.
 
 After E1 the model is frozen for §4: no parameter, correlation, or factor is changed between the
 calibration fit and the held-out evaluations.
