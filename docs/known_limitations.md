@@ -19,7 +19,21 @@ throughout:
 - Relative statements beyond monotone orderings appear only with the
   two-model robustness demonstration (the observable-axis map is drawn under
   both the v1.0 and the superseded v0.2 engineering models, and the boundary
-  shift is shown, not absorbed).
+  shift is shown, not absorbed). The two models are structurally different
+  (netting vs hoop-only sizing, component-resolved vs lumped, different
+  ambient temperatures) but share several source anchors — the ST001 MLI
+  properties and BOP anchor, the T700S fibre class — so they are NOT
+  independently parameterized in the source sense, and the displayed
+  two-model shift is a lower bound on engineering-model dependence. A
+  genuinely independent published second model is future work.
+- The AX-21 D–A parameter set is evaluated at 200 bar (20 MPa) in the E2
+  H1/H2 systems — 3.3× beyond the 0–6 MPa range of the data it was fitted
+  to (ax21.yaml valid_range). The HSECoE anchors themselves model 200 bar,
+  so the comparison is like-for-like in that respect, but the extrapolation
+  was previously undisclosed and belongs here: it is a further uncertainty
+  the 200-bar comparisons carry that the 60-bar case does not (the
+  mass-sided failure pattern and the volumetric pass still localize the
+  dominant miss to the composite mass accounting).
 - The anchor family itself is part of the uncertainty: the HSECoE AX-21
   baseline moved 21% across report years (0.039 → 0.03665 → 0.0312 kg/kg for
   the same nominal configuration), the 2012/2013 slides do not state their
@@ -48,7 +62,16 @@ vector from a single 77 K excess isotherm of ordinary literature quality
 (95% profile region: n_max 37–142 mol/kg; log10 P0 unbounded above within
 [6.78, 12]; β undetermined at one temperature by construction), together
 with its quantitative repair by multi-temperature fitting (n_max 61.2–62.6
-at seven temperatures). Not established and not claimed: structural
+at seven temperatures). Three conditionality statements that must travel
+with those intervals: (i) the 77 K n_max interval endpoints are conditional
+on the frozen log10 P0 ≤ 12 bound — raising the bound to 14 widens 37–142
+to 38–263 (sens_77K_upper_bound_14 in the analysis record), which
+strengthens, not weakens, the non-identifiability conclusion; (ii) the
+multi-temperature ±1.2% is WITHIN-MODEL precision under m = 2 and the
+supercritical fit set — the model-form/fit-set spread (free-m 54.4, with
+35–45 K 69.2, source global 71.6) is ±13% and dominates; (iii) the
+s2-inflated intervals (±2%) are the decisive ones given the
+overdispersion of section 3. Not established and not claimed: structural
 non-identifiability of the D–A model; novelty of the degeneracy itself
 (ε = α + βT makes the single-T α–β trade exact, and the source paper's own
 Table 3 shows alternative parameter sets fitting comparably).
@@ -91,9 +114,14 @@ by the fork rule, not by inflation after the fact.
 Charging/discharging dynamics and spatial gradients (state-point,
 uniform-bed model); ortho/para conversion kinetics (density contrast
 reported as a sensitivity only); cost; cycle life, purity, and the other
-non-capacity DOE targets. The heater energy, delivery-warming duty and
-dormancy are computed as reported metrics under A-USE-1..3, not validated
-against hardware.
+non-capacity DOE targets. The heater energy, delivery-warming duty and a
+dormancy lower bound are computed as reported metrics under A-USE-1..3 in
+`data/analysis/supplementary_metrics_v1.json`
+(`scripts/run_supplementary_metrics.py`), not validated against hardware;
+the heater metric carries the sorbent heat capacity as a declared 0.2--1.0
+J/(g K) range because no verified cryogenic cp is held for either sorbent
+(the only verified anchor is Ming et al. 2014's MOF-5 powder 0.72 J/(g K)
+at 300 K).
 
 ## 6. CNT evidence
 

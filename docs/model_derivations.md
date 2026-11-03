@@ -167,16 +167,30 @@ to 1.03-1.04 of Var(Y), within estimator noise). Design leverage is a
 separate quantity: local elasticities d ln(GC)/d ln(x) at the nominal
 point. The two are never conflated (review M6).
 
-## 12. Requirement map in observables (v1.0)
+## 12. Requirement map in observables (v1.0; EXCESS basis per the S8 referee M1 fix)
 
-Axes: deliverable uptake u_d (kg H2 per kg sorbent between the stated full
-and empty states) and packing density rho_pack. Sizing follows from
-V_bed = 5.6 / (u_d rho_pack + g_swing), with g_swing the void-gas swing per
-bed volume, (1 - rho_pack/rho_skel - rho_pack v_a)(rho_g,full -
-rho_g,empty); the engineering stack then builds mass and volume as in
-section 7. No probability band is drawn: the axes are observables, not
-sampled parameters (the frozen conditionality rule), and the residual-uptake
-carried-mass term and the v_a/rho_skel entering g_swing are reported as a
-labelled sensitivity. The map is drawn under both the v1.0 and the
-superseded v0.2 engineering models; the boundary shift between them is the
-two-model robustness exhibit the fork rule requires.
+Axes: deliverable EXCESS uptake u_d (kg H2 per kg sorbent between the stated
+full and empty states — the Gibbs-excess swing a sorption laboratory reports
+directly) and packing density rho_pack. On this basis the fitted
+adsorbed-phase volume v_a drops out of the bed inventory algebraically:
+
+    rho dn_abs M + (1 - rho/rho_skel - rho v_a) drho_g
+        = rho dn_exc M + (1 - rho/rho_skel) drho_g,
+
+so sizing follows from V_bed = 5.6 / (u_d rho_pack + g_swing) with g_swing
+= (1 - rho_pack/rho_skel)(rho_g,full - rho_g,empty) — only the measured
+excess swing, the packing density, a skeletal density and the EOS. The
+earlier draft of this map used the absolute-adsorption swing as the axis;
+that is NOT laboratory-observable without v_a (at this envelope
+v_a drho_g = 0.034 kg/kg, half of AX-21's own coordinate) and is
+superseded; the system totals are identical by the identity above. The
+engineering stack then builds mass and volume as in section 7. No
+probability band is drawn: the axes are observables, not sampled parameters
+(the frozen conditionality rule); rho_skel (1800-2300 class range) and the
+residual-excess carried-mass term are reported as labelled sensitivities in
+the analysis record (at rho = 500 the 2025 boundary is volumetric-limited,
+so the residual term does not move it). The map is drawn under both the
+v1.0 and the superseded v0.2 engineering models; the two are structurally
+different but share several source anchors, so the boundary shift between
+them is a lower bound on the model dependence the fork rule requires
+displaying.

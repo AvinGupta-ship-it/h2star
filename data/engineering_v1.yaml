@@ -78,7 +78,9 @@ type3:
     cylinder, t = 1.5*P*r/sigma, is exactly independent of this angle (helical
     t_h = P*r/(2 sigma cos^2 a) carrying axial load; hoop t_th = P*r/sigma - t_h sin^2 a);
     the angle only partitions helical vs hoop plies and thus sets the dome thickness (helical
-    plies only). Sensitivity of dome mass to 8-25 deg is reported with the E1 residuals.
+    plies only). Sensitivity of dome mass to 8-25 deg is reported in
+    data/analysis/supplementary_metrics_v1.json (dome_angle_sensitivity: 200-bar type-3
+    m_wall 20.74 -> 21.07 kg, GC -0.3% across 8-25 deg).
   liner_thickness: {value: 0.0024, unit: "m"}
   liner_density: {value: 2780.0, unit: "kg/m3"}
   liner_source: "Ahluwalia & Peng, IJHE 34 (2009), Table 2: liner Al 2024 alloy, 2.4 mm. Al 2024 density 2780 kg/m3 (standard alloy value; datasheet citation to be added at S8 audit). Fixed thickness (permeation barrier), not pressure-scaled: replaces the superseded v0.2 pressure-scaled areal-mass rule that the 2026-10-27 review faulted (M1)."

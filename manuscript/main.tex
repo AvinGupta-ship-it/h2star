@@ -30,9 +30,11 @@ AX-21 excess isotherms (30--298\,K) from the literature; profile likelihoods
 under an explicit errors-in-pressure measurement model show that one 77\,K
 isotherm of ordinary published quality leaves the D--A parameter vector
 practically non-identifiable (95\% region $n_{\max}$
-\vNmaxLoA--\vNmaxHiA\,mol\,kg$^{-1}$; $\log_{10}P_0$ unbounded above within
+\vNmaxLoA--\vNmaxHiA\,mol\,kg$^{-1}$ under the frozen parameter bounds, and
+wider still when they are relaxed; $\log_{10}P_0$ unbounded above within
 [\vLpLoA, \vLpHiA]), while seven supercritical isotherms fitted jointly pin
-$n_{\max}$ to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$. Propagated through a
+$n_{\max}$ to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ --- a within-model
+precision: model-form and fit-set choice move the centre by $\pm13\%$. Propagated through a
 component-resolved system model, the loose single-isotherm region changes
 predicted usable system capacity by only about $\pm$\vGCpropPct\%: the model
 is sloppy, with loose parameters and tight predictions, so a requirement
@@ -43,8 +45,8 @@ pre-registered held-out targets; three of four comparisons passed and the
 200-bar gravimetric comparison failed (+\vEtwoGCdev\% against a $\pm$20\%
 band), so, per the pre-registered fork rule, no absolute system capacity is
 claimed and requirement maps are reported in observable axes---deliverable
-uptake between stated full and empty states, and packing density---under two
-independent engineering models. Shapley-effect attribution over the joint
+excess uptake between stated full and empty states, and packing
+density---under two structurally different engineering models. Shapley-effect attribution over the joint
 posterior and declared engineering uncertainties shows engineering inputs,
 not material-parameter uncertainty, dominate the variance of predicted
 capacity. All data, code, analyses and this manuscript's numbers regenerate
@@ -133,10 +135,11 @@ under the same protocol, including the published error bars.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{F2_multiT_fit}
-\caption{Reconciled dual-digitized AX-21 excess isotherms (points, with
-error-model uncertainties) and the joint supercritical modified D--A fit
-(curves). The 30--45\,K subcritical isotherms are shown but enter no primary
-fit; the 30\,K isotherm lies below the equation-of-state validity floor.}
+\caption{The seven supercritical (60--298\,K) isotherms of the reconciled
+dual-digitized AX-21 dataset (points, with error-model uncertainties) and
+the joint modified D--A fit (curves). The dataset's 30--45\,K subcritical
+isotherms enter no primary fit: 35--45\,K are excluded by the frozen
+analysis plan, and 30\,K lies below the equation-of-state validity floor.}
 \label{fig:fit}
 \end{figure}
 
@@ -190,9 +193,20 @@ Calibration and validation were frozen by an external, DOI-stamped
 pre-registration before any model code existed~\cite{prereg}: calibrate on
 the published HexCell system specification~\cite{tamburello2017} and
 evaluate once against held-out HSECoE AX-21 anchors with fixed targets,
-tolerances, and a fork rule. Calibration closed to $\vEOneMsys$\,kg against
+tolerances, and a fork rule. We state the deposit's evidential force
+precisely: the whole arc from deposit to adjudication spans about a hundred
+minutes of one day, with the model necessarily developed alongside, so the
+deposit certifies that the targets, tolerances and fork rule were fixed and
+externally timestamped before the outcomes were known --- the adjudicated
+failure below, and the enforcement of the fork rule, are the behaviour
+consistent with that discipline --- and it supports no stronger reading.
+The repository records the execution deviations from the frozen text, each
+dated and quantified. Calibration closed to $\vEOneMsys$\,kg against
 140.99\,kg and $\vEOneVsys$\,L against 287.70\,L (wall \vEOneTwall\,mm vs
-14.00\,mm). The held-out gate (Table~\ref{tab:gates}): the 60\,bar/40\,K aluminium system matched to
+14.00\,mm). The held-out gate (Table~\ref{tab:gates}; note that the 200-bar
+cases evaluate the AX-21 parameter set at 20\,MPa, $3.3\times$ beyond its
+0--6\,MPa fit range --- the anchors themselves model 200\,bar, but the
+extrapolation is one more uncertainty those two comparisons carry): the 60\,bar/40\,K aluminium system matched to
 $\vHthreeMdev$\% in mass and $\vHthreeVdev$\% in volume (both PASS at
 $\pm25\%$), the 200-bar composite system's volumetric capacity passed
 (+\vEtwoVCdev\% at $\pm20\%$), and its gravimetric capacity failed
@@ -258,12 +272,22 @@ bound-relaxation sensitivity reported in the repository). From the single
 \vNmaxHiA\,mol\,kg$^{-1}$ and $\log_{10}(P_0/\mathrm{Pa})$ from \vLpLoA{} to
 the upper bound \vLpHiA{}; $\beta$ is undetermined at one temperature by
 construction, and $\alpha$ is identified only through
-$\varepsilon(77)$. From the seven supercritical isotherms fitted jointly,
-the same intervals collapse to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ and
-\vLpLoM--\vLpHiM{}: the degeneracy is a property of single-temperature
-reporting practice, not of the model class, and multi-temperature fitting
-restores identifiability by nearly two orders of magnitude in interval
-width. The Fisher-information spectrum in log-parameter coordinates spans
+$\varepsilon(77)$. The 77\,K interval endpoints are conditional on the
+frozen $\log_{10}(P_0/\mathrm{Pa})\le12$ bound: raising it to 14 widens
+$n_{\max}$ to 38--263 (committed sensitivity), which strengthens the
+non-identifiability conclusion. From the seven supercritical isotherms
+fitted jointly, the same intervals collapse to
+\vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ ($\pm$1.2\%; $\beta$ $\pm$2.0\%, $v_a$
+$\pm$2.4\%) and \vLpLoM--\vLpHiM{}: the degeneracy is a property of
+single-temperature reporting practice, not of the model class, and
+multi-temperature fitting restores identifiability by nearly two orders of
+magnitude in interval width. That precision is within-model: freeing the
+D--A exponent moves $n_{\max}$ to 54.4, adding the 35--45\,K subcritical
+isotherms moves it to 69.2, and the source's own 30--293\,K global fit is
+71.6~\cite{richard2009a} --- a $\pm13\%$ structural spread that any use of
+the within-model interval must carry with it (the overdispersion-inflated
+intervals, roughly twice the frozen ones, are the decisive in-model
+statement given Section~\ref{sec:modelform}). The Fisher-information spectrum in log-parameter coordinates spans
 several decades at the optimum --- the signature of a sloppy
 model~\cite{gutenkunst2007}.
 
@@ -296,11 +320,13 @@ the reported intervals rather than ignored.
 
 \section{Loose parameters, tight predictions}
 
-Propagating the full 77\,K profile region --- a 3.8-fold range in
-$n_{\max}$ --- through the frozen engineering model at the baseline envelope
-(100\,bar/80\,K to 5\,bar/160\,K) changes predicted usable gravimetric
-capacity only between \vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%;
-Fig.~\ref{fig:ridge}).
+Propagating the 77\,K profile ridge (a 3.0-fold range in $n_{\max}$ on the
+propagated grid; the full 95\% interval is 3.8-fold) through the frozen
+engineering model at the baseline envelope (100\,bar/80\,K to
+5\,bar/160\,K) changes predicted usable gravimetric capacity only between
+\vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%; Fig.~\ref{fig:ridge});
+evaluated at the exact interval endpoints it stays within about 4\% of the
+optimum.
 
 \begin{figure}[t]
 \centering
@@ -345,30 +371,48 @@ potential.
 \includegraphics[width=\linewidth]{F7_shapley_elasticity}
 \caption{Left: Shapley effects (variance shares) for usable gravimetric
 capacity over the joint material posterior and the fifteen declared
-engineering inputs; the correlated material block is one player. Right:
-design-leverage elasticities of the same output, which answer a different
-question and are deliberately not merged with the variance shares.}
+engineering inputs; the correlated material block is one player. Shares
+within two standard errors of zero (error bars) are indistinguishable from
+zero. Right: design-leverage elasticities of the same output, which answer
+a different question and are deliberately not merged with the variance
+shares.}
 \label{fig:shapley}
 \end{figure}
 
 \section{Requirements in observables}
 \label{sec:observables}
 
-The requirement map uses deliverable material-level uptake between the
+The requirement map uses deliverable \emph{excess} uptake between the
 stated full and empty states, together with packing density, as axes ---
 quantities measurable without inverting an isotherm model, as in the HSECoE
 envelope~\cite{hardy2018} and the Argonne Level-1
 targets~\cite{ahluwalia2015} (120\,g\,kg$^{-1}$ excess at 100\,bar/155\,K
 and 420\,kg\,m$^{-3}$ bulk density for the 40\,g\,L$^{-1}$ system target).
+The basis matters: on the excess basis the adsorbed-phase volume $v_a$
+drops out of the bed-level inventory algebraically (the gas swing rides on
+the total void $1-\rho/\rho_{\mathrm{skel}}$), so the axis needs only the
+measured excess swing, the packing density, a skeletal density and the
+equation of state; an absolute-adsorption axis would re-import the fitted,
+poorly identified $v_a$, which at this envelope shifts a material's
+coordinate by $v_a\,\Delta\rho_g = 0.034$\,kg\,kg$^{-1}$ --- half of
+AX-21's own value. The skeletal-density and residual-uptake terms are
+varied as labelled sensitivities in the repository (over
+1800--2300\,kg\,m$^{-3}$ the required uptake at 500\,kg\,m$^{-3}$ packing
+moves by 0.004\,kg\,kg$^{-1}$; the residual-uptake term does not move the
+boundary there, which is volumetric-limited).
 No probability band is drawn on these axes: they are observables, not
 sampled parameters. Under the component-resolved model (Fig.~\ref{fig:map}), meeting the
-DOE-2025 pair at 500\,kg\,m$^{-3}$ packing requires a deliverable uptake of
-about \vUreqVone\,kg\,kg$^{-1}$; under the superseded lumped model the same
-contour sits at \vUreqVzero{} --- the between-model shift is of the same
-order as the held-out failure and is displayed as the honest statement of
-how model-dependent such boundaries are. AX-21's deliverable uptake at this
-envelope is \vAxUd\,kg\,kg$^{-1}$ (posterior median), far from feasibility
-at any packing density, consistent with the HSECoE conclusion that
+DOE-2025 pair at 500\,kg\,m$^{-3}$ packing requires a deliverable excess
+uptake of about \vUreqVone\,kg\,kg$^{-1}$; under the superseded lumped
+model the same contour sits at \vUreqVzero{} --- the between-model shift is
+of the same order as the held-out failure and is displayed as the honest
+statement of how model-dependent such boundaries are, with the caveat that
+the two models share several source anchors (insulation properties, the
+balance-of-plant anchor, the fibre class), so the displayed shift is a
+lower bound on engineering-model dependence. AX-21's deliverable excess
+uptake at this envelope is \vAxUd\,kg\,kg$^{-1}$ (posterior median;
+\vAxUdAbs{} on the absolute basis), far from feasibility at any packing
+density, consistent with the HSECoE conclusion that
 roughly 20\,wt\% material-level capacity underlies the 5.5\,wt\% system
 target~\cite{hardy2018}. The ambient (298\,K) configuration appears only as
 a supplementary contrast: its tank sizes to \vAmbientVint\,L for 5.6\,kg
@@ -378,12 +422,12 @@ usable.
 \centering
 \includegraphics[width=\linewidth]{F5_observable_map}
 \caption{System feasibility stated in observable axes: deliverable
-material-level uptake between the stated full (100\,bar/80\,K) and empty
+\emph{excess} uptake between the stated full (100\,bar/80\,K) and empty
 (5\,bar/160\,K) states versus packing density, with the DOE-2025
-requirement boundary under the component-resolved model (solid) and the
-superseded lumped model (dashed). The between-model shift is the honest
-measure of how model-dependent such boundaries are; AX-21's posterior-median
-deliverable uptake is marked.}
+requirement region under the component-resolved model (left) and the
+superseded lumped model (right). The between-model shift is a lower bound
+on how model-dependent such boundaries are (the models share several source
+anchors); AX-21's posterior-median deliverable excess uptake is marked.}
 \label{fig:map}
 \end{figure}
 

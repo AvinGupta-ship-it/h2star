@@ -131,6 +131,70 @@ def main():
     prop77 = propagate(base, prof77_p0, single["objective"],
                        single["overdispersion_s2"])
 
+    # --- Referee round 1 additions (2026-11-03) ---------------------------
+    # (i) 77 K upper-bound sensitivity: the quoted single-isotherm n_max
+    # interval is conditional on the frozen log10_p0 <= 12 bound. Raise the
+    # bound to 14 and re-derive; direction strengthens non-identifiability.
+    ident.BOUNDS["log10_p0"] = (6.78, 14.0)
+    r77_b14 = ident.fit(base, *D_77)
+    nlo14, nhi14 = ident.profile_crossing(
+        base, *D_77, param="n_max", theta_opt=r77_b14["theta"],
+        obj0=r77_b14["objective"])
+    plo14, phi14 = ident.profile_crossing(
+        base, *D_77, param="log10_p0", theta_opt=r77_b14["theta"],
+        obj0=r77_b14["objective"])
+    ident.BOUNDS["log10_p0"] = (6.78, 12.0)
+    sens_77_bound14 = {
+        "note": "77K-only refit with log10_p0 bound raised 12 -> 14; the "
+                "frozen-bound interval is conditional on that bound "
+                "(referee round-1 minor 1).",
+        "theta": {k: float(v) for k, v in r77_b14["theta"].items()},
+        "objective": float(r77_b14["objective"]),
+        "n_max_interval_frozen": [nlo14, nhi14],
+        "log10_p0_interval_frozen": [plo14, phi14],
+    }
+
+    # (ii) Propagation at the exact 77 K n_max frozen-interval endpoints
+    # (the profile grid spans less than the full interval; referee minor 2).
+    n_lo = single["profiles"]["n_max"]["interval_frozen"][0]
+    n_hi = single["profiles"]["n_max"]["interval_frozen"][1]
+    endpoint_prop = []
+    for nv in (n_lo, n_hi):
+        r_end = ident.fit(base, *D_77,
+                          free=[k for k in ident.PARAM_ORDER if k != "n_max"],
+                          fixed={"n_max": nv})
+        th = r_end["theta"]
+        from dataclasses import replace
+        mat = replace(base, n_max=th["n_max"], alpha=th["alpha"],
+                      beta=th["beta"], p0=10 ** th["log10_p0"], v_a=th["v_a"])
+        iso = isotherm.ModifiedDA(mat)
+        p_eng = eng.EngineeringParamsV1.from_yaml(
+            os.path.join(ROOT, "data", "engineering_v1.yaml"))
+        b = eng.evaluate_sized(eng.SystemDesignV1(
+            mat, iso, p_eng, "type3", 100e5, 80.0, 5e5, 160.0))
+        endpoint_prop.append({"n_max": float(nv),
+                              "objective": float(r_end["objective"]),
+                              "GC": b["GC"], "VC": b["VC"]})
+
+    # (iii) Dense multi-T profile grids for plotting (F3): the headline
+    # multi-T intervals are narrower than the coarse grids above, so F3
+    # needs local grids that resolve the dip (referee minor 5).
+    dense = {}
+    for pname in ident.PARAM_ORDER:
+        lo_i, hi_i = multi["profiles"][pname]["interval_frozen"]
+        c = theta_opt[pname]
+        half = max(hi_i - c, c - lo_i)
+        gl, gh = c - 3.0 * half, c + 3.0 * half
+        blo, bhi = ident.BOUNDS[pname]
+        gl, gh = max(gl, blo), min(gh, bhi)
+        grid = np.linspace(gl, gh, 13)
+        prof_d = ident.profile(base, *D_multi, param=pname, grid=grid,
+                               theta_opt=r_multi["theta"])
+        dense[pname] = {
+            "grid": [float(v) for v, _, _ in prof_d],
+            "objective": [float(o) for _, o, _ in prof_d],
+        }
+
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as fh:
         json.dump({
@@ -143,6 +207,9 @@ def main():
             "subcritical_sensitivity": sens_sub,
             "propagation_baseline_envelope_multiT": prop,
             "propagation_baseline_envelope_77K": prop77,
+            "sens_77K_upper_bound_14": sens_77_bound14,
+            "propagation_77K_interval_endpoints": endpoint_prop,
+            "profiles_dense_multiT": dense,
         }, fh, indent=1)
     print("wrote", OUT)
 

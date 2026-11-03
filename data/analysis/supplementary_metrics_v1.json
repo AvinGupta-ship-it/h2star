@@ -1,0 +1,208 @@
+{
+ "note": "Supplementary reported metrics (referee round-1, M3): every metric the\ndocumentation asserts is 'computed and reported' now IS, in one committed\nrecord.\n\nSections of data/analysis/supplementary_metrics_v1.json:\n\n* use_metrics \u2014 per reference system (E1 HexCell; E2 H1/H2 200-bar type-3;\n  E2 H3 60-bar type-1):\n  - heater energy per full discharge (A-USE-1, pre-registration section 3):\n    first-order sum of (i) desorption heat, m_sorb * dn_abs * q_st with q_st\n    from the committed isotherm via heats.isosteric_heat at mid-loading and\n    mid-temperature; (ii) sensible heating of the average resident H2\n    inventory at mid-state cv; (iii) sensible heating of the sorbent over the\n    swing, with cp carried as a DECLARED RANGE 0.2-1.0 J/g/K: the only\n    verified cp anchor held is Ming et al., Micropor. Mesopor. Mater. 185\n    (2014) 235-244 (DOI 10.1016/j.micromeso.2013.11.015), MOF-5 powder cp =\n    0.72 J/g/K at 300 K, measured 220-370 K only, so no verified cryogenic\n    value exists for either sorbent and the range is reported, not a point.\n  - dormancy LOWER BOUND (A-USE-3): void-gas-only isochoric time from the\n    full state to the vent pressure 1.25 P_full at the system's heat-leak\n    budget; adsorption and sorbent heat capacity are neglected, both of which\n    lengthen real dormancy, so the bound is conservative in the safe\n    direction and is labelled as such.\n  - delivery-warming duty (A-USE-2): mdot * (h(233.15 K) - h(T_empty)) at the\n    empty pressure, with mdot = 0.02 (g/s)/kW x 80 kW = 1.6 g/s (DOE targets\n    table full-flow rate; usdrive2017). This duty is met by fuel-cell waste\n    heat per the reference designs; the BOP block carries its hardware.\n* dome_angle_sensitivity \u2014 composite dome mass and system GC for the 200-bar\n  type-3 system at helical angles 8/12/25 deg (promised with the E1 record in\n  data/engineering_v1.yaml; the cylinder total is angle-independent exactly).\n* para_hydrogen_contrast \u2014 para- vs normal-H2 density at the four envelope\n  states (A-ISO-3/A-EOS-1).\n* mof5_2012_crosscheck \u2014 pre-registration section 4 secondary, non-binding\n  check: frozen model, FEDSM Table 2 powder MOF-5, 60 bar/40 K -> 5 bar/110 K\n  (slide midpoint), 5.6 kg usable, against DOE AMR 2012 ST044 slide 12:\n  'Powder MOF-5 (Aluminum Tank) 87.3 kg 182.7 L' (type-1) and 'Powder MOF-5\n  (Composite Tank) 74.6 kg 180.6 L' (type-3), read 2026-11-03.\n",
+ "use_metrics": [
+  {
+   "system": "E1 HexCell MOF-5",
+   "vessel": "type1",
+   "envelope_Pa_K": [
+    10000000.0,
+    80.0,
+    500000.0,
+    140.0
+   ],
+   "heater_energy_per_discharge_MJ": {
+    "desorption_term": 3.385079636462762,
+    "h2_sensible_term": 1.3743734653622863,
+    "sorbent_sensible_term_range": [
+     0.26124167678502497,
+     1.306208383925125
+    ],
+    "total_range": [
+     5.020694778610073,
+     6.065661485750173
+    ],
+    "total_range_kWh": [
+     1.394637438502798,
+     1.684905968263937
+    ],
+    "q_st_J_per_mol_at_mid": 3255.127885812674,
+    "dn_abs_mol_per_kg": 47.76828156424682
+   },
+   "dormancy_lower_bound_days": 0.40413479209899245,
+   "dormancy_note": "void-gas-only isochore to 1.25*P_full at Q = 10.01 W; adsorption buffering and sorbent heat capacity neglected (both lengthen it)",
+   "delivery_warming_duty_W_at_full_flow": 1982.6632189054683
+  },
+  {
+   "system": "E2 H1/H2 AX-21 200 bar",
+   "vessel": "type3",
+   "envelope_Pa_K": [
+    20000000.0,
+    80.0,
+    500000.0,
+    160.0
+   ],
+   "heater_energy_per_discharge_MJ": {
+    "desorption_term": 4.870367939114658,
+    "h2_sensible_term": 1.9457794631009846,
+    "sorbent_sensible_term_range": [
+     0.5572259477022883,
+     2.786129738511441
+    ],
+    "total_range": [
+     7.373373349917932,
+     9.602277140727084
+    ],
+    "total_range_kWh": [
+     2.048159263866092,
+     2.6672992057575233
+    ],
+    "q_st_J_per_mol_at_mid": 3098.1354680631844,
+    "dn_abs_mol_per_kg": 45.13880104260202
+   },
+   "dormancy_lower_bound_days": 0.5512195294740301,
+   "dormancy_note": "void-gas-only isochore to 1.25*P_full at Q = 5.00 W; adsorption buffering and sorbent heat capacity neglected (both lengthen it)",
+   "delivery_warming_duty_W_at_full_flow": 1577.7727374446874
+  },
+  {
+   "system": "E2 H3 AX-21 60 bar",
+   "vessel": "type1",
+   "envelope_Pa_K": [
+    6000000.0,
+    40.0,
+    500000.0,
+    110.0
+   ],
+   "heater_energy_per_discharge_MJ": {
+    "desorption_term": 4.083062741589732,
+    "h2_sensible_term": 1.615095762844986,
+    "sorbent_sensible_term_range": [
+     0.4479959959184828,
+     2.2399799795924142
+    ],
+    "total_range": [
+     6.146154500353201,
+     7.9381384840271325
+    ],
+    "total_range_kWh": [
+     1.7072651389870002,
+     2.2050384677853145
+    ],
+    "q_st_J_per_mol_at_mid": 2692.7697303377986,
+    "dn_abs_mol_per_kg": 47.38498418828648
+   },
+   "dormancy_lower_bound_days": 0.0698650004953311,
+   "dormancy_note": "void-gas-only isochore to 1.25*P_full at Q = 8.31 W; adsorption buffering and sorbent heat capacity neglected (both lengthen it)",
+   "delivery_warming_duty_W_at_full_flow": 2559.716250383565
+  }
+ ],
+ "dome_angle_sensitivity": {
+  "note": "cylinder composite total is angle-independent exactly; the angle sets the dome (helical-ply) thickness. Promised with the E1 record in data/engineering_v1.yaml.",
+  "rows": [
+   {
+    "helical_angle_deg": 8.0,
+    "m_wall_kg": 20.744434755018556,
+    "m_sys_kg": 117.12427021889462,
+    "GC": 0.04781246439814831
+   },
+   {
+    "helical_angle_deg": 12.0,
+    "m_wall_kg": 20.785855988459666,
+    "m_sys_kg": 117.16569145233572,
+    "GC": 0.04779556140184725
+   },
+   {
+    "helical_angle_deg": 25.0,
+    "m_wall_kg": 21.066458794589355,
+    "m_sys_kg": 117.44629425846541,
+    "GC": 0.047681368197756986
+   }
+  ]
+ },
+ "para_hydrogen_contrast": {
+  "note": "para- vs normal-H2 density at the reference states (A-ISO-3/A-EOS-1); max |ratio-1| printed below.",
+  "rows": [
+   {
+    "P_Pa": 10000000.0,
+    "T_K": 80.0,
+    "rho_normal": 29.860417473775758,
+    "rho_para": 29.872674093429403,
+    "ratio_minus_1": 0.00041046377413866963
+   },
+   {
+    "P_Pa": 500000.0,
+    "T_K": 80.0,
+    "rho_normal": 1.5254438584274619,
+    "rho_para": 1.5259327660068056,
+    "ratio_minus_1": 0.00032050185042376
+   },
+   {
+    "P_Pa": 10000000.0,
+    "T_K": 160.0,
+    "rho_normal": 14.050821151142078,
+    "rho_para": 14.056675105222443,
+    "ratio_minus_1": 0.00041662718622603734
+   },
+   {
+    "P_Pa": 500000.0,
+    "T_K": 160.0,
+    "rho_normal": 0.7553119715358888,
+    "rho_para": 0.7553533238315686,
+    "ratio_minus_1": 5.474863002064012e-05
+   },
+   {
+    "P_Pa": 20000000.0,
+    "T_K": 80.0,
+    "rho_normal": 48.23420065390488,
+    "rho_para": 48.228036890554954,
+    "ratio_minus_1": -0.00012778823462111788
+   },
+   {
+    "P_Pa": 6000000.0,
+    "T_K": 40.0,
+    "rho_normal": 55.162937049940375,
+    "rho_para": 54.87930309771751,
+    "ratio_minus_1": -0.005141748561467652
+   },
+   {
+    "P_Pa": 500000.0,
+    "T_K": 110.0,
+    "rho_normal": 1.101499736033624,
+    "rho_para": 1.101668094790272,
+    "ratio_minus_1": 0.0001528450267760384
+   },
+   {
+    "P_Pa": 500000.0,
+    "T_K": 140.0,
+    "rho_normal": 0.8636521873410123,
+    "rho_para": 0.8637219688706333,
+    "ratio_minus_1": 8.079818547779283e-05
+   }
+  ],
+  "max_abs_ratio_minus_1": 0.005141748561467652
+ },
+ "mof5_2012_crosscheck": {
+  "note": "Secondary, NON-BINDING family check (pre-registration section 4): frozen model, FEDSM Table 2 powder MOF-5, 60 bar/40 K -> 5 bar/110 K (slide-12 empty midpoint), 5.6 kg usable, vs DOE AMR 2012 ST044 slide 12 (read 2026-11-03). The slide's flow-through design differs from the HexCell-family internals the model is calibrated to; deviations are reported, not adjudicated.",
+  "rows": [
+   {
+    "slide_row": "Powder MOF-5 (Aluminum Tank)",
+    "vessel": "type1",
+    "target_m_kg": 87.3,
+    "target_V_L": 182.7,
+    "model_m_kg": 77.39700796966267,
+    "model_V_L": 174.8718107123373,
+    "m_dev_pct": -11.343633482631532,
+    "V_dev_pct": -4.284723200691132
+   },
+   {
+    "slide_row": "Powder MOF-5 (Composite Tank)",
+    "vessel": "type3",
+    "target_m_kg": 74.6,
+    "target_V_L": 180.6,
+    "model_m_kg": 71.85363086927184,
+    "model_V_L": 195.6741044621432,
+    "m_dev_pct": -3.6814599607616016,
+    "V_dev_pct": 8.346680211596457
+   }
+  ]
+ }
+}

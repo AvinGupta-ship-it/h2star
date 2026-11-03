@@ -28,8 +28,9 @@ covariance exists anywhere in the project.
 All gas densities use the Leachman normal-H2 reference EOS; calls below
 33.2 K are rejected, which excludes the 30 K isotherm from every fit. If
 relaxed: para-enriched hydrogen at deep cryo is denser; the para/normal
-density difference at the envelope states is computed and reported with the
-model-form sensitivities rather than modelled kinetically.
+density difference at the reference states is computed and reported in
+data/analysis/supplementary_metrics_v1.json (max |ratio - 1| = 0.51%, at
+60 bar/40 K) rather than modelled kinetically.
 
 ## Engineering layer (v1.0; data/engineering_v1.yaml carries per-value sources)
 
@@ -69,16 +70,22 @@ calibration factors on it are the model's only fitted values.
 
 ### A-USE-1: Electric resistance heating; no onboard H2 consumed for the swing
 The reference designs heat with electric resistance elements; the heater
-ENERGY per discharge is computed and reported, and an H2-fuelled variant
-would subtract its fuel from usable capacity (stated, not modelled).
+ENERGY per discharge is computed and reported in
+data/analysis/supplementary_metrics_v1.json (1.4-2.7 kWh across the
+reference systems, with the sorbent-cp term carried as a declared range),
+and an H2-fuelled variant would subtract its fuel from usable capacity
+(stated, not modelled).
 
 ### A-USE-2: Delivered gas warmed to >= -40 C by a BOP heat exchanger
-Mass and volume carried in the BOP block; the duty uses fuel-cell waste heat
-per the reference designs.
+Mass and volume carried in the BOP block; the duty (1.6-2.6 kW at the DOE
+full-flow rate, computed in supplementary_metrics_v1.json) uses fuel-cell
+waste heat per the reference designs.
 
 ### A-USE-3: Dormancy sets the design pressure; 60 C ambient sizes insulation
-Vent at 1.25 P_full; worst-case ambient 333.15 K for heat-leak sizing and
-the reported dormancy metric.
+Vent at 1.25 P_full; worst-case ambient 333.15 K for heat-leak sizing; a
+conservative void-gas-only dormancy LOWER bound is reported in
+supplementary_metrics_v1.json (adsorption buffering, which lengthens real
+dormancy, is deliberately neglected there).
 
 ## Statistical layer (v1.0)
 

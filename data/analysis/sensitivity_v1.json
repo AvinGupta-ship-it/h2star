@@ -289,12 +289,16 @@
   "v_a": {
    "GC": -0.2013159909938746,
    "VC": -0.27250066335049117
+  },
+  "LR_t3": {
+   "GC": -0.06550906885076863,
+   "VC": -0.11492019524344065
   }
  },
  "ambient_298K_contrast": {
   "GC": 0.015071704178934239,
   "VC": 0.006852973503521402,
   "V_internal_L": 658.9563983236717,
-  "note": "pressure-swing only at 298 K; SI contrast, excluded from headlines (641-L-class tank)"
+  "note": "pressure-swing only at 298 K; SI contrast, excluded from headlines (the 659-L internal volume printed above)"
  }
 }

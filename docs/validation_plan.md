@@ -498,6 +498,13 @@ below_the_deterministic_requirement` pins it.
 
 ### Gate V4 overall status (2026-10-08): **CLOSED, all clauses PASS.**
 
+*Disclosure carried into this record (2026-11-03):* the Ishigami primary
+text (ISUMA '90 proceedings) was never read; the published index values used
+as V4.2 targets were taken from secondary sources, and the closed-form
+indices were re-derived analytically in-repo (independently re-derived again,
+exactly, by the S8 re-derivation and reference audit). The V4 verdict does
+not change; the provenance of its target values is secondary-source.
+
 Author: Avin Gupta. Tolerances unchanged since declaration earlier the same day,
 before `uq.py` and `sensitivity.py` existed; verifiable from `git log`.
 
@@ -695,7 +702,10 @@ unchanged.
 ## Gate E2 — held-out validation, run ONCE, adjudicated 2026-11-03
 
 Frozen targets and tolerances (pre-registration §4). Model exactly as frozen at
-E1; AX-21 by the Richard global set (rho_bulk 300, rho_skel 2300 kg/m3); usable
+E1; AX-21 by the Richard global set (rho_bulk 300 kg/m3; the gate code read
+rho_skel from ax21.yaml, i.e. the derived 2308 kg/m3 — this record's original
+"2300" misstated the run; recomputing H1 with 2300 gives GC 0.04778 vs
+0.04780, immaterial, S8 correction); usable
 basis; sized to 5.6 kg usable.
 
 | Case | Quantity | Predicted | Target | Ratio-1 | Band | Verdict |
@@ -728,7 +738,10 @@ is precisely why requirements should be stated in observables.
 Non-binding cross-checks reported with E2: performance-factor route vs netting
 wall (type-3): -12.4% at 100 bar, -36.0% at 200 bar (reported both, per the
 M1 exit test; the netting route is the sizing route). MOF-5 rows of ST044-2012
-slide 12 under this model are reported in the S6 analysis records.
+slide 12 under this model are reported in
+`data/analysis/supplementary_metrics_v1.json` (mof5_2012_crosscheck: type-1
+-11.3% mass / -4.3% volume, type-3 -3.7% / +8.3% against the slide's 87.3 kg
+/ 182.7 L and 74.6 kg / 180.6 L flow-through rows; non-binding).
 
 ## D6 adjudication — CNT case study (pre-registration section 8), 2026-11-03
 
@@ -791,3 +804,71 @@ list): the Ahluwalia & Peng 2009 in-paper values (SF 2.35, T700S Table 2
 pair, 30 kg/25 L at 350 bar, translation 82.5%/63% — note ANL-10/24 prints
 80.0% at 700 bar), Benard 2001 content claims, and the NREL MP-5400-73571
 report number.
+
+## Execution deviations from the frozen pre-registration text — dated record, 2026-11-03
+
+The pre-registration's own header rule allows dated, pre-code amendments;
+the items below were discovered or decided DURING execution, so they are
+recorded as deviations (not amendments), per the spirit of the section-9
+deviation table:
+
+1. **Posterior objective vs frozen objective.** Section 7 froze "MCMC on the
+   section-6 objective". The sampled log-posterior retains the Gaussian
+   normalization term (+sum log sigma_eff^2(theta)), which the frozen
+   weighted-least-squares objective omits; with theta-dependent sigma_eff
+   the two differ. The normalized form is the statistically correct
+   likelihood and was used deliberately (disclosed in model_derivations
+   section 10); effect verified immaterial (posterior 5-95%
+   n_max [61.31, 62.50] vs profile 95% [61.20, 62.63]). The profile/fit
+   objective, by omitting the term, could in principle reward derivative
+   inflation; verified immaterial here by the posterior/profile agreement.
+2. **Uncertainty spec filename.** Section 7 froze `data/uncertainty.yaml`;
+   the v1.0 spec was executed as `data/uncertainty_v1.yaml` to avoid
+   clobbering the superseded v0.2 file (cosmetic).
+3. **rho_skel record wording** and the **BOP anchor/volume provenance** —
+   corrected above (S8 correction record).
+4. **What the external timestamp protects.** The entire v1.0 arc — deposit,
+   amendment A1, engineering code, E1 freeze, E2 adjudication, S5/S6
+   records — spans roughly 100 minutes of 2026-11-03 by git log, with the
+   model necessarily developed out-of-tree while the plan was deposited. The
+   deposit therefore certifies that the gate targets, tolerances and fork
+   rule were fixed and externally timestamped BEFORE the gate outcomes were
+   known — and the adjudicated FAIL plus enforced fork rule is the
+   behavioural evidence consistent with that — but it cannot support any
+   stronger reading (e.g. that the model design was uninfluenced by
+   knowledge of the anchor values, which were read during source
+   verification before the deposit). The same-day declare-and-close pattern
+   was already identified as a structural weakness in the v0.2 deviation
+   table (section 9, item 5) and is repeated here with the external deposit
+   as the only hardening; the paper states exactly this.
+
+## S8 adversarial referee, round 1 — 2026-11-03
+
+A third isolated agent reviewed the repository alone (fresh clone at
+fb8209a, no access to any prior review) at IJHE/*Adsorption* standard.
+Verdict: **MAJOR REVISION** (rigor 8, correctness 7, significance 6,
+clarity 6, reproducibility 8, literature 8). Its verification log reproduced
+every published number it recomputed (suite, figures byte-identical, S5
+record byte-identical, all gate numbers, profile intervals, posterior
+diagnostics).
+
+Round-1 fixes, all applied the same day (details in CHANGELOG and the
+commits): M1 observable map moved to the deliverable-EXCESS basis (v_a-free
+by identity) with the promised rho_skel/residual-uptake sensitivities
+committed; M2 the multi-T "±1%" headline now carries the ±13%
+model-form/fit-set spread everywhere it appears; M3 every
+asserted-but-absent metric computed and committed
+(supplementary_metrics_v1.json: heater energy, dormancy lower bound,
+delivery-warming duty, dome-angle sensitivity, para-H2 contrast, MOF-5
+ST044-2012 slide-12 cross-check; LR elasticity added to the elasticity
+table); M4 the stale v0.2 claim surface in docs/README.md retired and
+labelled, version metadata reconciled; M5 timing-honesty statement, the
+rho_skel record correction, and the posterior-objective deviation recorded
+(dated deviation record above); M6 two-model independence wording weakened
+to the shared-anchor truth everywhere; M7 digitization inputs archived and
+the re-inspection encoded as data (byte-identical regeneration enforced by
+test). Minors 1-20 fixed except: 9 (v1.0 clean-room entry — written at
+release) and 18 (release git tags — created at release).
+
+Round 2: a fresh isolated referee reviews the fixed state; the loop repeats
+until the recommendation is minor revision or acceptance.

@@ -30,5 +30,6 @@ notes: >
   file -- the DOE targets were read by eye from this text and typed into prose. The first attempt
   to load it programmatically, for the inverse acceptability map, failed immediately. Only
   whitespace changed: every value, key, comment and string above is byte-identical to the Day 1
-  commit, and the values themselves remain pending Avin's verification against the live DOE page
-  as a Mode B item.
+  commit. The values were verified against the U.S. DRIVE Target Explanation Document (May 2017)
+  on 2026-11-03 (docs/references.md, USDRIVE-2017 row; also re-confirmed by the independent S8
+  reference audit against the live DOE targets page the same day).

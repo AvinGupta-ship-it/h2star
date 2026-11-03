@@ -101,7 +101,10 @@ def f2_fit():
     for ax, logx in zip(axes, (False, True)):
         for i, T in enumerate(temps):
             if T < 50:
-                continue  # subcritical: excluded from fits (EOS floor at 30K)
+                # Subcritical isotherms are not drawn: 35-45 K are excluded
+                # from the primary fit by the frozen plan (section 6); only
+                # 30 K is excluded by the EOS validity floor.
+                continue
             sel = [r for r in rows if r["temperature_K"] == T]
             P = np.array([r["pressure_MPa"] for r in sel])
             n = np.array([r["n_excess_molkg"] for r in sel])
@@ -140,6 +143,15 @@ def f3_profiles():
             obj0 = J[key]["objective"]
             ax.plot(pr["grid"], np.array(pr["objective"]) - obj0,
                     color=color, label=lab)
+        # The multi-T profiles are far narrower than the coarse grid above
+        # (referee round-1 minor 5): overlay the dense local grid so the
+        # dip to zero is visible, and mark the bisected 95% interval.
+        dn = J["profiles_dense_multiT"][p]
+        obj0_m = J["multi_temperature"]["objective"]
+        ax.plot(dn["grid"], np.array(dn["objective"]) - obj0_m,
+                color="C0", lw=1.0)
+        lo_i, hi_i = J["multi_temperature"]["profiles"][p]["interval_frozen"]
+        ax.plot([lo_i, hi_i], [3.84, 3.84], "|", color="C0", ms=9, mew=1.5)
         ax.axhline(3.84, color="k", lw=0.5, ls="--")
         ax.set_ylim(0, 25)
         ax.set_xlabel(labels[p])
@@ -171,6 +183,10 @@ def f4_anchor_table():
     tbl.auto_set_font_size(False)
     tbl.set_fontsize(7.5)
     tbl.scale(1, 1.25)
+    # Column widths sized so no cell text clips (referee round-1 minor 7).
+    for j, w in enumerate((0.42, 0.13, 0.13, 0.12, 0.14)):
+        for i in range(len(rows) + 1):
+            tbl[i, j].set_width(w)
     ax.set_title("Calibration (E1) and held-out gate (E2) against HSECoE "
                  "anchors; usable basis.\nGate E2 FAILED on H1 (pre-registered"
                  " 10.5281/zenodo.23931242): absolute-capacity claims dropped.",
@@ -199,12 +215,15 @@ def f5_observable_map():
                          colors="C3", linewidths=0.7)
         ax.clabel(cs2, fmt="VC %.3f", fontsize=6)
         pt = M["ax21_point"]
-        ax.plot(pt["rho_pack"], pt["deliverable_uptake_abs_swing"], "k*",
-                ms=9, label="AX-21 (posterior median)")
+        ax.plot(pt["rho_pack"], pt["deliverable_uptake_excess_swing"], "k*",
+                ms=9)
+        ax.annotate("AX-21\n(posterior median)",
+                    (pt["rho_pack"], pt["deliverable_uptake_excess_swing"]),
+                    textcoords="offset points", xytext=(6, 6), fontsize=6.5)
         ax.set_xlabel(r"packing density $\rho_{pack}$ (kg/m$^3$)")
         ax.set_title(lab, fontsize=8)
-    axes[0].set_ylabel("deliverable uptake, full$\\to$empty (kg H$_2$/kg)")
-    axes[0].legend(frameon=False, loc="upper left")
+    axes[0].set_ylabel("deliverable excess uptake,\n"
+                       "full$\\to$empty (kg H$_2$/kg sorbent)")
     # No headline title: the manuscript caption carries it (journal style).
     savefig(fig, "F5_observable_map")
 

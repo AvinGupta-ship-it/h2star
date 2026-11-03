@@ -6,7 +6,9 @@
 # the CI images.
 CoolProp==8.0.0
 PyYAML==6.0.3
-SALib==1.6.0
+# SALib was removed from the dependency set in the v1.0 supersession
+# (cff3a6a; Shapley effects are computed in-repo, emcee replaced it).
+# It is intentionally absent from this lock.
 contourpy==1.4.0
 cycler==0.12.1
 emcee==3.1.6

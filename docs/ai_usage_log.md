@@ -745,3 +745,20 @@ What I verified: pending — this entry is written ahead of my review. My
   scientific sign-off on the re-derivation report and on every claim in the
   manuscript is required before submission and has not yet been given.
 What I changed: nothing yet — review pending.
+
+## 2026-11-03 — S8 round 1: adversarial referee and fixes
+Tool: Claude (claude.ai, Fable-5 class), per the v3.0 execution manual.
+Purpose: Third isolated agent delivered a full adversarial referee review of
+  the repository (verdict: MAJOR REVISION, 7 majors / 20 minors, with an
+  independent verification log that reproduced every number it recomputed).
+  The main session then applied the round-1 fixes: excess-basis observable
+  map; conditionality of the multi-T precision headline; all
+  asserted-but-absent metrics computed (supplementary_metrics_v1.json);
+  v0.2 claim-surface retirement; deviation record; two-model wording;
+  digitization inputs archived with the re-inspection encoded as data and a
+  byte-identity test; figure fixes (F2-F5, F7); notebook executed; CI stale
+  step removed; manuscript updated accordingly.
+What I verified: pending — written ahead of my review; the referee report
+  (/home/claude/s8/referee/REFEREE_REPORT.md), the correction records in
+  docs/validation_plan.md and every round-1 fix are in my sign-off queue.
+What I changed: nothing yet — review pending.

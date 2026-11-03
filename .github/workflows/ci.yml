@@ -25,13 +25,12 @@ jobs:
       - name: Run tests
         run: pytest
 
-  # The matrix above always resolves the newest Matplotlib, so every job in it
-  # shares one rendering stack -- and so did all four clean-room runs, which is
-  # why none of them caught that the recorded figure configuration raised on
-  # any other Matplotlib. Of its 324 settings, 3.9.4 rejects 26, and applying
-  # them unfiltered broke every plotting call in the package. This job pins an
-  # old Matplotlib so that stays caught. The figure byte comparisons skip here,
-  # as they do anywhere the rendering stack differs from the recorded one.
+  # The matrix above always resolves the newest Matplotlib, so every job in
+  # it shares one rendering stack. This job pins an old Matplotlib so that a
+  # version-dependent plotting regression stays caught. (The v0.2 recorded
+  # figure-style machinery this job once exercised was removed in the v1.0
+  # supersession; figure fidelity is now data-level, per
+  # docs/known_limitations.md section 7.)
   oldest-supported-matplotlib:
     runs-on: ubuntu-latest
     steps:
@@ -45,7 +44,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
           pip install "matplotlib==3.9.4"
-      - name: Report the rendering stack
-        run: python scripts/record_figure_style.py --check || true
       - name: Run tests
         run: pytest
+      - name: Figures build under the old Matplotlib
+        run: python scripts/make_figures_v1.py

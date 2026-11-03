@@ -3,6 +3,21 @@
 Rule: docs/preregistration_v1.0.md section 5 (frozen).
 Axis resolution: 0.00492 MPa/px, 0.0616 (mol/kg)/px.
 
+Inputs and reproducibility (S8 referee M7 fix, 2026-11-03): the two route
+CSVs, their calibration notes, route B's extraction script and the shared
+600-dpi source crop are committed under `data/validation/digitization/`,
+and the single re-inspection documented below is encoded point-by-point in
+`digitization/reinspection_decisions.csv`. The published dataset
+regenerates byte-for-byte from these inputs via
+`scripts/reconcile_digitization.py` (enforced by
+`tests/test_digitization_pipeline.py`). The two routes are two isolated
+extraction processes (one visual reading, one scripted template matching)
+over the SAME source image and glyph conventions, so shared-mode error is
+possible — the documented triangle-marker-centre offset at 35 K and 113 K
+is exactly such a case, caught because the per-point route readings are
+embedded in the dataset; "independent" below means independent extraction
+routes, not independent sources.
+
 Matched and reconciled: 140
 Flagged for the single re-inspection: 58
 

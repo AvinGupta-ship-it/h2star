@@ -75,9 +75,10 @@ class Material:
         ``{value, unit}`` mappings for ``n_max``, ``alpha``, ``beta``, ``p0``,
         and ``v_a``. Units are converted to SI: ``p0`` from MPa (or accepted
         as Pa); the remaining four parameters are already SI and taken as-is.
-        ```rho_bulk`` and ``rho_skel`` are read from
+        ``rho_bulk`` and ``rho_skel`` are read from
         ``material_anchors.bulk_density_kg_per_m3`` and
-        ``material_anchors.skeletal_density_kg_per_m3`` when present. ``rho_skel`` is set to ``None``.
+        ``material_anchors.skeletal_density_kg_per_m3`` when present;
+        either is ``None`` when its key is absent.
 
         Raises
         ------

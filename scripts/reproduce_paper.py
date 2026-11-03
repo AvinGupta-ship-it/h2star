@@ -119,7 +119,9 @@ def main():
     tex += M("vUreqVzero",
              f"{OM['models']['v02_lumped']['u_required_2025'][rho_idx]:.3f}")
     tex += M("vAxUd",
-             f"{OM['ax21_point']['deliverable_uptake_abs_swing']:.3f}")
+             f"{OM['ax21_point']['deliverable_uptake_excess_swing']:.3f}")
+    abs_ref = OM["ax21_point"]["deliverable_uptake_abs_swing_reference_only"]
+    tex += M("vAxUdAbs", f"{abs_ref:.3f}")
     tex += M("vAmbientVint",
              f"{SE['ambient_298K_contrast']['V_internal_L']:.0f}")
     tex += M("vEtwoGCdevCorr", f"{BA['corrected']['E2']['H1_dev_pct']:.0f}")

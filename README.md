@@ -35,32 +35,47 @@ not a hardware demonstration.
 **1. Single-isotherm practical non-identifiability.** Fitting the modified
 D–A model to the one 77 K AX-21 excess isotherm of the kind the literature
 routinely publishes leaves the parameter vector loose: the 95% profile-
-likelihood region spans n_max 37–142 mol/kg and more than four decades of
-pseudo-saturation pressure, and the temperature coefficient β is wholly
-undetermined. Fitting seven temperatures (60–298 K) jointly pins the same
-parameters to about ±1% (n_max 61.2–62.6 mol/kg). The underlying degeneracy
+likelihood region spans n_max 37–142 mol/kg under the frozen
+log10(P0/Pa) ≤ 12 bound (raising the bound to 14 widens it to 38–263 —
+the quoted interval is bound-conditional, and relaxing the bound only
+strengthens the conclusion), more than four decades of pseudo-saturation
+pressure, and the temperature coefficient β is wholly undetermined. Fitting
+seven temperatures (60–298 K) jointly pins n_max to ±1.2% (61.2–62.6
+mol/kg; β ±2.0%, v_a ±2.4%) — but that is within-model precision under
+m = 2 and the supercritical fit set. The structural spread is an order of
+magnitude larger: freeing the D–A exponent moves n_max to 54.4, adding the
+35–45 K isotherms to 69.2, and the source's own 30–293 K global fit is
+71.6 — a ±13% model-form/fit-set spread that any use of the ±1% figure must
+carry with it. The underlying degeneracy
 at a single temperature follows from ε = α + βT and is visible in the source
 data's own published alternative fits (Richard, Bénard & Chahine 2009,
 Table 3); the contribution here is its quantification by profile likelihood
 with an explicit measurement-error model, and the measurement of how much
 identifiability each added temperature restores.
 
-**2. Loose parameters, tight predictions.** Across the full 77 K profile
-region — a 3.8× range in n_max — the predicted usable system capacity at the
-baseline envelope varies by only ±2.4% (volumetric: ±3.0%). The model is sloppy in the
-sense of Gutenkunst et al. (2007): the Fisher-information eigenvalue spectrum
-spans many decades. A requirement stated as "n_max = X at fixed α, β, P0" is
-therefore conditional on an arbitrary point along a ridge the data do not
-resolve.
+**2. Loose parameters, tight predictions.** Across the propagated 77 K
+profile ridge (n_max 40–120, a 3.0× range; the full 95% interval is 3.8×)
+the predicted usable system capacity at the baseline envelope varies by only
+±2.4% (volumetric: ±3.0%); evaluated at the exact interval endpoints
+(n_max 37.4 and 142.2) it stays within ≈4% of the optimum
+(data/analysis/identifiability_v1.json, propagation records). The model is
+sloppy in the sense of Gutenkunst et al. (2007): the Fisher-information
+eigenvalue spectrum spans many decades. A requirement stated as "n_max = X
+at fixed α, β, P0" is therefore conditional on an arbitrary point along a
+ridge the data do not resolve.
 
 **3. Requirements belong in observables.** The requirement maps here use
-deliverable uptake between the stated full and empty states, together with
-packing density, as axes — quantities a laboratory can measure without
-inverting an isotherm model — following the practice of the HSECoE Adsorbent
-Acceptability Envelope (Hardy, Tamburello & Corgnale 2018) and Argonne's
-Level-1 sorbent targets (Ahluwalia, Peng & Hua 2015). The map is drawn under
-two independent engineering models, and the shift between them is reported
-rather than hidden.
+deliverable EXCESS uptake between the stated full and empty states, together
+with packing density, as axes — quantities a laboratory can measure without
+inverting an isotherm model (on the excess basis the fitted adsorbed-phase
+volume v_a drops out of the bed inventory algebraically; an
+absolute-adsorption axis would re-import it, shifting a material's
+coordinate by half its own value at this envelope) — following the practice
+of the HSECoE Adsorbent Acceptability Envelope (Hardy, Tamburello &
+Corgnale 2018) and Argonne's Level-1 sorbent targets (Ahluwalia, Peng & Hua
+2015). The map is drawn under two structurally different engineering models
+that share several source anchors, so the shift between them — reported
+rather than hidden — is a lower bound on engineering-model dependence.
 
 **4. The engineering block is the dominant uncertainty.** With the material
 parameters sampled from their joint posterior, Shapley effects attribute most
@@ -78,7 +93,12 @@ against frozen held-out targets: it matched the 60 bar/40 K AX-21 system to
 pre-registered ±20% band (the anchor family itself drifts 21% across HSECoE
 report years). Per the fork rule frozen in the pre-registration, no absolute
 system-capacity claim is made anywhere in this project; relative statements
-appear only where shown robust under two independent engineering models.
+appear only where shown robust under two structurally different engineering
+models (with the shared-anchor caveat of Finding 3). A post-adjudication
+audit found the balance-of-plant anchor mis-attributed to 100 bar; the gate
+record stands, and re-anchoring at the source's own pressures moves the
+failed comparison between +37% and +51% without flipping any verdict
+(docs/validation_plan.md, correction record).
 
 ## DOE targets used
 
@@ -151,7 +171,9 @@ who is responsible for every line.
 
 See `CITATION.cff`. Cite the concept DOI
 [10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816) for the
-software; the paper preprint cites the v1.0.0 version DOI.
+software; a v1.0.0 version DOI will be minted under that concept at the
+v1.0.0 GitHub release (none exists yet — CHANGELOG lists each release's
+version DOI once minted).
 
 ## License
 

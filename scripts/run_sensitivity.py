@@ -270,6 +270,23 @@ def main():
         g_lo, v_lo = model(m_lo, nom_e)
         elas[k] = {"GC": float((g_hi - g_lo) / (gc0 * 0.04)),
                    "VC": float((v_hi - v_lo) / (vc0 * 0.04))}
+    # Aspect ratio LR (A-ENG-1 promises this in the elasticity table).
+    for attr, key in (("t3_LR", "LR_t3"),):
+        p_hi = replace(model.base_params,
+                       **{attr: getattr(model.base_params, attr) * 1.02})
+        p_lo = replace(model.base_params,
+                       **{attr: getattr(model.base_params, attr) * 0.98})
+        res = {}
+        for tag, p_ in (("hi", p_hi), ("lo", p_lo)):
+            mat_ = replace(model.base_mat)
+            d_ = eng.SystemDesignV1(
+                mat_, isotherm.ModifiedDA(mat_), p_, "type3",
+                P_FULL, T_FULL, nom_e["P_empty"], nom_e["T_empty"])
+            b_ = eng.evaluate_sized(d_)
+            res[tag] = (b_["GC"], b_["VC"])
+        elas[key] = {
+            "GC": float((res["hi"][0] - res["lo"][0]) / (gc0 * 0.04)),
+            "VC": float((res["hi"][1] - res["lo"][1]) / (vc0 * 0.04))}
     out["elasticities_nominal"] = elas
 
     # ---- ambient 298 K contrast (SI-only, labelled) --------------------
@@ -283,7 +300,8 @@ def main():
             "GC": b298["GC"], "VC": b298["VC"],
             "V_internal_L": b298["V_internal"] * 1e3,
             "note": "pressure-swing only at 298 K; SI contrast, excluded "
-                    "from headlines (641-L-class tank)",
+                    "from headlines (the 659-L internal volume printed "
+                    "above)",
         }
         print("ambient 298K: V_int %.0f L, GC %.4f, VC %.4f" % (
             b298["V_internal"] * 1e3, b298["GC"], b298["VC"]))

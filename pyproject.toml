@@ -32,3 +32,9 @@ markers = [
     "validation: gate tests validating physics against reference data or analytic limits",
     "provenance: tests that walk the data/ files for parseability, units and attribution",
 ]
+
+[tool.ruff]
+# The archived digitization route scripts are verbatim input artifacts of the
+# dual-digitization record (data/validation/digitization/); they are archived,
+# not maintained, and are excluded from lint so the archive stays bit-exact.
+extend-exclude = ["data/validation/digitization"]
