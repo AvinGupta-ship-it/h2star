@@ -222,3 +222,4 @@ __marimo__/
 # images here so it cannot overwrite a published figure under its published
 # name. They are output, not artifacts.
 figures/quick/
+src/h2star.egg-info/

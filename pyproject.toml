@@ -14,7 +14,7 @@ dependencies = [
     "matplotlib",
     "pyyaml",
     "CoolProp",
-    "SALib",
+    "emcee",
 ]
 
 [project.optional-dependencies]
@@ -22,24 +22,10 @@ dev = [
     "pytest",
     "ruff==0.15.17",
 ]
-# Needed only to re-execute the notebooks, which the clean-room reproduction in
-# manual Part VII requires. Declared rather than left to be improvised, so the
-# reproduction instruction is complete.
-nb = [
-    "nbformat",
-    "nbclient",
-    "ipykernel",
-]
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
-# figure_style.json is the recorded rendering configuration and viz reads it at
-# import time, so a wheel that omitted it would fail on `import h2star.viz`
-# rather than degrade. Declared explicitly instead of relying on
-# include-package-data defaults.
-[tool.setuptools.package-data]
-h2star = ["figure_style.json"]
 
 [tool.pytest.ini_options]
 markers = [

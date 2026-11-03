@@ -41,18 +41,3 @@ def engineering_params():
     return system.EngineeringParams.from_yaml(ENGINEERING_YAML)
 
 
-@pytest.fixture(scope="session")
-def ax21_envelope_optimum(ax21_material, ax21_isotherm, engineering_params):
-    """The optimized operating envelope for AX-21, computed once per session.
-
-    A full optimization is a few thousand system evaluations. Several tests
-    interrogate the same optimum from different angles, and recomputing it per
-    test would multiply the suite's runtime for no extra coverage: the
-    optimizer is deterministic under a fixed seed, which
-    ``test_optimum_is_reproducible`` checks separately and cheaply.
-    """
-    from h2star import envelope
-
-    return envelope.optimize_envelope(
-        ax21_material, ax21_isotherm, engineering_params, seed=0
-    )
