@@ -108,7 +108,7 @@ def main():
     tex += M("vGCfullPct",
              f"{100 * (max(gcs_full) - min(gcs_full)) / (max(gcs_full) + min(gcs_full)):.1f}")
     tex += M("vGCendLowDev",
-             f"{100 * (min(gcs_full) / max(gcs_full) - 1):.1f}")
+             f"{100 * (1 - min(gcs_full) / max(gcs_full)):.1f}")
     tex += M("vESSmin", f"{math.floor(min(MC['ess'].values()))}")
     tex += M("vRhatMax", f"{max(MC['rhat'].values()):.4f}")
     tex += M("vObjMtwo", f"{MC['model_forms']['mda_m2']['objective']:.1f}")

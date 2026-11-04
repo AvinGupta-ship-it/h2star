@@ -72,10 +72,13 @@ with packing density, as axes — quantities a laboratory can measure without
 inverting an isotherm model (on the excess basis the fitted adsorbed-phase
 volume v_a drops out of the bed inventory algebraically; an
 absolute-adsorption axis would re-import it, shifting a material's
-coordinate by half its own value at this envelope) — following the practice
-of the HSECoE Adsorbent Acceptability Envelope (Hardy, Tamburello &
-Corgnale 2018) and Argonne's Level-1 sorbent targets (Ahluwalia, Peng & Hua
-2015). The map is drawn under two structurally different engineering models
+coordinate by half its own value at this envelope) — following Argonne's
+Level-1 sorbent targets (Ahluwalia, Peng & Hua 2015), which are stated in
+measured quantities. The HSECoE Adsorbent Acceptability Envelope (Hardy,
+Tamburello & Corgnale 2018), by contrast, states its requirements in
+(n_max, bulk density) — n_max being exactly the ridge-conditional fitted
+parameter of Finding 1, which is the argument for the Argonne-style axes
+used here. The map is drawn under two structurally different engineering models
 that share several source anchors, so the shift between them — reported
 rather than hidden — is a lower bound on engineering-model dependence.
 

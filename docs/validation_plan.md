@@ -900,3 +900,15 @@ corrections, venue-neutral AI declarations, CHANGELOG ordering).
 
 The revision was returned to the same referee for item-by-item
 adjudication; its outcome is recorded below when received.
+
+### Revision adjudication (same referee, on cc37b71) — 2026-11-03
+
+All fourteen minors RESOLVED; M1 RESOLVED (the sign-off gate judged "honest
+and sufficient for a submission-pending artifact"); M2 RESOLVED (one
+rendering blemish); M3/M4 PARTIALLY RESOLVED — two one-sentence attribution
+fixes remained (README Finding 3's HSECoE sentence; the references.md
+BENARD-2001 row). Those two, plus the M2 double-negative blemish, are fixed
+in the commit carrying this entry. With them closed, every item of both
+referee rounds is resolved or recorded; **S8 exit criterion met** (verdict
+MINOR REVISION, no unresolved major). The author sign-off checklist
+(docs/author_signoff_checklist.md) remains the submission gate.
