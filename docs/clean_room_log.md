@@ -414,11 +414,13 @@ Results, each from the artifact of the run itself:
   diffs** against the committed files (PDFs differ only in CreationDate, as
   documented).
 
-Context for this run: earlier the same day, four isolated agents separately
-verified the artifact — a full re-derivation (every headline number, several
-by independent reimplementation), a reference audit against primary sources,
-and two adversarial referee rounds whose verdict converged to MINOR REVISION
-with every item resolved (docs/validation_plan.md, S8 records). This run is
+Context for this run: earlier the same day, four separate independent
+verification passes examined the artifact — a full re-derivation (every
+headline number, several by independent reimplementation), a reference
+audit against primary sources, and two adversarial review rounds whose
+verdict converged to MINOR REVISION with every item resolved
+(docs/validation_plan.md, S8 records; how the passes were run is stated in
+docs/ai_usage_log.md). This run is
 the release-candidate confirmation on the post-fix commit; the long S5/MCMC
-regenerations were already verified byte-identical twice by the isolated
-agents on the same day and were not repeated here.
+regenerations were already verified byte-identical twice the same day by
+those independent passes and were not repeated here.

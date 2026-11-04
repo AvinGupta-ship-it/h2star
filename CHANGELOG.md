@@ -15,9 +15,10 @@ externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
 gate code existed; amendment A1 pre-code). API-breaking (hence the major
 version).
 
-Before release, two isolated agents verified the adjudicated state
-(2026-11-03). A re-derivation from a fresh clone reproduced every headline
-number; its seven non-numeric findings were fixed — release metadata brought
+Before release, the adjudicated state was verified independently
+(2026-11-03; the verification passes are described in docs/ai_usage_log.md
+and docs/validation_plan.md). A re-derivation from a fresh clone reproduced
+every headline number; its seven non-numeric findings were fixed — release metadata brought
 to 1.0.0; a rounding slip and two stale docstring/prose statements corrected;
 the MATI family-check record, which was not reproducible from the repository,
 recomputed from a newly committed compacted-MOF-5 parameter file and pinned

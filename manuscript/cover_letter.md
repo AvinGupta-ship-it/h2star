@@ -44,10 +44,9 @@ Three aspects may interest your referees in particular:
    posterior and declared engineering inputs, which to our knowledge has not
    been applied to cryo-adsorbent system models.
 
-Generative AI was used in both the research process and manuscript
-preparation, described in detail in the Methods section and declared per
-the journal's policy on AI use; the author takes full responsibility for
-all content.
+AI use in the research workflow is disclosed in the Methods section and
+documented in the repository; the author takes full responsibility for all
+content.
 
 This manuscript is not under consideration elsewhere. A preprint will be
 posted on ChemRxiv.

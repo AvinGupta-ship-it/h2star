@@ -42,7 +42,7 @@ bottom.
 |---|---|
 | [`clean_room_log.md`](clean_room_log.md) | Clean-room reproductions, dated and against a named commit, including the two that failed (v0.2 era; the v1.0 entry is added at release). |
 | [`history/progress_journal.md`](history/progress_journal.md) | Day-by-day v0.2 process narrative (moved out of the claim surface). |
-| [`ai_usage_log.md`](ai_usage_log.md) | Honest AI-assistance disclosure, session by session, including the dated transition where the division of labour changed. |
+| [`ai_usage_log.md`](ai_usage_log.md) | AI-use disclosure: tool, scope, responsibility, and where the contemporaneous records live. |
 
 ## Outside `docs/`
 

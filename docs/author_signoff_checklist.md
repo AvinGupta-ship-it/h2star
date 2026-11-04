@@ -26,8 +26,9 @@ checklist is closed; the Methods section now points here.
 
 - [ ] Read `manuscript/main.pdf` in full; every claim sentence is one you
       can defend (the defense brief in the Project maps each to evidence).
-- [ ] Read the three S8 reports (re-derivation, reference audit, referee
-      rounds 1-2) and the correction records in `docs/validation_plan.md`.
+- [ ] Read the S8 verification reports (re-derivation, reference audit,
+      adversarial review rounds 1-2 — provided to you directly; summarized
+      with the correction records in `docs/validation_plan.md`).
 - [ ] Confirm the five README Findings as your own conclusions.
 - [ ] Decide affiliation line, suggested referees, funding/conflict
       statements (cover letter placeholders).

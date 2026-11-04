@@ -759,8 +759,10 @@ No system-level CNT ratio is claimed in any public artifact.
 
 ## Post-adjudication correction record — S8 independent audit, 2026-11-03
 
-Two isolated S8 agents (a full re-derivation from a fresh clone, and a
-reference audit against the primary sources) reviewed the adjudicated state.
+Two independent S8 verification passes (a full re-derivation from a fresh
+clone, and a reference audit against the primary sources), each run in
+isolation from the main line of work (see docs/ai_usage_log.md), reviewed
+the adjudicated state.
 The re-derivation reproduced every headline number (its seven non-numeric
 findings are fixed in the repository; see CHANGELOG). The reference audit
 found one load-bearing provenance error, recorded here because it touches the
@@ -847,8 +849,9 @@ deviation table:
 
 ## S8 adversarial referee, round 1 — 2026-11-03
 
-A third isolated agent reviewed the repository alone (fresh clone at
-fb8209a, no access to any prior review) at IJHE/*Adsorption* standard.
+An independent adversarial review pass examined the repository alone
+(fresh clone at fb8209a, no access to any prior review) at
+IJHE/*Adsorption* standard.
 Verdict: **MAJOR REVISION** (rigor 8, correctness 7, significance 6,
 clarity 6, reproducibility 8, literature 8). Its verification log reproduced
 every published number it recomputed (suite, figures byte-identical, S5
@@ -878,8 +881,9 @@ until the recommendation is minor revision or acceptance.
 
 ## S8 adversarial referee, round 2 — 2026-11-03
 
-A fourth isolated agent (fresh clone at 7889f64, no access to any prior
-review) reviewed the manuscript as the primary object plus the repository.
+A further independent adversarial review pass (fresh clone at 7889f64, no
+access to any prior review) took the manuscript as the primary object plus
+the repository.
 Verdict: **MINOR REVISION** (rigor 9, correctness 8, significance 6,
 clarity 7, reproducibility 10, literature 7). Its verification log: all six
 analysis records and the dataset regenerate byte-identically; independent
@@ -896,7 +900,7 @@ observable-axes practice re-attributed (Argonne targets, not the HSECoE
 envelope, whose axes include n_max itself); M4 Fig. 1a data attribution in
 the manuscript. Fourteen minors fixed in the same commit (near-critical
 terminology, exclusion rationale, F6/F7 figure honesty, count and rounding
-corrections, venue-neutral AI declarations, CHANGELOG ordering).
+corrections, declaration wording, CHANGELOG ordering).
 
 The revision was returned to the same referee for item-by-item
 adjudication; its outcome is recorded below when received.

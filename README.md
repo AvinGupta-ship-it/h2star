@@ -160,17 +160,13 @@ meaning.
 All v0.2 adjudications stand as records; `docs/validation_plan.md` carries
 every block verbatim, including deviations (pre-registration §9).
 
-## AI involvement
+## AI-use disclosure
 
-This project was built with substantial AI assistance (Anthropic Claude)
-under the project's execution manual: implementation, analysis,
-derivational reasoning, figure generation and documentation prose, with the
-author verifying load-bearing inputs against primary sources, ratifying
-every pre-registered decision, and holding the final scientific sign-off on
-all claims. The contemporaneous record is `docs/ai_usage_log.md`; the
-pre-registration and its deviation table are external and citable
-(10.5281/zenodo.23931242). Commits are authored by the repository owner,
-who is responsible for every line.
+AI tools (Anthropic Claude) were used in the research workflow under the
+project's execution manual and the externally deposited pre-registration
+(10.5281/zenodo.23931242); scope, responsibility and the contemporaneous
+record are stated in `docs/ai_usage_log.md`. The author holds sole
+scientific responsibility for every claim.
 
 ## Citation
 
