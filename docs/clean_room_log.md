@@ -397,3 +397,28 @@ the coverage the clean room structurally lacks.
   was not another clean-room run but an adversarial reviewer with no access to
   the reasoning behind the fix. Runs are necessary; they are not sufficient
   against a blind spot shared by the diagnosis and its test.
+
+## Run 7 — commit `e9f4bd0`, 2026-11-03. **PASSED, complete. v1.0.0 release candidate.**
+
+Fresh clone to a new directory; `pip install -e ".[dev]"` on Python 3.13.
+Results, each from the artifact of the run itself:
+
+- `pytest -q`: **125 passed, 1 xfailed** (the strict Gate-V3 documented-FAIL
+  regression), ~15 s.
+- `scripts/reproduce_paper.py --check`: committed `generated_numbers.tex`
+  matches the regeneration.
+- `scripts/reconcile_digitization.py --check`: the published dataset is
+  byte-identical to a regeneration from the committed digitization inputs
+  and the re-inspection decisions file.
+- `scripts/make_figures_v1.py`: all seven figures rebuild; **zero PNG byte
+  diffs** against the committed files (PDFs differ only in CreationDate, as
+  documented).
+
+Context for this run: earlier the same day, four isolated agents separately
+verified the artifact — a full re-derivation (every headline number, several
+by independent reimplementation), a reference audit against primary sources,
+and two adversarial referee rounds whose verdict converged to MINOR REVISION
+with every item resolved (docs/validation_plan.md, S8 records). This run is
+the release-candidate confirmation on the post-fix commit; the long S5/MCMC
+regenerations were already verified byte-identical twice by the isolated
+agents on the same day and were not repeated here.
