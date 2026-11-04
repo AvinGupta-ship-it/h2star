@@ -762,3 +762,18 @@ What I verified: pending — written ahead of my review; the referee report
   (/home/claude/s8/referee/REFEREE_REPORT.md), the correction records in
   docs/validation_plan.md and every round-1 fix are in my sign-off queue.
 What I changed: nothing yet — review pending.
+
+## 2026-11-03 — S8 round 2: fresh referee, minor revision, fixes
+Tool: Claude (claude.ai, Fable-5 class), per the v3.0 execution manual.
+Purpose: Fourth isolated agent refereed the manuscript + repository at
+  7889f64 with fresh eyes. Verdict: MINOR REVISION (reproducibility 10/10;
+  every recomputable number reproduced, including by independent
+  reimplementation; external anchors verified live). Its four majors and
+  fourteen minors were fixed in cc37b71 — most importantly, the Methods
+  integrity statement was rewritten so it is true of the artifact as it
+  stands: the author's verification and review are now a stated submission
+  gate (docs/author_signoff_checklist.md), not an asserted past event.
+  The revision went back to the same referee for item-by-item adjudication.
+What I verified: pending — the sign-off checklist is the record of what I
+  must verify before submission; nothing is submitted until it is closed.
+What I changed: nothing yet — review pending.

@@ -875,3 +875,28 @@ release) and 18 (release git tags — created at release).
 
 Round 2: a fresh isolated referee reviews the fixed state; the loop repeats
 until the recommendation is minor revision or acceptance.
+
+## S8 adversarial referee, round 2 — 2026-11-03
+
+A fourth isolated agent (fresh clone at 7889f64, no access to any prior
+review) reviewed the manuscript as the primary object plus the repository.
+Verdict: **MINOR REVISION** (rigor 9, correctness 8, significance 6,
+clarity 7, reproducibility 10, literature 7). Its verification log: all six
+analysis records and the dataset regenerate byte-identically; independent
+reimplementation reproduced the optima, all four quoted interval endpoints,
+and every gate number; all reachable external anchors verified exact against
+primary sources (including live confirmation of both the original BOP
+misattribution and its disclosed correction).
+
+Round-2 majors, fixed in commit cc37b71: M1 the Methods integrity statement
+(now a stated submission gate with docs/author_signoff_checklist.md, instead
+of asserting a review the log recorded as pending); M2 tight-predictions
+numbers (±2.4% ridge trace, ±3.9% region-wide, low endpoint −7.5%); M3 the
+observable-axes practice re-attributed (Argonne targets, not the HSECoE
+envelope, whose axes include n_max itself); M4 Fig. 1a data attribution in
+the manuscript. Fourteen minors fixed in the same commit (near-critical
+terminology, exclusion rationale, F6/F7 figure honesty, count and rounding
+corrections, venue-neutral AI declarations, CHANGELOG ordering).
+
+The revision was returned to the same referee for item-by-item
+adjudication; its outcome is recorded below when received.
