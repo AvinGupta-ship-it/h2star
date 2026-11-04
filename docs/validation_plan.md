@@ -916,3 +916,59 @@ in the commit carrying this entry. With them closed, every item of both
 referee rounds is resolved or recorded; **S8 exit criterion met** (verdict
 MINOR REVISION, no unresolved major). The author sign-off checklist
 (docs/author_signoff_checklist.md) remains the submission gate.
+
+### Primary-source verification of the sign-off checklist §1 items — 2026-11-04
+
+The five §1 items were written as "only the author can close" because the
+primary-source PDFs were not held. The author has since supplied the PDFs
+(Project uploads), so each item was verified against the paper itself; the
+checkboxes remain the author's to tick.
+
+1. **Ahluwalia & Peng, IJHE 34 (2009)** — read in full. SF 2.35; T700S
+   2550 MPa / 1600 kg/m3 (Table 2); translation efficiencies verbatim
+   ("linearly interpolated between 82.5% at 350 bar and 63% at 700 bar …
+   extrapolated to pressures outside the 350–700 bar range"); 2.4 mm
+   Al 2024 liner; 3 mm shell; vent "25% above the maximum storage
+   pressure"; MLI 28 layers/cm, 59.3 kg/m3, 5.2e-4 W/m K — all EXACT.
+   One provenance finding: the paper states the 30 kg/25 L miscellaneous
+   block as a fixed allowance "unlikely to change with the different
+   operating conditions"; it does not tie it to 350 bar. Same class as the
+   D2 correction: the frozen anchors are kept, the pressure-independent
+   reading is already a committed sensitivity variant (H1 +50.8%, verdict
+   unchanged), and the provenance texts in `data/engineering_v1.yaml` and
+   `docs/references.md` were updated in the commit carrying this entry.
+2. **Bénard & Chahine, Langmuir 17 (2001)** — read in full. No numeric
+   isotherm tables (figures only); q_st "decreases from 6.4 to 5.0 kJ/mol
+   over the range 0-12 mmol/g"; AX-21 2800 m2/g, 0.3 g/cm3, DFT pore width
+   ~12.5 A; ranges 77–273 K / 0–6 MPa as its experimental section states
+   (its C(T) fit text says 77–298 K; the 77–298 K Fig. 1a attribution we
+   quote is Richard Table 1's own claim and is cited as such) — verified.
+3. **Panella, Hirscher & Roth, Carbon 43 (2005)** — Fig. 2b sight-checked:
+   y-axis "weight % storage", x-axis "H2 Pressure [bar]"; the five 77 K
+   points and error bars match the reconciled dataset rows to the digit;
+   plateau ~2.4–2.5 wt%. Noted (no claim affected): that plateau sits above
+   the paper's own Fig. 3 SSA-correlation prediction for SWCNT II
+   (854 m2/g × 1.91e-3 ≈ 1.6 wt%) — an internal tension of the source;
+   our usage (notebook example, no validation claim, CNTs below
+   high-SSA AC) is unaffected.
+4. **NREL HSECoE final-report number** — resolved by the item's stated
+   fallback: the number (MP-5400-73571 vs PR-5400-73646) could not be
+   distinguished against a reachable primary source, so it was dropped
+   from `docs/references.md`, which now carries the OSTI 1572650 locator
+   only. Not load-bearing (the Gate V3 anchor is ST044). Historical
+   mentions of the number in dated records above are left as written.
+5. **Richard 2009 Part 1, Table 3** — sight-checked in the held PDF:
+   global H2 set 71.6 / 1470 MPa / 3080 / 18.9 / 0.00143 and reduced set
+   65.4 / 1090 / 3310 / 16.8 / 0.00138 (footnote a: 77 K + 298 K fit) match
+   `data/materials/ax21.yaml` exactly, including its recorded reduced-set
+   values. Independently corroborated: Richard Part 2 (author-supplied PDF)
+   Table 1 reprints the global set, and its footnote 2 confirms the
+   Michelsen & Chahine 2005 private-communication attribution for 30–77 K.
+
+Also verified from author-supplied PDFs: hardy2012's full author list
+(Hardy, Corgnale, Chahine, Richard, Garrison, Tamburello, Cossement,
+Anton — the references.md row had truncated and misordered it; fixed) and
+zhou2004's title. Richard Part 2 and Hardy 2012 both compute carbon
+specific heat from the Pyda Tarasov correlation rather than a constant, so
+the supplementary heater-energy metric keeps its declared 0.2–1.0 J/g/K
+range (no single published constant to adopt).

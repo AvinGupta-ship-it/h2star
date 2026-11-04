@@ -34,7 +34,13 @@ scripts/bop_anchor_sensitivity.py (H1 +37% to +51%; no verdict flips), and
 provenance was corrected here and in a zhou2004 citation title, a
 MOF-5 validity range, a ln-P span statement, and a Fig. 1a 30-77 K
 data-attribution footnote (Michelsen & Chahine private communication, per
-Richard 2009 Table 1).
+Richard 2009 Table 1). After the author supplied the primary-source PDFs
+(2026-11-04), the five sign-off-checklist items were verified against the
+papers themselves (record in docs/validation_plan.md): all cited values
+exact; one further provenance correction (A&P 2009 states the 30 kg/25 L
+BOP block as pressure-independent — already covered by the committed
+sensitivity variant) and the unconfirmable NREL report number dropped per
+the checklist's own fallback.
 
 ### Added
 - Component-resolved engineering model (`h2star.engineering`): netting-

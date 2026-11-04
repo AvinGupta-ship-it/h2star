@@ -140,14 +140,22 @@ bop:
     pressure-independent placements are quantified in scripts/bop_anchor_sensitivity.py and
     docs/validation_plan.md (H1 deviation +37.2% to +50.8% vs the adjudicated +40.99%;
     the gate verdict, FAIL, is unchanged under every placement).
-    (b) Ahluwalia & Peng, IJHE 34 (2009): 30 kg and 25 L ex-vessel miscellaneous components
-    at 350 bar, with the component inventory enumerated (piping, PRV, regulator, check valve,
+    (b) Ahluwalia & Peng, IJHE 34 (2009): 30 kg and 25 L ex-vessel miscellaneous components,
+    with the component inventory enumerated (piping, PRV, regulator, check valve,
     sensors, fill/shut-off/vent valves, cryo-valve housing, H2-warming heat exchanger, tank
     support stand, N2/air blower). Component identity per FEDSM2017-69411 Table 3. The
     H2-conditioning (delivery-warming to >= -40 C) heat exchanger is INSIDE this block (M10
     delivery-warming mass is therefore carried, not omitted). m_bop(P) = c_bop_mass *
     [16 + (30-16)*(P_design_bar-100)/250]; V_bop(P) = c_bop_vol * [11 + (25-11)*
     (P_design_bar-100)/250].
+    PROVENANCE NOTE (author-supplied-PDF verification, 2026-11-04, post-E2): A&P 2009
+    states the 30 kg/25 L block as a fixed allowance "unlikely to change with the
+    different operating conditions"; it does not tie the values to 350 bar. The 350-bar
+    placement above is this model's assignment at the paper's reference design point,
+    and the paper's own pressure-independent reading is already quantified as the
+    'pressure-independent' variant in scripts/bop_anchor_sensitivity.py (H1 +50.8%;
+    gate E2 verdict, FAIL, unchanged). Anchors kept as frozen for the same reason as
+    the D2 correction above.
 
 calibration_factors:
   c_bop_mass: {value: 1.086426, unit: "dimensionless", bounds: [0.5, 2.5]}

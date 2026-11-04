@@ -8,6 +8,14 @@ checklist is closed; the Methods section now points here.
 
 ## 1. Primary-source verification items only the author can close
 
+> Update 2026-11-04: the author supplied the primary-source PDFs (Project
+> uploads), so every item below has been verified against the paper itself;
+> findings, one provenance correction (the A&P 30 kg/25 L block is stated as
+> pressure-independent), and the NREL item's resolution by its stated
+> fallback (number dropped) are recorded in `docs/validation_plan.md`
+> ("Primary-source verification of the sign-off checklist §1 items").
+> Ticking a box below now means confirming the recorded finding.
+
 - [ ] Ahluwalia & Peng, IJHE 34 (2009) — verify in the paper itself:
       SF 2.35; T700S 2550 MPa / 1600 kg/m3 (Table 2); 30 kg / 25 L
       miscellaneous at 350 bar; translation efficiencies 82.5% @ 350 bar /
