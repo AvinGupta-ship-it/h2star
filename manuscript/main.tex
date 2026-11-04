@@ -1,8 +1,9 @@
-\documentclass[review,12pt]{elsarticle}
+\documentclass[preprint,12pt]{elsarticle}
 
 \usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{xurl}
 \usepackage[colorlinks=true,allcolors=blue]{hyperref}
 \graphicspath{{../figures/v1/}}
 \input{generated_numbers}
@@ -11,7 +12,7 @@
 \makeatletter
 \def\ps@pprintTitle{%
   \let\@oddhead\@empty \let\@evenhead\@empty
-  \def\@oddfoot{\footnotesize\itshape Preprint --- \today\hfill}%
+  \def\@oddfoot{\footnotesize\itshape Preprint, \today\hfill}%
   \let\@evenfoot\@oddfoot}
 \makeatother
 
@@ -35,29 +36,30 @@ pre-registered rule with per-point uncertainties, recover eleven
 AX-21 excess isotherms (30--298\,K) from the literature; profile likelihoods
 under an explicit errors-in-pressure measurement model show that one 77\,K
 isotherm of ordinary published quality leaves the D--A parameter vector
-practically non-identifiable (95\% region $n_{\max}$
+practically non-identifiable: the 95\% region spans $n_{\max}$
 \vNmaxLoA--\vNmaxHiA\,mol\,kg$^{-1}$ under the frozen parameter bounds, and
-wider still when they are relaxed; $\log_{10}P_0$ unbounded above within
-[\vLpLoA, \vLpHiA]), while seven supercritical isotherms fitted jointly pin
-$n_{\max}$ to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ --- a within-model
-precision: model-form and fit-set choice move the centre by $\pm13\%$. Propagated through a
-component-resolved system model, the loose single-isotherm region changes
-predicted usable system capacity by only $\pm$\vGCpropPct\% along the
-profiled ridge ($\pm$\vGCfullPct\% including the exact interval endpoints):
-the model is sloppy, with loose parameters and tight predictions, so a requirement
-stated as a limiting uptake at fixed energetic parameters is conditional on a
-ridge the data do not resolve. The engineering model itself was calibrated on
-one published HSECoE system and evaluated once against externally
-pre-registered held-out targets; three of four comparisons passed and the
-200-bar gravimetric comparison failed (+\vEtwoGCdev\% against a $\pm$20\%
-band), so, per the pre-registered fork rule, no absolute system capacity is
-claimed and requirement maps are reported in observable axes---deliverable
-excess uptake between stated full and empty states, and packing
-density---under two structurally different engineering models. Shapley-effect attribution over the joint
-posterior and declared engineering uncertainties shows engineering inputs,
-not material-parameter uncertainty, dominate the variance of predicted
-capacity. All data, code, analyses and this manuscript's numbers regenerate
-from a single open repository.
+wider still when they are relaxed, with $\log_{10}P_0$ unbounded above
+within [\vLpLoA, \vLpHiA]. Seven supercritical isotherms fitted jointly pin
+$n_{\max}$ to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$, a within-model precision
+whose centre moves by $\pm13\%$ under model-form and fit-set choice.
+Propagated through a component-resolved system model, the loose
+single-isotherm region changes predicted usable system capacity by only
+$\pm$\vGCpropPct\% along the profiled ridge, and by $\pm$\vGCfullPct\%
+including the exact interval endpoints: the model is sloppy, with loose
+parameters and tight predictions, so a requirement stated as a limiting
+uptake at fixed energetic parameters is conditional on a ridge the data do
+not resolve. The engineering model itself was calibrated on one published
+HSECoE system and evaluated once against externally pre-registered held-out
+targets; three of four comparisons passed and the 200-bar gravimetric
+comparison failed (+\vEtwoGCdev\% against a $\pm$20\% band), so, per the
+pre-registered fork rule, no absolute system capacity is claimed and
+requirement maps are reported in observable axes (deliverable excess uptake
+between stated full and empty states, and packing density) under two
+structurally different engineering models. Shapley-effect attribution over
+the joint posterior and declared engineering uncertainties shows that the
+variance of predicted capacity is dominated by engineering inputs rather
+than by material-parameter uncertainty. All data, code, analyses and this
+manuscript's numbers regenerate from a single open repository.
 \end{abstract}
 
 \begin{keyword}
@@ -85,19 +87,19 @@ programs are its reference point.
 This paper asks a narrower statistical question underneath that translation:
 when the material is characterized by the modified D--A
 model~\cite{richard2009a} fitted to the single-temperature excess isotherms
-the literature routinely publishes, which parameter combinations does the
-data determine, and what does the answer imply for how requirements should be
-stated? Three contributions follow. First, an identifiability analysis ---
-profile likelihoods under an explicit measurement-error model with error in
-pressure as well as uptake --- of the D--A parameter vector against a
+the literature routinely publishes, which parameter combinations do the
+data determine, and what does the answer imply for how requirements should
+be stated? Three contributions follow. First, an identifiability analysis
+of the D--A parameter vector (profile likelihoods under an explicit
+measurement-error model with error in pressure as well as uptake) against a
 dual-digitized, uncertainty-tagged reconstruction of the classic AX-21
 dataset~\cite{benard2001,richard2009a}, quantifying both the single-isotherm
 degeneracy and its repair by multi-temperature fitting. Second, the
 propagation of parameter uncertainty through an openly implemented,
 component-resolved system model whose calibration and held-out validation
 were frozen by an external, time-stamped pre-registration before the model
-code existed~\cite{prereg}, with the held-out outcome --- including one
-pre-registered failure --- reported and binding on the claims. Third,
+code existed~\cite{prereg}, with the held-out outcome, including one
+pre-registered failure, reported and binding on the claims. Third,
 requirement maps stated in observable axes, following the Argonne targets'
 practice of stating requirements in measured quantities (the HSECoE
 envelope's axes include the fitted $n_{\max}$ itself), drawn under two
@@ -124,12 +126,12 @@ No numeric tables of the multi-temperature AX-21 isotherms are published:
 the measurements appear only as figures, in B\'enard and
 Chahine~\cite{benard2001} and in Richard et al.~\cite{richard2009a}
 (Fig.~1a), whose Table~1 attributes the 77--298\,K isotherms to
-\cite{benard2001} and the 30--77\,K isotherms --- including the primary fit
-set's 60\,K isotherm --- to a private communication of Michelsen and
+\cite{benard2001} and the 30--77\,K isotherms, including the primary fit
+set's 60\,K isotherm, to a private communication of Michelsen and
 Chahine (2005) on the same carbon. Figure~1a was
-digitized at 600\,dpi by two independent routes --- a visual marker-by-marker
-reading and a scripted template-matching pipeline, executed in isolation
-from each other --- and reconciled under a rule frozen in the
+digitized at 600\,dpi by two routes executed in isolation from each other,
+a visual marker-by-marker reading and a scripted template-matching
+pipeline, and reconciled under a rule frozen in the
 pre-registration before either output was read: nearest-pressure matching,
 coordinate-wise means within tolerance, one documented re-inspection of
 disagreements, exclusion (with counts) of markers neither route resolves.
@@ -141,7 +143,7 @@ by direct measurement of isolated glyphs. Two Henry-region points lie within
 one pixel of the pressure axis and are recorded at the half-pixel pressure
 bound, carrying the larger of the route per-point uncertainty and the
 half-pixel bound (here the route uncertainties, 0.010 and 0.040\,MPa,
-dominate --- the conservative direction). The 30\,K isotherm lies below the validity floor of
+dominate, which is the conservative direction). The 30\,K isotherm lies below the validity floor of
 the gas-phase equation of state (33.2\,K, just above the 33.145\,K critical
 temperature) and enters no fit. The frozen plan restricted the primary fit
 to $T\ge60$\,K, clear of the near-critical region where the EOS-derived
@@ -169,8 +171,12 @@ near-critical 35--45\,K isotherms (hydrogen's critical temperature is
 
 Every fit minimizes
 $\sum_i (n_{\mathrm{model},i}-n_i)^2/\sigma_{\mathrm{eff},i}^2$ with
-$\sigma_{\mathrm{eff},i}^2=\sigma_{n,i}^2+(\partial n/\partial
-P|_i)^2\sigma_{P,i}^2$, the first-order errors-in-abscissa propagation, with
+\begin{equation}
+\sigma_{\mathrm{eff},i}^2=\sigma_{n,i}^2
+  +\left(\left.\frac{\partial n}{\partial P}\right|_i\right)^2
+   \sigma_{P,i}^2,
+\end{equation}
+the first-order errors-in-abscissa propagation, with
 the derivative evaluated on the model (by central differences in the
 profile-likelihood code and analytically in the sampling layer; the two
 objectives agree to $\sim10^{-4}$ at the optimum). On the steep Henry
@@ -188,13 +194,18 @@ conclusion relies on the narrower of the two.
 \subsection{Isotherm, bookkeeping and gas phase}
 
 Absolute adsorption follows the modified D--A form
-$n_{\mathrm{abs}}=n_{\max}\exp[-(RT/\varepsilon)^m\ln^m(P_0/P)]$ with
-$\varepsilon=\alpha+\beta T$ and $m=2$ unless stated; excess is
+\begin{equation}
+n_{\mathrm{abs}}
+  = n_{\max}\exp\!\left[-\left(\frac{RT}{\varepsilon}\right)^{m}
+    \ln^{m}\!\frac{P_0}{P}\right],
+\qquad \varepsilon=\alpha+\beta T,
+\end{equation}
+with $m=2$ unless stated; excess is
 $n_{\mathrm{ex}}=n_{\mathrm{abs}}-\rho_g(P,T)\,v_a$~\cite{richard2009a}.
 Gas densities use the Leachman normal-hydrogen reference equation of
 state~\cite{leachman2009} via CoolProp~\cite{bell2014}; the wrapper
-reproduces the NIST tables to $5\times10^{-5}$ relative (a plumbing check,
-not physics validation). Tank inventory uses absolute loading plus void gas
+reproduces the NIST tables to $5\times10^{-5}$ relative (a plumbing check
+rather than physics validation). Tank inventory uses absolute loading plus void gas
 with the void excluding skeleton and adsorbed volume; usable capacity is the
 full-to-empty swing, and system capacities are usable-basis with the full
 inventory carried in the system mass.
@@ -221,36 +232,39 @@ tolerances, and a fork rule. We state the deposit's evidential force
 precisely: the whole arc from deposit to adjudication spans about a hundred
 minutes of one day, with the model necessarily developed alongside, so the
 deposit certifies that the targets, tolerances and fork rule were fixed and
-externally timestamped before the outcomes were known --- the adjudicated
-failure below, and the enforcement of the fork rule, are the behaviour
-consistent with that discipline --- and it supports no stronger reading.
+externally timestamped before the outcomes were known, and it supports no
+stronger reading; the adjudicated failure below, and the enforcement of the
+fork rule, are the behaviour consistent with that discipline.
 The repository records the execution deviations from the frozen text, each
 dated and quantified. Calibration closed to $\vEOneMsys$\,kg against
 140.99\,kg and $\vEOneVsys$\,L against 287.70\,L (wall \vEOneTwall\,mm vs
-14.00\,mm). The held-out gate (Table~\ref{tab:gates}; note that the 200-bar
-cases evaluate the AX-21 parameter set at 20\,MPa, $3.3\times$ beyond its
-0--6\,MPa fit range --- the anchors themselves model 200\,bar, but the
-extrapolation is one more uncertainty those two comparisons carry): the 60\,bar/40\,K aluminium system matched to
-$\vHthreeMdev$\% in mass and $\vHthreeVdev$\% in volume (both PASS at
+14.00\,mm). In the held-out gate (Table~\ref{tab:gates}), the
+60\,bar/40\,K aluminium system matched to
+$\vHthreeMdev$\% in mass and $\vHthreeVdev$\% in volume (both pass at
 $\pm25\%$), the 200-bar composite system's volumetric capacity passed
 (+\vEtwoVCdev\% at $\pm20\%$), and its gravimetric capacity failed
-(+\vEtwoGCdev\% against $\pm20\%$). \textbf{The gate therefore failed}, and
+(+\vEtwoGCdev\% against $\pm20\%$). The gate therefore failed, and
 the pre-registered fork rule governs this paper: no absolute system capacity
-is claimed; relative statements beyond monotone orderings appear only with
-the two-model robustness exhibit of Section~\ref{sec:observables}. We note,
-as disclosed context rather than mitigation, that the anchor family itself
-spans 21\% across HSECoE report years for the nominal same configuration and
-does not state its capacity basis; and that the failure is mass-sided and
-pressure-dependent, consistent with build features (boss reinforcement,
-doilies, protective layers) that pure netting sizing omits.
+is claimed, and relative statements beyond monotone orderings appear only with
+the two-model robustness exhibit of Section~\ref{sec:observables}. The
+200-bar cases also evaluate the AX-21 parameter set at 20\,MPa,
+$3.3\times$ beyond its 0--6\,MPa fit range; the anchors themselves model
+200\,bar, but the extrapolation is one more uncertainty those two
+comparisons carry. We note, as disclosed context rather than mitigation,
+that the anchor family itself spans 21\% across HSECoE report years for the
+nominal same configuration and does not state its capacity basis, and that
+the failure is mass-sided and pressure-dependent, consistent with build
+features (boss reinforcement, doilies, protective layers) that pure netting
+sizing omits.
 
-A post-adjudication audit additionally found one model input mis-attributed:
+A post-adjudication audit additionally found one model input to be
+mis-attributed:
 the balance-of-plant interpolation's 16\,kg anchor was placed at 100\,bar,
-while its source states it as a fixed assumption of a 150\,atm-storage
-analysis. The gate record stands as adjudicated; re-anchoring at the
-source's own pressures moves the failed comparison to $+\vEtwoGCdevCorr\%$
-(or $+\vEtwoGCdevFixed\%$ treating the anchor as pressure-independent, as
-its source does) and flips no verdict, so the fork rule is robust to the
+while its source states it as a fixed assumption of an analysis whose
+storage design point is 150\,atm. The gate record stands as adjudicated. Re-anchoring at the
+source's own pressures moves the failed comparison to $+\vEtwoGCdevCorr\%$,
+or to $+\vEtwoGCdevFixed\%$ treating the anchor as pressure-independent, as
+its source does, and flips no verdict, so the fork rule is robust to the
 correction (sensitivity committed in the repository).
 
 \begin{table}[t]
@@ -260,6 +274,7 @@ outcomes~\cite{prereg}. Targets are the published HSECoE values; tolerances
 and the all-four pass rule were frozen and DOI-stamped before any model code
 existed. E1 is in-sample by construction; E2 is the evidence.}
 \label{tab:gates}
+\small
 \begin{tabular}{llll}
 \toprule
  & Quantity & Deviation (tolerance) & Verdict \\
@@ -267,20 +282,19 @@ existed. E1 is in-sample by construction; E2 is the evidence.}
 E1 & system mass & \vEOneMsys\,kg vs 140.99\,kg & calibrated \\
 E1 & system volume & \vEOneVsys\,L vs 287.70\,L & calibrated \\
 \midrule
-E2 & 200\,bar/80\,K gravimetric & $+\vEtwoGCdev\%$ ($\pm20\%$) & \textbf{FAIL} \\
+E2 & 200\,bar/80\,K gravimetric & $+\vEtwoGCdev\%$ ($\pm20\%$) & fail \\
 E2 & 200\,bar/80\,K volumetric & $+\vEtwoVCdev\%$ ($\pm20\%$) & pass \\
 E2 & 60\,bar/40\,K system mass & $\vHthreeMdev\%$ ($\pm25\%$) & pass \\
 E2 & 60\,bar/40\,K system volume & $\vHthreeVdev\%$ ($\pm25\%$) & pass \\
 \midrule
-\multicolumn{4}{l}{Gate E2 (pass iff all four): \textbf{FAIL} --- the
-pre-registered fork rule governs all claims.} \\
-\midrule
- & \multicolumn{3}{l}{Context: the same 200-bar prediction against the
-   anchor family's} \\
- & \multicolumn{3}{l}{other report years (not gate criteria): FY2011
-   $+22.6\%$; ST044-2012} \\
- & \multicolumn{3}{l}{$+30.4\%$; ST044-2013 $+53.2\%$ --- the family itself
-   spans 21\%.} \\
+\multicolumn{4}{@{}l@{}}{Gate E2 (pass only if all four pass): fail; the
+pre-registered fork rule} \\
+\multicolumn{4}{@{}l@{}}{governs all claims. Context rows (anchor-family
+spread, no gate role): the} \\
+\multicolumn{4}{@{}l@{}}{same 200-bar prediction against FY2011 is
+$+22.6\%$, against ST044-2012} \\
+\multicolumn{4}{@{}l@{}}{$+30.4\%$, against ST044-2013 $+53.2\%$; the
+family itself spans 21\%.} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -303,16 +317,17 @@ non-identifiability conclusion. From the seven supercritical isotherms
 fitted jointly, the same intervals collapse to
 \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ ($\pm$1.2\%; $\beta$ $\pm$2.0\%, $v_a$
 $\pm$2.4\%) and \vLpLoM--\vLpHiM{}: the degeneracy is a property of
-single-temperature reporting practice, not of the model class, and
-multi-temperature fitting restores identifiability --- the $n_{\max}$
-interval narrows about 70-fold. That precision is within-model: freeing the
-D--A exponent moves $n_{\max}$ to 54.4, adding the near-critical 35--45\,K
-isotherms moves it to 69.2, and the source's own 30--293\,K global fit is
-71.6~\cite{richard2009a} --- a $\pm13\%$ structural spread that any use of
-the within-model interval must carry with it (the overdispersion-inflated
-intervals, roughly twice the frozen ones, are the decisive in-model
-statement given Section~\ref{sec:modelform}). The Fisher-information spectrum in log-parameter coordinates spans
-several decades at the optimum --- the signature of a sloppy
+single-temperature reporting practice rather than of the model class, and
+multi-temperature fitting restores identifiability, narrowing the
+$n_{\max}$ interval about 70-fold. That precision is within-model: freeing
+the D--A exponent moves $n_{\max}$ to 54.4, adding the near-critical
+35--45\,K isotherms moves it to 69.2, and the source's own 30--293\,K
+global fit is 71.6~\cite{richard2009a}, a $\pm13\%$ structural spread that
+any use of the within-model interval must carry with it (the
+overdispersion-inflated intervals, roughly twice the frozen ones, are the
+decisive in-model statement given Section~\ref{sec:modelform}). The
+Fisher-information spectrum in log-parameter coordinates spans several
+decades at the optimum, the signature of a sloppy
 model~\cite{gutenkunst2007}.
 
 An MCMC posterior over the same objective (uniform priors on the frozen
@@ -349,16 +364,16 @@ propagated grid; the full 95\% interval is 3.8-fold) through the frozen
 engineering model at the baseline envelope (100\,bar/80\,K to
 5\,bar/160\,K) changes predicted usable gravimetric capacity only between
 \vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%; Fig.~\ref{fig:ridge}).
-Evaluated at the exact interval endpoints the spread widens somewhat --- the
+Evaluated at the exact interval endpoints the spread widens somewhat: the
 low endpoint lies \vGCendLowDev\% below the ridge maximum, and the whole
-region spans $\pm$\vGCfullPct\% --- still an order of magnitude tighter than
+region spans $\pm$\vGCfullPct\%, still an order of magnitude tighter than
 the 3.8-fold $n_{\max}$ range it propagates.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{F6_sloppiness}
-\caption{Loose parameters, tight predictions. Left: the 77\,K profile ridge
---- the $(n_{\max},\log_{10}P_0)$ trace over the full profile grid (the
+\caption{Loose parameters, tight predictions. Left: the 77\,K profile
+ridge, the $(n_{\max},\log_{10}P_0)$ trace over the full profile grid (the
 95\% region spans 37--142\,mol\,kg$^{-1}$ in $n_{\max}$, 3.8-fold; its
 exact endpoints lie just beyond the plotted grid points). Right: usable
 system gravimetric capacity along the same trace under the frozen
@@ -366,10 +381,11 @@ engineering model; points inside the 95\% region are highlighted. The data
 leave the parameters loose while pinning the prediction.}
 \label{fig:ridge}
 \end{figure}
+
 The practical consequence is the paper's central point: a requirement stated
 as ``$n_{\max}=X$ at fixed $\alpha,\beta,P_0$'' is conditional on an
-arbitrary point along a ridge that single-isotherm data do not resolve ---
-the same material, described by equally admissible parameter vectors, can
+arbitrary point along a ridge that single-isotherm data do not resolve.
+The same material, described by equally admissible parameter vectors, can
 ``have'' an $n_{\max}$ anywhere across a wide interval with essentially
 unchanged system behaviour. Requirements must therefore be stated in
 quantities the data determine.
@@ -380,19 +396,19 @@ quantities the data determine.
 With material parameters drawn from the joint posterior and fifteen
 declared engineering and envelope inputs drawn from documented
 distributions, the usable-capacity distribution at the baseline envelope has
-mean \vGCmean{} and standard deviation \vGCsd{} (N=20{,}000; split-half
-quantile agreement recorded). Shapley effects --- the variance attribution
+mean \vGCmean{} and standard deviation \vGCsd{} ($N=20{,}000$; split-half
+quantile agreement recorded). Shapley effects, the variance attribution
 appropriate to dependent inputs~\cite{song2016,owen2014}
-(Fig.~\ref{fig:shapley}) --- rank the
+(Fig.~\ref{fig:shapley}), rank the
 internal heat-exchanger structure (\vShOneShare{} of variance), insulation
-conductivity (\vShTwoShare) and heat-leak budget ahead of everything else,
-with the correlated material block contributing only
-\vShMat{}\,$\pm$\,\vShMatSE{} of the variance --- indistinguishable from
-zero at the estimator's resolution. Material-parameter uncertainty, once its correlations are
-respected, is a minor contributor; the engineering description dominates.
-Design-leverage elasticities are reported separately from variance shares,
-since a large variance share reflects declared ignorance, not improvement
-potential.
+conductivity (\vShTwoShare) and heat-leak budget ahead of everything else;
+the correlated material block contributes only
+\vShMat{}\,$\pm$\,\vShMatSE{} of the variance, indistinguishable from
+zero at the estimator's resolution. Material-parameter uncertainty, once its
+correlations are respected, is a minor contributor, and the engineering
+description dominates. Design-leverage elasticities are reported separately
+from variance shares, since a large variance share reflects declared
+ignorance rather than improvement potential.
 
 \begin{figure}[t]
 \centering
@@ -411,13 +427,13 @@ shares.}
 \label{sec:observables}
 
 The requirement map uses deliverable \emph{excess} uptake between the
-stated full and empty states, together with packing density, as axes ---
+stated full and empty states, together with packing density, as axes:
 quantities measurable without inverting an isotherm model. This follows the
 practice of the Argonne Level-1 targets~\cite{ahluwalia2015}, which are
 stated in measured quantities (120\,g\,kg$^{-1}$ excess at 100\,bar/155\,K
 and 420\,kg\,m$^{-3}$ bulk density for the 40\,g\,L$^{-1}$ system target);
 the HSECoE acceptability envelope~\cite{hardy2018}, by contrast, states its
-material requirements in $(n_{\max}$, bulk density$)$ --- the former being
+material requirements in $(n_{\max}$, bulk density$)$, the former being
 precisely the ridge-conditional fitted parameter whose indeterminacy this
 paper quantifies, which is the argument for the Argonne-style axes.
 The basis matters: on the excess basis the adsorbed-phase volume $v_a$
@@ -426,17 +442,17 @@ the total void $1-\rho/\rho_{\mathrm{skel}}$), so the axis needs only the
 measured excess swing, the packing density, a skeletal density and the
 equation of state; an absolute-adsorption axis would re-import the fitted,
 poorly identified $v_a$, which at this envelope shifts a material's
-coordinate by $v_a\,\Delta\rho_g = 0.034$\,kg\,kg$^{-1}$ --- half of
+coordinate by $v_a\,\Delta\rho_g = 0.034$\,kg\,kg$^{-1}$, half of
 AX-21's own value. The skeletal-density and residual-uptake terms are
 varied as labelled sensitivities in the repository (over
 1800--2300\,kg\,m$^{-3}$ the required uptake at 500\,kg\,m$^{-3}$ packing
 moves by 0.004\,kg\,kg$^{-1}$; the residual-uptake term does not move the
 boundary there, which is volumetric-limited).
-No probability band is drawn on these axes: they are observables, not
-sampled parameters. Under the component-resolved model (Fig.~\ref{fig:map}), meeting the
+No probability band is drawn on these axes, which are observables rather
+than sampled parameters. Under the component-resolved model (Fig.~\ref{fig:map}), meeting the
 DOE-2025 pair at 500\,kg\,m$^{-3}$ packing requires a deliverable excess
 uptake of about \vUreqVone\,kg\,kg$^{-1}$; under the superseded lumped
-model the same contour sits at \vUreqVzero{} --- the between-model shift is
+model the same contour sits at \vUreqVzero{}. The between-model shift is
 of the same order as the held-out failure and is displayed as the honest
 statement of how model-dependent such boundaries are, with the caveat that
 the two models share several source anchors (insulation properties, the
@@ -481,10 +497,10 @@ A single published isotherm does not determine the modified D--A parameter
 vector, but it does determine system-level predictions to a few per cent;
 multi-temperature data restore parameter identifiability almost completely.
 Requirements derived from system targets should therefore be stated in
-deliverable uptake and packing density --- observable, model-robust axes ---
-with the engineering model's own validation status attached, which in this
-work is an externally pre-registered calibration that passed and a held-out
-gate that failed and narrowed the claims. The companion database
+deliverable excess uptake and packing density, observable and model-robust
+axes, with the engineering model's own validation status attached, which in
+this work is an externally pre-registered calibration that closed and a
+held-out gate that failed and narrowed the claims. The companion database
 (HyCAN-DB~\cite{hycandb}) and this model are one program: curating
 multi-temperature, provenance-tiered measurements is what makes the
 translation from materials to systems identifiable at all.
@@ -492,23 +508,21 @@ translation from materials to systems identifiable at all.
 \section*{Methods: reproducibility}
 
 All analyses are deterministic-seeded and regenerate from the single open
-repository (\texttt{scripts/}); this manuscript's numbers are compiled from
-a machine-generated macro file, and a test fails if manuscript and
-regeneration disagree. AI tools (Anthropic Claude) were used in the
+repository; this manuscript's numbers are compiled from a machine-generated
+macro file, and a test fails if manuscript and regeneration disagree. AI tools (Anthropic Claude) were used in the
 research workflow under a version-controlled execution manual and an
 externally deposited, DOI-stamped pre-registration~\cite{prereg}; the
 usage disclosure, per-value verification records, and author sign-off
-checklist are in the repository's \texttt{docs/}
-(\texttt{ai\_usage\_log.md}, \texttt{author\_signoff\_checklist.md}). AI
+checklist are in the repository's \texttt{docs/} directory. AI
 tools were not used to create or alter any primary data; the digitized
 datasets carry both routes' raw readings.
 
 \section*{Data availability}
 
 All data, code, figures and analysis records are openly available at
-\url{https://github.com/AvinGupta-ship-it/h2star} (archived at Zenodo,
-concept DOI 10.5281/zenodo.23257816; the pre-registration is
-10.5281/zenodo.23931242).
+\url{https://github.com/AvinGupta-ship-it/h2star}, archived at Zenodo
+under concept DOI 10.5281/zenodo.23257816; the pre-registration is
+10.5281/zenodo.23931242.
 
 \bibliographystyle{elsarticle-num}
 \begin{thebibliography}{30}

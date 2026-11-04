@@ -122,8 +122,10 @@ def f2_fit():
         else:
             ax.set_xlabel("Pressure (MPa)")
     axes[0].set_ylabel("Excess adsorption (mol/kg)")
-    axes[0].legend(ncol=2, frameon=False)
-    # No headline title: the manuscript caption carries it (journal style).
+    # Single-row legend above the panels, clear of the data.
+    fig.legend(*axes[0].get_legend_handles_labels(), ncol=7, frameon=False,
+               loc="lower center", bbox_to_anchor=(0.5, 0.97),
+               fontsize=7.5, columnspacing=1.1, handletextpad=0.3)
     savefig(fig, "F2_multiT_fit")
 
 
@@ -142,16 +144,17 @@ def f3_profiles():
             pr = J[key]["profiles"][p]
             obj0 = J[key]["objective"]
             ax.plot(pr["grid"], np.array(pr["objective"]) - obj0,
-                    color=color, label=lab)
+                    color=color, lw=1.3, label=lab)
         # The multi-T profiles are far narrower than the coarse grid above
         # (referee round-1 minor 5): overlay the dense local grid so the
         # dip to zero is visible, and mark the bisected 95% interval.
         dn = J["profiles_dense_multiT"][p]
         obj0_m = J["multi_temperature"]["objective"]
         ax.plot(dn["grid"], np.array(dn["objective"]) - obj0_m,
-                color="C0", lw=1.0)
+                color="C0", lw=1.3)
         lo_i, hi_i = J["multi_temperature"]["profiles"][p]["interval_frozen"]
-        ax.plot([lo_i, hi_i], [3.84, 3.84], "|", color="C0", ms=9, mew=1.5)
+        ax.plot([lo_i, hi_i], [3.84, 3.84], "|", color="k", ms=11, mew=1.6,
+                zorder=5)
         ax.axhline(3.84, color="k", lw=0.5, ls="--")
         ax.set_ylim(0, 25)
         ax.set_xlabel(labels[p])
@@ -200,31 +203,44 @@ def f5_observable_map():
         M = json.load(fh)
     U = np.array(M["u_grid"])
     R = np.array(M["rho_grid"])
-    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.0), sharey=True)
-    for ax, (name, lab) in zip(
-            axes, (("v1_component", "v1.0 component model"),
-                   ("v02_lumped", "v0.2 lumped model (superseded)"))):
+    fig, axes = plt.subplots(1, 2, figsize=(7.2, 3.1), sharey=True)
+    fig.subplots_adjust(wspace=0.12)
+
+    def label_on(cs, frac, fmt):
+        """Place one inline label per contour at ``frac`` along its path."""
+        locs = []
+        for path in cs.get_paths():
+            v = path.vertices
+            if len(v) > 2:
+                locs.append(tuple(v[int(frac * (len(v) - 1))]))
+        if locs:
+            cs.clabel(fmt=fmt, fontsize=6, manual=locs)
+
+    panels = (("v1_component", "v1.0 component model"),
+              ("v02_lumped", "v0.2 lumped model (superseded)"))
+    for k, (ax, (name, lab)) in enumerate(zip(axes, panels)):
         GC = np.array(M["models"][name]["GC"])
         VC = np.array(M["models"][name]["VC"])
         feas = ((GC >= 0.055) & (VC >= 0.040)).astype(float)
         ax.contourf(R, U, feas, levels=[0.5, 1.5], colors=["#9ecae1"])
         cs = ax.contour(R, U, GC, levels=[0.045, 0.055, 0.065],
                         colors="k", linewidths=0.7)
-        ax.clabel(cs, fmt="GC %.3f", fontsize=6)
+        label_on(cs, 0.72 if k == 0 else 0.80, "GC %.3f")
         cs2 = ax.contour(R, U, VC, levels=[0.030, 0.040, 0.050],
                          colors="C3", linewidths=0.7)
-        ax.clabel(cs2, fmt="VC %.3f", fontsize=6)
+        label_on(cs2, 0.45 if k == 0 else 0.35, "VC %.3f")
         pt = M["ax21_point"]
         ax.plot(pt["rho_pack"], pt["deliverable_uptake_excess_swing"], "k*",
-                ms=9)
-        ax.annotate("AX-21\n(posterior median)",
-                    (pt["rho_pack"], pt["deliverable_uptake_excess_swing"]),
-                    textcoords="offset points", xytext=(6, 6), fontsize=6.5)
+                ms=9, zorder=5)
+        if k == 0:
+            ax.annotate(
+                "AX-21 (posterior median)",
+                (pt["rho_pack"], pt["deliverable_uptake_excess_swing"]),
+                textcoords="offset points", xytext=(7, -11), fontsize=6.5)
         ax.set_xlabel(r"packing density $\rho_{pack}$ (kg/m$^3$)")
         ax.set_title(lab, fontsize=8)
     axes[0].set_ylabel("deliverable excess uptake,\n"
                        "full$\\to$empty (kg H$_2$/kg sorbent)")
-    # No headline title: the manuscript caption carries it (journal style).
     savefig(fig, "F5_observable_map")
 
 
@@ -235,11 +251,12 @@ def f6_prediction_tightness():
     prop = J["propagation_baseline_envelope_77K"]
     ok = [r for r in prop if "GC" in r]
     fig, axes = plt.subplots(1, 2, figsize=(6.8, 2.8))
+    fig.subplots_adjust(wspace=0.34)
     x = [r["log10_p0"] for r in ok]
     axes[0].plot(x, [r["n_max"] for r in ok], "o-", ms=3)
     axes[0].set_xlabel(r"$\log_{10} P_0$ (Pa)")
     axes[0].set_ylabel(r"profile $n_{max}$ (mol/kg)")
-    axes[0].set_title("the 77 K ridge: parameters loose", fontsize=8)
+    axes[0].set_title("77 K profile ridge (parameters loose)", fontsize=8)
     inr = [r for r in ok if r["in_frozen"]]
     axes[1].plot([r["log10_p0"] for r in ok], [r["GC"] for r in ok],
                  "o-", ms=3, label="all profile points")
@@ -247,10 +264,38 @@ def f6_prediction_tightness():
                  "o", ms=4, color="C3", label="inside 95% region")
     axes[1].set_xlabel(r"$\log_{10} P_0$ (Pa)")
     axes[1].set_ylabel("system usable GC (kg/kg)")
-    axes[1].set_title("predictions tight (frozen engineering model)",
+    axes[1].set_title("Capacity along the ridge (predictions tight)",
                       fontsize=8)
     axes[1].legend(frameon=False, fontsize=6.5)
     savefig(fig, "F6_sloppiness")
+
+
+#: Readable display names for the sensitivity inputs (figure labels only;
+#: the JSON records keep the code identifiers).
+PRETTY = {
+    "material": "material (posterior block)",
+    "hx_vol_fraction": "HX volume fraction",
+    "mli_k_eff_factor": "MLI conductivity factor",
+    "heat_leak_budget": "heat-leak budget",
+    "model_error_mass": "model error (mass)",
+    "model_error_volume": "model error (volume)",
+    "shell_thickness": "shell thickness",
+    "bop_mass_factor": "BOP mass factor",
+    "bop_volume_factor": "BOP volume factor",
+    "liner_thickness": "liner thickness",
+    "composite_density": "composite density",
+    "mli_density": "MLI density",
+    "supports_mass": "supports mass",
+    "sigma_factor_t3": "fibre-strength factor",
+    "P_empty": "empty pressure",
+    "T_empty": "empty temperature",
+    "n_max": r"$n_{max}$",
+    "alpha": r"$\alpha$",
+    "beta": r"$\beta$",
+    "log10_p0": r"$\log_{10} P_0$",
+    "v_a": r"$v_a$",
+    "LR_t3": "aspect ratio (type-3)",
+}
 
 
 def f7_shapley():
@@ -264,24 +309,26 @@ def f7_shapley():
     # All sixteen players, so the material block is visibly near zero
     # (referee R2, minor 3) rather than silently truncated away.
     order = np.argsort(vals)[::-1]
-    fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
+    fig, axes = plt.subplots(1, 2, figsize=(7.6, 3.1))
+    fig.subplots_adjust(wspace=0.52)
     axes[0].barh(range(len(order)), vals[order], xerr=errs[order],
-                 color="C0")
+                 color="C0", error_kw={"elinewidth": 0.8})
     axes[0].set_yticks(range(len(order)))
-    axes[0].set_yticklabels([players[i] for i in order], fontsize=7)
+    axes[0].set_yticklabels([PRETTY.get(players[i], players[i])
+                             for i in order], fontsize=7)
     axes[0].invert_yaxis()
     axes[0].set_xlabel("Shapley share of Var(GC)")
-    axes[0].set_title("attribution (joint posterior + declared inputs)",
-                      fontsize=8)
+    axes[0].set_title("Variance attribution\n(joint posterior + declared "
+                      "inputs)", fontsize=8)
     el = S["elasticities_nominal"]
     keys = sorted(el, key=lambda k: -abs(el[k]["GC"]))[:10]
     axes[1].barh(range(len(keys)), [el[k]["GC"] for k in keys], color="C2")
     axes[1].set_yticks(range(len(keys)))
-    axes[1].set_yticklabels(keys, fontsize=7)
+    axes[1].set_yticklabels([PRETTY.get(k, k) for k in keys], fontsize=7)
     axes[1].invert_yaxis()
     axes[1].set_xlabel(r"elasticity $\partial \ln GC / \partial \ln x$")
-    axes[1].set_title("design leverage (separate, nominal point)", fontsize=8)
-    # No headline title: the manuscript caption carries it (journal style).
+    axes[1].set_title("Design leverage\n(separate, nominal point)",
+                      fontsize=8)
     savefig(fig, "F7_shapley_elasticity")
 
 
