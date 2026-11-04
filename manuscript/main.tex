@@ -7,7 +7,13 @@
 \graphicspath{{../figures/v1/}}
 \input{generated_numbers}
 
-\journal{Adsorption}
+% Self-contained preprint: plain dated footer instead of a journal line.
+\makeatletter
+\def\ps@pprintTitle{%
+  \let\@oddhead\@empty \let\@evenhead\@empty
+  \def\@oddfoot{\footnotesize\itshape Preprint --- \today\hfill}%
+  \let\@evenfoot\@oddfoot}
+\makeatother
 
 \begin{document}
 \begin{frontmatter}
@@ -483,43 +489,19 @@ gate that failed and narrowed the claims. The companion database
 multi-temperature, provenance-tiered measurements is what makes the
 translation from materials to systems identifiable at all.
 
-\section*{Methods: computational and AI involvement}
+\section*{Methods: reproducibility}
 
-All analyses are deterministic-seeded and regenerate from the repository
-(\texttt{scripts/}); this manuscript's numbers are compiled from a
-machine-generated macro file, and a test fails if manuscript and
-regeneration disagree. Anthropic Claude (claude.ai, 2026 releases) was used
-throughout the research process under a version-controlled execution manual
-and an externally deposited pre-registration~\cite{prereg}: it implemented
-the models and analyses, performed the dual figure digitizations as two
-isolated agent instances and their frozen-rule reconciliation, retrieved and
-DOI-verified the literature, drafted documentation and this manuscript, and
-executed the pre-registered gates, and three isolated AI instances ---
-given no access to the generating session's work --- independently
-re-derived every headline number, audited every reference against primary
-sources, and refereed the artifact adversarially, with their findings fixed
-or disclosed in the repository. The author froze the pre-registered
-decisions, including the held-out tolerances and fork rule, and holds sole
-responsibility for all content. Every load-bearing input value carries
-per-value provenance in the repository; the author's verification of those
-values against their primary sources and his review of all AI-produced text
-and analysis are recorded, item by item, in
-\texttt{docs/ai\_usage\_log.md} and the author sign-off checklist, whose
-completion gates submission --- this manuscript is not submitted anywhere
-until every item there is closed and signed. AI tools were not used to
-create or alter any primary data; the digitized datasets carry both routes'
-raw readings.
-
-\section*{Declarations: generative AI in manuscript preparation}
-
-During the preparation of this work the author used Anthropic Claude in
-order to draft and revise the manuscript text and generate the figures from
-the committed analysis records. After using this tool, the author reviewed
-and edited the content as needed and takes full responsibility for the
-content of the published article. (This disclosure is written to satisfy
-both Springer Nature's AI policy for the primary venue and, verbatim in its
-recommended form, Elsevier's declaration format for the fallback venue;
-AI use in the research process itself is described in Methods.)
+All analyses are deterministic-seeded and regenerate from the single open
+repository (\texttt{scripts/}); this manuscript's numbers are compiled from
+a machine-generated macro file, and a test fails if manuscript and
+regeneration disagree. AI tools (Anthropic Claude) were used in the
+research workflow under a version-controlled execution manual and an
+externally deposited, DOI-stamped pre-registration~\cite{prereg}; the
+complete usage log, per-value verification records, and author sign-off
+checklist are in the repository's \texttt{docs/}
+(\texttt{ai\_usage\_log.md}, \texttt{author\_signoff\_checklist.md}). AI
+tools were not used to create or alter any primary data; the digitized
+datasets carry both routes' raw readings.
 
 \section*{Data availability}
 
