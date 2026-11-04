@@ -95,8 +95,8 @@ def main():
     tex += M("vNmaxHiA", f"{m77['n_max']['interval_frozen'][1]:.0f}")
     tex += M("vLpLoA", f"{m77['log10_p0']['interval_frozen'][0]:.2f}")
     tex += M("vLpHiA", f"{m77['log10_p0']['interval_frozen'][1]:.0f}")
-    tex += M("vNmaxLoM", f"{mmt['n_max']['interval_frozen'][0]:.1f}")
-    tex += M("vNmaxHiM", f"{mmt['n_max']['interval_frozen'][1]:.1f}")
+    tex += M("vNmaxLoM", f"{mmt['n_max']['interval_frozen'][0]:.2f}")
+    tex += M("vNmaxHiM", f"{mmt['n_max']['interval_frozen'][1]:.2f}")
     tex += M("vLpLoM", f"{mmt['log10_p0']['interval_frozen'][0]:.2f}")
     tex += M("vLpHiM", f"{mmt['log10_p0']['interval_frozen'][1]:.2f}")
     tex += M("vObjDof",

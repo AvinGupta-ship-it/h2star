@@ -140,7 +140,7 @@ def f3_profiles():
               "v_a": r"$v_a$ (m$^3$/kg)"}
     for ax, p in zip(axes, ("n_max", "alpha", "beta", "log10_p0", "v_a")):
         for key, color, lab in (("single_isotherm_77K", "C1", "77 K only"),
-                                ("multi_temperature", "C0", "60-298 K")):
+                                ("multi_temperature", "C0", "60–298 K")):
             pr = J[key]["profiles"][p]
             obj0 = J[key]["objective"]
             ax.plot(pr["grid"], np.array(pr["objective"]) - obj0,

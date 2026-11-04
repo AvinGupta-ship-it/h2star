@@ -38,8 +38,9 @@ under an explicit errors-in-pressure measurement model show that one 77\,K
 isotherm of ordinary published quality leaves the D--A parameter vector
 practically non-identifiable: the 95\% region spans $n_{\max}$
 \vNmaxLoA--\vNmaxHiA\,mol\,kg$^{-1}$ under the frozen parameter bounds, and
-wider still when they are relaxed, with $\log_{10}P_0$ unbounded above
-within [\vLpLoA, \vLpHiA]. Seven supercritical isotherms fitted jointly pin
+wider still when they are relaxed, with $\log_{10}(P_0/\mathrm{Pa})$
+running from \vLpLoA{} to the upper bound of its allowed range at
+\vLpHiA. Seven supercritical isotherms fitted jointly pin
 $n_{\max}$ to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$, a within-model precision
 whose centre moves by $\pm13\%$ under model-form and fit-set choice.
 Propagated through a component-resolved system model, the loose
@@ -85,8 +86,8 @@ not the first inversion of system targets into material requirements; those
 programs are its reference point.
 
 This paper asks a narrower statistical question underneath that translation:
-when the material is characterized by the modified D--A
-model~\cite{richard2009a} fitted to the single-temperature excess isotherms
+when the material is characterized by the modified Dubinin--Astakhov
+(D--A) model~\cite{richard2009a} fitted to the single-temperature excess isotherms
 the literature routinely publishes, which parameter combinations do the
 data determine, and what does the answer imply for how requirements should
 be stated? Three contributions follow. First, an identifiability analysis
@@ -98,8 +99,8 @@ degeneracy and its repair by multi-temperature fitting. Second, the
 propagation of parameter uncertainty through an openly implemented,
 component-resolved system model whose calibration and held-out validation
 were frozen by an external, time-stamped pre-registration before the model
-code existed~\cite{prereg}, with the held-out outcome, including one
-pre-registered failure, reported and binding on the claims. Third,
+code existed~\cite{prereg}, with the held-out outcome, including a failure
+on one pre-registered comparison, reported and binding on the claims. Third,
 requirement maps stated in observable axes, following the Argonne targets'
 practice of stating requirements in measured quantities (the HSECoE
 envelope's axes include the fitted $n_{\max}$ itself), drawn under two
@@ -125,10 +126,10 @@ that structure.
 No numeric tables of the multi-temperature AX-21 isotherms are published:
 the measurements appear only as figures, in B\'enard and
 Chahine~\cite{benard2001} and in Richard et al.~\cite{richard2009a}
-(Fig.~1a), whose Table~1 attributes the 77--298\,K isotherms to
+(their Fig.~1a), whose Table~1 attributes the 77--298\,K isotherms to
 \cite{benard2001} and the 30--77\,K isotherms, including the primary fit
 set's 60\,K isotherm, to a private communication of Michelsen and
-Chahine (2005) on the same carbon. Figure~1a was
+Chahine (2005) on the same carbon. That figure was
 digitized at 600\,dpi by two routes executed in isolation from each other,
 a visual marker-by-marker reading and a scripted template-matching
 pipeline, and reconciled under a rule frozen in the
@@ -137,23 +138,24 @@ coordinate-wise means within tolerance, one documented re-inspection of
 disagreements, exclusion (with counts) of markers neither route resolves.
 The result is 172 points on eleven isotherms (Fig.~\ref{fig:fit}) with
 per-point uncertainties floored at the axis resolution (0.0049\,MPa and 0.062\,mol\,kg$^{-1}$ per
-pixel); 21 of 22 systematic disagreements traced to a marker-center
+pixel); 21 of 22 systematic disagreements traced to a marker-centre
 convention difference on the two triangle-marker isotherms and were settled
 by direct measurement of isolated glyphs. Two Henry-region points lie within
 one pixel of the pressure axis and are recorded at the half-pixel pressure
 bound, carrying the larger of the route per-point uncertainty and the
 half-pixel bound (here the route uncertainties, 0.010 and 0.040\,MPa,
 dominate, which is the conservative direction). The 30\,K isotherm lies below the validity floor of
-the gas-phase equation of state (33.2\,K, just above the 33.145\,K critical
-temperature) and enters no fit. The frozen plan restricted the primary fit
-to $T\ge60$\,K, clear of the near-critical region where the EOS-derived
+the gas-phase equation of state (EOS; 33.2\,K, just above the 33.145\,K
+critical temperature) and enters no fit. The frozen plan restricted the
+primary fit to $T\ge60$\,K, clear of the near-critical region where the
+EOS-derived
 densities and the error model's derivative weights are most sensitive and
 where the figure's low-pressure markers cluster most densely; the effect of
 adding the near-critical 35--45\,K isotherms is reported as a sensitivity
 (it moves $n_{\max}$ by $+12\%$, part of the structural spread of
-Section~\ref{sec:modelform}). The SWCNT
-isotherms of Panella et al.~\cite{panella2005} (Fig.~2b) were digitized
-under the same protocol, including the published error bars.
+Section~\ref{sec:modelform}). The single-walled carbon-nanotube (SWCNT)
+isotherms of Panella et al.~\cite{panella2005} (their Fig.~2b) were
+digitized under the same protocol, including the published error bars.
 
 \begin{figure}[t]
 \centering
@@ -184,7 +186,8 @@ branch this discounts near-axis points in proportion to what the pixel grid
 resolves, which removes by construction the known failure mode in which
 sub-pixel low-pressure points dominate a fitted covariance. Residuals remain
 overdispersed relative to digitization uncertainty alone
-(objective/dof $=\vObjDof$), which measures residual model-form error
+(objective per degree of freedom, objective/dof $=\vObjDof$), which
+measures residual model-form error
 (Section~\ref{sec:modelform}); intervals are therefore reported at both the
 nominal $\Delta=3.84$ threshold and the variance-inflated threshold, and no
 conclusion relies on the narrower of the two.
@@ -208,7 +211,9 @@ reproduces the NIST tables to $5\times10^{-5}$ relative (a plumbing check
 rather than physics validation). Tank inventory uses absolute loading plus void gas
 with the void excluding skeleton and adsorbed volume; usable capacity is the
 full-to-empty swing, and system capacities are usable-basis with the full
-inventory carried in the system mass.
+inventory carried in the system mass. Throughout, GC and VC denote the
+usable system gravimetric capacity (kg H$_2$ per kg of system) and
+volumetric capacity (kg H$_2$ per litre of system).
 
 \subsection{Component-resolved engineering model and pre-registered gates}
 \label{sec:gates}
@@ -216,10 +221,10 @@ inventory carried in the system mass.
 The engineering model resolves the system into composite or aluminium
 vessel (netting analysis for composite: helical plies carry the axial load,
 total cylinder thickness $1.5\,P r/\sigma$ exactly; hoop-governed wall for
-aluminium), fixed-thickness liner, multilayer insulation sized to a
+aluminium), fixed-thickness liner, multilayer insulation (MLI) sized to a
 heat-leak budget at 60\,$^\circ$C ambient or fixed at the design value,
-outer shell, internal heat-exchanger structure, supports, and a
-component-class balance of plant carrying mass and volume, with the design
+outer shell, internal heat-exchanger (HX) structure, supports, and a
+component-class balance of plant (BOP) carrying mass and volume, with the design
 pressure set by the dormancy vent rule $P_\mathrm{design}=1.25\,P_\mathrm{full}$
 \cite{ahluwalia2009,tamburello2017,purewal2019}. Three bounded scalar
 factors are the model's only fitted values.
@@ -232,7 +237,7 @@ tolerances, and a fork rule. We state the deposit's evidential force
 precisely: the whole arc from deposit to adjudication spans about a hundred
 minutes of one day, with the model necessarily developed alongside, so the
 deposit certifies that the targets, tolerances and fork rule were fixed and
-externally timestamped before the outcomes were known, and it supports no
+externally time-stamped before the outcomes were known, and it supports no
 stronger reading; the adjudicated failure below, and the enforcement of the
 fork rule, are the behaviour consistent with that discipline.
 The repository records the execution deviations from the frozen text, each
@@ -252,13 +257,13 @@ $3.3\times$ beyond its 0--6\,MPa fit range; the anchors themselves model
 200\,bar, but the extrapolation is one more uncertainty those two
 comparisons carry. We note, as disclosed context rather than mitigation,
 that the anchor family itself spans 21\% across HSECoE report years for the
-nominal same configuration and does not state its capacity basis, and that
+nominally identical configuration and does not state its capacity basis, and that
 the failure is mass-sided and pressure-dependent, consistent with build
 features (boss reinforcement, doilies, protective layers) that pure netting
 sizing omits.
 
 A post-adjudication audit additionally found one model input to be
-mis-attributed:
+misattributed:
 the balance-of-plant interpolation's 16\,kg anchor was placed at 100\,bar,
 while its source states it as a fixed assumption of an analysis whose
 storage design point is 150\,atm. The gate record stands as adjudicated. Re-anchoring at the
@@ -272,12 +277,14 @@ correction (sensitivity committed in the repository).
 \caption{Pre-registered calibration (E1) and held-out validation (E2)
 outcomes~\cite{prereg}. Targets are the published HSECoE values; tolerances
 and the all-four pass rule were frozen and DOI-stamped before any model code
-existed. E1 is in-sample by construction; E2 is the evidence.}
+existed. E1 is in-sample by construction; E2 is the evidence. FY2011,
+ST044-2012 and ST044-2013 are HSECoE Annual Merit Review records.}
 \label{tab:gates}
+\vspace{0.6ex}
 \small
 \begin{tabular}{llll}
 \toprule
- & Quantity & Deviation (tolerance) & Verdict \\
+ & Quantity & Outcome (tolerance) & Verdict \\
 \midrule
 E1 & system mass & \vEOneMsys\,kg vs 140.99\,kg & calibrated \\
 E1 & system volume & \vEOneVsys\,L vs 287.70\,L & calibrated \\
@@ -319,7 +326,7 @@ fitted jointly, the same intervals collapse to
 $\pm$2.4\%) and \vLpLoM--\vLpHiM{}: the degeneracy is a property of
 single-temperature reporting practice rather than of the model class, and
 multi-temperature fitting restores identifiability, narrowing the
-$n_{\max}$ interval about 70-fold. That precision is within-model: freeing
+$n_{\max}$ interval by a factor of about 73. That precision is within-model: freeing
 the D--A exponent moves $n_{\max}$ to 54.4, adding the near-critical
 35--45\,K isotherms moves it to 69.2, and the source's own 30--293\,K
 global fit is 71.6~\cite{richard2009a}, a $\pm13\%$ structural spread that
@@ -330,8 +337,9 @@ Fisher-information spectrum in log-parameter coordinates spans several
 decades at the optimum, the signature of a sloppy
 model~\cite{gutenkunst2007}.
 
-An MCMC posterior over the same objective (uniform priors on the frozen
-bounds; effective sample size $\ge\vESSmin$ per parameter, split-chain
+A Markov chain Monte Carlo (MCMC) posterior over the same objective
+(uniform priors on the frozen bounds; effective sample size $\ge\vESSmin$
+per parameter, split-chain
 $\hat R \le \vRhatMax$) matches the profile intervals and supplies the joint
 input distribution for Section~\ref{sec:uq}.
 
@@ -342,8 +350,8 @@ input distribution for Section~\ref{sec:uq}.
 single 77\,K isotherm (broad curves) and from the seven supercritical
 isotherms fitted jointly (narrow curves), with the 95\% threshold. At one
 temperature, $n_{\max}$ and $\log_{10}P_0$ are practically non-identifiable
-and $\beta$ is structurally undetermined; the multi-temperature fit
-restores identifiability.}
+and $\beta$ is structurally undetermined (its 77\,K profile is flat at
+zero, on the axis); the multi-temperature fit restores identifiability.}
 \label{fig:profiles}
 \end{figure}
 
@@ -363,7 +371,8 @@ Propagating the 77\,K profile ridge (a 3.0-fold range in $n_{\max}$ on the
 propagated grid; the full 95\% interval is 3.8-fold) through the frozen
 engineering model at the baseline envelope (100\,bar/80\,K to
 5\,bar/160\,K) changes predicted usable gravimetric capacity only between
-\vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%; Fig.~\ref{fig:ridge}).
+\vGCpropLo{} and \vGCpropHi{}\,kg\,kg$^{-1}$ ($\pm$\vGCpropPct\%;
+Fig.~\ref{fig:ridge}).
 Evaluated at the exact interval endpoints the spread widens somewhat: the
 low endpoint lies \vGCendLowDev\% below the ridge maximum, and the whole
 region spans $\pm$\vGCfullPct\%, still an order of magnitude tighter than
@@ -375,7 +384,7 @@ the 3.8-fold $n_{\max}$ range it propagates.
 \caption{Loose parameters, tight predictions. Left: the 77\,K profile
 ridge, the $(n_{\max},\log_{10}P_0)$ trace over the full profile grid (the
 95\% region spans 37--142\,mol\,kg$^{-1}$ in $n_{\max}$, 3.8-fold; its
-exact endpoints lie just beyond the plotted grid points). Right: usable
+exact endpoints lie just beyond the grid points inside the region). Right: usable
 system gravimetric capacity along the same trace under the frozen
 engineering model; points inside the 95\% region are highlighted. The data
 leave the parameters loose while pinning the prediction.}
@@ -396,8 +405,8 @@ quantities the data determine.
 With material parameters drawn from the joint posterior and fifteen
 declared engineering and envelope inputs drawn from documented
 distributions, the usable-capacity distribution at the baseline envelope has
-mean \vGCmean{} and standard deviation \vGCsd{} ($N=20{,}000$; split-half
-quantile agreement recorded). Shapley effects, the variance attribution
+mean \vGCmean{} and standard deviation \vGCsd\,kg\,kg$^{-1}$
+($N=20{,}000$; split-half quantile agreement recorded). Shapley effects, the variance attribution
 appropriate to dependent inputs~\cite{song2016,owen2014}
 (Fig.~\ref{fig:shapley}), rank the
 internal heat-exchanger structure (\vShOneShare{} of variance), insulation
@@ -414,12 +423,13 @@ ignorance rather than improvement potential.
 \centering
 \includegraphics[width=\linewidth]{F7_shapley_elasticity}
 \caption{Left: Shapley effects (variance shares) for usable gravimetric
-capacity over the joint material posterior and the fifteen declared
-engineering inputs; the correlated material block is one player. Shares
-within two standard errors of zero (error bars) are indistinguishable from
-zero. Right: design-leverage elasticities of the same output, which answer
-a different question and are deliberately not merged with the variance
-shares.}
+capacity (GC) over the joint material posterior and the fifteen declared
+engineering and envelope inputs; the correlated material block is one
+player. Shares within two standard errors of zero (error bars) are
+indistinguishable from zero. Right: design-leverage elasticities of the
+same output, which answer a different question and are deliberately not
+merged with the variance shares. HX: heat exchanger; MLI: multilayer
+insulation; BOP: balance of plant.}
 \label{fig:shapley}
 \end{figure}
 
@@ -443,14 +453,15 @@ measured excess swing, the packing density, a skeletal density and the
 equation of state; an absolute-adsorption axis would re-import the fitted,
 poorly identified $v_a$, which at this envelope shifts a material's
 coordinate by $v_a\,\Delta\rho_g = 0.034$\,kg\,kg$^{-1}$, half of
-AX-21's own value. The skeletal-density and residual-uptake terms are
+AX-21's own absolute-basis value. The skeletal-density and residual-uptake terms are
 varied as labelled sensitivities in the repository (over
 1800--2300\,kg\,m$^{-3}$ the required uptake at 500\,kg\,m$^{-3}$ packing
 moves by 0.004\,kg\,kg$^{-1}$; the residual-uptake term does not move the
 boundary there, which is volumetric-limited).
 No probability band is drawn on these axes, which are observables rather
 than sampled parameters. Under the component-resolved model (Fig.~\ref{fig:map}), meeting the
-DOE-2025 pair at 500\,kg\,m$^{-3}$ packing requires a deliverable excess
+U.S. Department of Energy (DOE) 2025 target pair at 500\,kg\,m$^{-3}$
+packing requires a deliverable excess
 uptake of about \vUreqVone\,kg\,kg$^{-1}$; under the superseded lumped
 model the same contour sits at \vUreqVzero{}. The between-model shift is
 of the same order as the held-out failure and is displayed as the honest
@@ -470,11 +481,12 @@ volume for 5.6\,kg usable.
 \includegraphics[width=\linewidth]{F5_observable_map}
 \caption{System feasibility stated in observable axes: deliverable
 \emph{excess} uptake between the stated full (100\,bar/80\,K) and empty
-(5\,bar/160\,K) states versus packing density, with the DOE-2025
-requirement region under the component-resolved model (left) and the
-superseded lumped model (right). The between-model shift is a lower bound
-on how model-dependent such boundaries are (the models share several source
-anchors); AX-21's posterior-median deliverable excess uptake is marked.}
+(5\,bar/160\,K) states versus packing density, with the DOE 2025
+requirement region (shaded; GC $\ge 0.055$, VC $\ge 0.040$) under the
+component-resolved model (left) and the superseded lumped model (right).
+The between-model shift is a lower bound on how model-dependent such
+boundaries are (the models share several source anchors); AX-21's
+posterior-median deliverable excess uptake is marked.}
 \label{fig:map}
 \end{figure}
 
@@ -485,7 +497,8 @@ conditional; the data are figure-digitized with stated resolution; the
 $m=2$ misspecification dominates residuals; several engineering input
 distributions rest on single published data, and the Shapley analysis says
 precisely those dominate the output variance; the only traceable 77\,K
-high-pressure CNT isotherm reconciles to five points, below the
+high-pressure carbon-nanotube (CNT) isotherm reconciles to five points,
+below the
 pre-registered floor, so no CNT system claim is made (the repository carries
 the documented example, consistent with
 \cite{tibbetts2001,panella2005,zhou2004}). The repository's
@@ -493,16 +506,16 @@ the documented example, consistent with
 
 \section{Conclusions}
 
-A single published isotherm does not determine the modified D--A parameter
-vector, but it does determine system-level predictions to a few per cent;
+A single published isotherm leaves the modified D--A parameter vector
+undetermined while pinning system-level predictions to a few per cent;
 multi-temperature data restore parameter identifiability almost completely.
 Requirements derived from system targets should therefore be stated in
 deliverable excess uptake and packing density, observable and model-robust
 axes, with the engineering model's own validation status attached, which in
 this work is an externally pre-registered calibration that closed and a
-held-out gate that failed and narrowed the claims. The companion database
-(HyCAN-DB~\cite{hycandb}) and this model are one program: curating
-multi-temperature, provenance-tiered measurements is what makes the
+held-out gate that failed and narrowed the claims. The companion
+HyCAN-DB database~\cite{hycandb} and this model are one program: curating
+multi-temperature measurements with tiered provenance is what makes the
 translation from materials to systems identifiable at all.
 
 \section*{Methods: reproducibility}
@@ -520,20 +533,21 @@ datasets carry both routes' raw readings.
 \section*{Data availability}
 
 All data, code, figures and analysis records are openly available at
-\url{https://github.com/AvinGupta-ship-it/h2star}, archived at Zenodo
-under concept DOI 10.5281/zenodo.23257816; the pre-registration is
-10.5281/zenodo.23931242.
+\url{https://github.com/AvinGupta-ship-it/h2star} and archived at Zenodo
+under concept DOI \url{10.5281/zenodo.23257816}; the pre-registration is
+archived under DOI \url{10.5281/zenodo.23931242}.
 
 \bibliographystyle{elsarticle-num}
 \begin{thebibliography}{30}
 
 \bibitem{usdrive2017} U.S. DRIVE Partnership, Target Explanation Document:
 Onboard Hydrogen Storage for Light-Duty Fuel Cell Vehicles, updated May
-2017.
+2017. \url{https://www.energy.gov/eere/fuelcells/doe-technical-targets-onboard-hydrogen-storage-light-duty-vehicles}.
 
-\bibitem{hardy2012} B. Hardy, C. Corgnale, D. Tamburello, S. Garrison, D.
-Anton, et al., Modeling of adsorbent based hydrogen storage systems, Int. J.
-Hydrogen Energy 37 (2012) 5691--5705. doi:10.1016/j.ijhydene.2011.12.125.
+\bibitem{hardy2012} B. Hardy, C. Corgnale, R. Chahine, M.-A. Richard, S.
+Garrison, D. Tamburello, D. Cossement, D. Anton, Modeling of adsorbent
+based hydrogen storage systems, Int. J. Hydrogen Energy 37 (2012)
+5691--5705. doi:10.1016/j.ijhydene.2011.12.125.
 
 \bibitem{tamburello2017} D. Tamburello, B. Hardy, C. Corgnale, M. Sulic, D.
 Anton, Cryo-adsorbent hydrogen storage systems for fuel cell vehicles,
@@ -548,6 +562,16 @@ doi:10.1016/j.ijhydene.2019.04.082.
 \bibitem{hardy2018} B. Hardy, D. Tamburello, C. Corgnale, Hydrogen storage
 adsorbent systems acceptability envelope, Int. J. Hydrogen Energy 43 (2018)
 19528--19539. doi:10.1016/j.ijhydene.2018.08.140.
+
+\bibitem{corgnale2012} C. Corgnale, B. Hardy, D. Tamburello, S. Garrison,
+D. Anton, Acceptability envelope for metal hydride-based hydrogen storage
+systems, Int. J. Hydrogen Energy 37 (2012) 2812--2824.
+doi:10.1016/j.ijhydene.2011.07.037.
+
+\bibitem{pasini2013} J.M. Pasini, C. Corgnale, B.A. van Hassel, T. Motyka,
+S. Kumar, K. Simmons, Metal hydride material requirements for automotive
+hydrogen storage systems, Int. J. Hydrogen Energy 38 (2013) 9755--9765.
+doi:10.1016/j.ijhydene.2012.08.112.
 
 \bibitem{ahluwalia2015} R.K. Ahluwalia, J.K. Peng, T.Q. Hua, Sorbent
 material property requirements for on-board hydrogen storage for automotive
@@ -564,9 +588,9 @@ adsorption isotherms of hydrogen on activated carbons above the critical
 temperature of the adsorbate over wide temperature and pressure ranges,
 Langmuir 17 (2001) 1950--1955. doi:10.1021/la001381x.
 
-\bibitem{panella2005} B. Panella, M. Hirscher, S. Roth, Hydrogen adsorption
-in different carbon nanostructures, Carbon 43 (2005) 2209--2214.
-doi:10.1016/j.carbon.2005.03.037.
+\bibitem{prereg} A. Gupta, H2STAR v1.0: pre-registration of validation
+gates, tolerances, calibration/validation split, and analysis plan, Zenodo
+(2026). doi:10.5281/zenodo.23931242.
 
 \bibitem{myers2014} A.L. Myers, P.A. Monson, Physical adsorption of gases:
 the case for absolute adsorption as the basis for thermodynamic analysis,
@@ -577,11 +601,9 @@ Brown, C.R. Myers, J.P. Sethna, Universally sloppy parameter sensitivities
 in systems biology models, PLoS Comput. Biol. 3 (2007) e189.
 doi:10.1371/journal.pcbi.0030189.
 
-\bibitem{raue2009} A. Raue, C. Kreutz, T. Maiwald, J. Bachmann, M. Schilling,
-U. Klingm\"uller, J. Timmer, Structural and practical identifiability
-analysis of partially observed dynamical models by exploiting the profile
-likelihood, Bioinformatics 25 (2009) 1923--1929.
-doi:10.1093/bioinformatics/btp358.
+\bibitem{panella2005} B. Panella, M. Hirscher, S. Roth, Hydrogen adsorption
+in different carbon nanostructures, Carbon 43 (2005) 2209--2214.
+doi:10.1016/j.carbon.2005.03.037.
 
 \bibitem{leachman2009} J.W. Leachman, R.T. Jacobsen, S.G. Penoncello, E.W.
 Lemmon, Fundamental equations of state for parahydrogen, normal hydrogen,
@@ -596,6 +618,12 @@ thermophysical property library CoolProp, Ind. Eng. Chem. Res. 53 (2014)
 \bibitem{ahluwalia2009} R.K. Ahluwalia, J.K. Peng, Automotive hydrogen
 storage system using cryo-adsorption on activated carbon, Int. J. Hydrogen
 Energy 34 (2009) 5476--5487. doi:10.1016/j.ijhydene.2009.05.023.
+
+\bibitem{raue2009} A. Raue, C. Kreutz, T. Maiwald, J. Bachmann, M. Schilling,
+U. Klingm\"uller, J. Timmer, Structural and practical identifiability
+analysis of partially observed dynamical models by exploiting the profile
+likelihood, Bioinformatics 25 (2009) 1923--1929.
+doi:10.1093/bioinformatics/btp358.
 
 \bibitem{song2016} E. Song, B.L. Nelson, J. Staum, Shapley effects for
 global sensitivity analysis: theory and computation, SIAM/ASA J. Uncertain.
@@ -612,23 +640,9 @@ Carbon 39 (2001) 2291--2301. doi:10.1016/S0008-6223(01)00051-3.
 hydrogen adsorption on superactivated carbon versus carbon nanotubes, Int.
 J. Hydrogen Energy 29 (2004) 475--479. doi:10.1016/S0360-3199(03)00092-2.
 
-\bibitem{corgnale2012} C. Corgnale, B. Hardy, D. Tamburello, S. Garrison,
-D. Anton, Acceptability envelope for metal hydride-based hydrogen storage
-systems, Int. J. Hydrogen Energy 37 (2012) 2812--2824.
-doi:10.1016/j.ijhydene.2011.07.037.
-
-\bibitem{pasini2013} J.M. Pasini, C. Corgnale, B.A. van Hassel, T. Motyka,
-S. Kumar, K. Simmons, Metal hydride material requirements for automotive
-hydrogen storage systems, Int. J. Hydrogen Energy 38 (2013) 9755--9765.
-doi:10.1016/j.ijhydene.2012.08.112.
-
 \bibitem{hycandb} A. Gupta, HyCAN-DB: a FAIR database of hydrogen sorption
 measurements in carbon nanomaterials, Zenodo (2026).
 doi:10.5281/zenodo.23231985.
-
-\bibitem{prereg} A. Gupta, H2STAR v1.0: pre-registration of validation
-gates, tolerances, calibration/validation split, and analysis plan, Zenodo
-(2026). doi:10.5281/zenodo.23931242.
 
 \end{thebibliography}
 \end{document}
