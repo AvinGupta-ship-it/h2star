@@ -1,8 +1,12 @@
 # Manuscript
 
-`main.tex` is the preprint source (Elsevier `elsarticle` class; primary
-venue *Adsorption* per the pre-registered fork rule — see
-`docs/validation_plan.md`, Gate E2).
+`main.tex` is the preprint source. Primary venue: *Adsorption* (Springer
+Nature), chosen in the execution plan after the pre-registered fork rule
+narrowed the claims (the fork rule governs what may be claimed, not the
+venue; see `docs/validation_plan.md`, Gate E2). The source uses the
+`elsarticle` class as a clean preprint/ChemRxiv format; submission to
+*Adsorption* will be reformatted to the Springer template (an IJHE fallback
+submission would use this class as-is).
 
 Every number in the text is a macro from `generated_numbers.tex`, which is
 machine-written by `scripts/reproduce_paper.py` from the committed analysis

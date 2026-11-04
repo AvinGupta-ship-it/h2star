@@ -56,9 +56,11 @@ identifiability each added temperature restores.
 **2. Loose parameters, tight predictions.** Across the propagated 77 K
 profile ridge (n_max 40–120, a 3.0× range; the full 95% interval is 3.8×)
 the predicted usable system capacity at the baseline envelope varies by only
-±2.4% (volumetric: ±3.0%); evaluated at the exact interval endpoints
-(n_max 37.4 and 142.2) it stays within ≈4% of the optimum
-(data/analysis/identifiability_v1.json, propagation records). The model is
+±2.4% (volumetric: ±3.0%). Evaluated at the exact interval endpoints
+(n_max 37.4 and 142.2) the spread widens — the low endpoint sits 7.5% below
+the ridge maximum, and the whole region spans ±3.9%
+(data/analysis/identifiability_v1.json, propagation records) — still an
+order of magnitude tighter than the n_max range it propagates. The model is
 sloppy in the sense of Gutenkunst et al. (2007): the Fisher-information
 eigenvalue spectrum spans many decades. A requirement stated as "n_max = X
 at fixed α, β, P0" is therefore conditional on an arbitrary point along a

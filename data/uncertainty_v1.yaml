@@ -79,11 +79,11 @@ engineering:
   model_error_mass:
     distribution: {type: normal, mean: 1.0, sd: 0.05, truncate: [0.85, 1.15]}
     applies_to: "multiplier on the summed engineering (non-media, non-H2) mass"
-    justification: "Omitted-component model error calibrated from the E1 residuals, as the frozen plan prescribes: the calibration family closed to 0.0 to +6.1% (HexCell exact; MATI +6.1%); sd 5%. NOTE: the held-out gate E2 showed a +41% GC miss at 200 bar — absolute-capacity claims are already removed by the fork rule, and this term is NOT inflated post-hoc to cover E2."
+    justification: "Omitted-component model error calibrated from the E1 residuals, as the frozen plan prescribes: the calibration family closed to 0.0 to +5.1% (HexCell exact; MATI +5.07% per the corrected, reproducible record in docs/validation_plan.md — the original +6.1% figure was superseded by the S8 correction); sd 5% remains defensible under the corrected residuals. NOTE: the held-out gate E2 showed a +41% GC miss at 200 bar — absolute-capacity claims are already removed by the fork rule, and this term is NOT inflated post-hoc to cover E2."
   model_error_volume:
     distribution: {type: normal, mean: 1.0, sd: 0.03, truncate: [0.9, 1.1]}
     applies_to: "multiplier on the summed engineering (non-internal) volume"
-    justification: "E1 volume residuals: -0.73% (HexCell), +0.57% (MATI); sd 3%."
+    justification: "E1 volume residuals: -0.73% (HexCell), -0.43% (MATI, corrected S8 record; originally recorded +0.57%); sd 3% remains defensible."
   T_empty:
     distribution: {type: uniform, low: 150.0, high: 170.0}
     applies_to: "empty-state temperature, K"

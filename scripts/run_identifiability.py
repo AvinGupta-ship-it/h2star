@@ -2,7 +2,10 @@
 data/analysis/identifiability_v1.json with: the multi-temperature optimum,
 profile likelihoods for every parameter (multi-T and 77 K-only), the frozen
 and overdispersion-inflated 95% intervals, the Fisher eigenvalue spectrum,
-the bound-removal sensitivity for log10_p0, the subcritical sensitivity, and
+the bound-removal sensitivity for log10_p0, the low-temperature (35-45 K,
+near-critical) sensitivity — the JSON key keeps its original name
+"subcritical_sensitivity" for record stability, though only 30 K is truly
+subcritical (Tc = 33.145 K) — and
 the propagation of the profile region to system predictions under the frozen
 v1.0 engineering model (usable GC/VC at the baseline envelope)."""
 

@@ -818,8 +818,11 @@ deviation table:
    weighted-least-squares objective omits; with theta-dependent sigma_eff
    the two differ. The normalized form is the statistically correct
    likelihood and was used deliberately (disclosed in model_derivations
-   section 10); effect verified immaterial (posterior 5-95%
-   n_max [61.31, 62.50] vs profile 95% [61.20, 62.63]). The profile/fit
+   section 10); effect verified immaterial — comparing at matched levels,
+   the posterior 90% credible n_max interval [61.31, 62.50] and the profile
+   95% interval [61.20, 62.63] have widths in the Gaussian 1.645/1.96 ratio
+   to within estimator noise (S8 round-2 check), i.e. the two objectives
+   agree. The profile/fit
    objective, by omitting the term, could in principle reward derivative
    inflation; verified immaterial here by the posterior/profile agreement.
 2. **Uncertainty spec filename.** Section 7 froze `data/uncertainty.yaml`;

@@ -36,8 +36,9 @@ wider still when they are relaxed; $\log_{10}P_0$ unbounded above within
 $n_{\max}$ to \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ --- a within-model
 precision: model-form and fit-set choice move the centre by $\pm13\%$. Propagated through a
 component-resolved system model, the loose single-isotherm region changes
-predicted usable system capacity by only about $\pm$\vGCpropPct\%: the model
-is sloppy, with loose parameters and tight predictions, so a requirement
+predicted usable system capacity by only $\pm$\vGCpropPct\% along the
+profiled ridge ($\pm$\vGCfullPct\% including the exact interval endpoints):
+the model is sloppy, with loose parameters and tight predictions, so a requirement
 stated as a limiting uptake at fixed energetic parameters is conditional on a
 ridge the data do not resolve. The engineering model itself was calibrated on
 one published HSECoE system and evaluated once against externally
@@ -91,10 +92,11 @@ component-resolved system model whose calibration and held-out validation
 were frozen by an external, time-stamped pre-registration before the model
 code existed~\cite{prereg}, with the held-out outcome --- including one
 pre-registered failure --- reported and binding on the claims. Third,
-requirement maps stated in observable axes, following the practice of the
-HSECoE envelope and the Argonne targets, drawn under two independent
-engineering models so the model-dependence of the boundary is an exhibit
-rather than a hidden assumption.
+requirement maps stated in observable axes, following the Argonne targets'
+practice of stating requirements in measured quantities (the HSECoE
+envelope's axes include the fitted $n_{\max}$ itself), drawn under two
+structurally different engineering models so the model-dependence of the
+boundary is an exhibit rather than a hidden assumption.
 
 The $\alpha$--$\beta$ degeneracy at a single temperature is structural
 ($\varepsilon=\alpha+\beta T$) and was implicitly recognized by the original
@@ -113,8 +115,12 @@ that structure.
 \subsection{Dual digitization and reconciliation}
 
 No numeric tables of the multi-temperature AX-21 isotherms are published:
-the measurements of B\'enard and Chahine~\cite{benard2001} appear as figures
-there and in Richard et al.~\cite{richard2009a} (Fig.~1a). Figure~1a was
+the measurements appear only as figures, in B\'enard and
+Chahine~\cite{benard2001} and in Richard et al.~\cite{richard2009a}
+(Fig.~1a), whose Table~1 attributes the 77--298\,K isotherms to
+\cite{benard2001} and the 30--77\,K isotherms --- including the primary fit
+set's 60\,K isotherm --- to a private communication of Michelsen and
+Chahine (2005) on the same carbon. Figure~1a was
 digitized at 600\,dpi by two independent routes --- a visual marker-by-marker
 reading and a scripted template-matching pipeline, executed in isolation
 from each other --- and reconciled under a rule frozen in the
@@ -126,9 +132,18 @@ per-point uncertainties floored at the axis resolution (0.0049\,MPa and 0.062\,m
 pixel); 21 of 22 systematic disagreements traced to a marker-center
 convention difference on the two triangle-marker isotherms and were settled
 by direct measurement of isolated glyphs. Two Henry-region points lie within
-one pixel of the pressure axis and are recorded at the half-pixel bound with
-matching uncertainty. The 30\,K isotherm lies below the validity floor of
-the gas-phase equation of state (33.2\,K) and enters no fit. The SWCNT
+one pixel of the pressure axis and are recorded at the half-pixel pressure
+bound, carrying the larger of the route per-point uncertainty and the
+half-pixel bound (here the route uncertainties, 0.010 and 0.040\,MPa,
+dominate --- the conservative direction). The 30\,K isotherm lies below the validity floor of
+the gas-phase equation of state (33.2\,K, just above the 33.145\,K critical
+temperature) and enters no fit. The frozen plan restricted the primary fit
+to $T\ge60$\,K, clear of the near-critical region where the EOS-derived
+densities and the error model's derivative weights are most sensitive and
+where the figure's low-pressure markers cluster most densely; the effect of
+adding the near-critical 35--45\,K isotherms is reported as a sensitivity
+(it moves $n_{\max}$ by $+12\%$, part of the structural spread of
+Section~\ref{sec:modelform}). The SWCNT
 isotherms of Panella et al.~\cite{panella2005} (Fig.~2b) were digitized
 under the same protocol, including the published error bars.
 
@@ -137,9 +152,10 @@ under the same protocol, including the published error bars.
 \includegraphics[width=\linewidth]{F2_multiT_fit}
 \caption{The seven supercritical (60--298\,K) isotherms of the reconciled
 dual-digitized AX-21 dataset (points, with error-model uncertainties) and
-the joint modified D--A fit (curves). The dataset's 30--45\,K subcritical
-isotherms enter no primary fit: 35--45\,K are excluded by the frozen
-analysis plan, and 30\,K lies below the equation-of-state validity floor.}
+the joint modified D--A fit (curves). The dataset's 30--45\,K isotherms enter no primary fit: the
+near-critical 35--45\,K isotherms (hydrogen's critical temperature is
+33.145\,K) are excluded by the frozen analysis plan, and the subcritical
+30\,K isotherm lies below the equation-of-state validity floor.}
 \label{fig:fit}
 \end{figure}
 
@@ -149,7 +165,9 @@ Every fit minimizes
 $\sum_i (n_{\mathrm{model},i}-n_i)^2/\sigma_{\mathrm{eff},i}^2$ with
 $\sigma_{\mathrm{eff},i}^2=\sigma_{n,i}^2+(\partial n/\partial
 P|_i)^2\sigma_{P,i}^2$, the first-order errors-in-abscissa propagation, with
-the derivative evaluated analytically on the model. On the steep Henry
+the derivative evaluated on the model (by central differences in the
+profile-likelihood code and analytically in the sampling layer; the two
+objectives agree to $\sim10^{-4}$ at the optimum). On the steep Henry
 branch this discounts near-axis points in proportion to what the pixel grid
 resolves, which removes by construction the known failure mode in which
 sub-pixel low-pressure points dominate a fitted covariance. Residuals remain
@@ -280,9 +298,9 @@ fitted jointly, the same intervals collapse to
 \vNmaxLoM--\vNmaxHiM\,mol\,kg$^{-1}$ ($\pm$1.2\%; $\beta$ $\pm$2.0\%, $v_a$
 $\pm$2.4\%) and \vLpLoM--\vLpHiM{}: the degeneracy is a property of
 single-temperature reporting practice, not of the model class, and
-multi-temperature fitting restores identifiability by nearly two orders of
-magnitude in interval width. That precision is within-model: freeing the
-D--A exponent moves $n_{\max}$ to 54.4, adding the 35--45\,K subcritical
+multi-temperature fitting restores identifiability --- the $n_{\max}$
+interval narrows about 70-fold. That precision is within-model: freeing the
+D--A exponent moves $n_{\max}$ to 54.4, adding the near-critical 35--45\,K
 isotherms moves it to 69.2, and the source's own 30--293\,K global fit is
 71.6~\cite{richard2009a} --- a $\pm13\%$ structural spread that any use of
 the within-model interval must carry with it (the overdispersion-inflated
@@ -324,19 +342,22 @@ Propagating the 77\,K profile ridge (a 3.0-fold range in $n_{\max}$ on the
 propagated grid; the full 95\% interval is 3.8-fold) through the frozen
 engineering model at the baseline envelope (100\,bar/80\,K to
 5\,bar/160\,K) changes predicted usable gravimetric capacity only between
-\vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%; Fig.~\ref{fig:ridge});
-evaluated at the exact interval endpoints it stays within about 4\% of the
-optimum.
+\vGCpropLo{} and \vGCpropHi{} ($\pm$\vGCpropPct\%; Fig.~\ref{fig:ridge}).
+Evaluated at the exact interval endpoints the spread widens somewhat --- the
+low endpoint sits \vGCendLowDev\% below the optimum, and the whole region
+spans $\pm$\vGCfullPct\% --- still an order of magnitude tighter than the
+3.8-fold $n_{\max}$ range it propagates.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{F6_sloppiness}
 \caption{Loose parameters, tight predictions. Left: the 77\,K profile ridge
---- equally admissible $(n_{\max},\log_{10}P_0)$ pairs spanning a 3.8-fold
-range in $n_{\max}$. Right: usable system gravimetric capacity along the
-same ridge under the frozen engineering model; points inside the 95\%
-profile region are highlighted. The data leave the parameters loose while
-pinning the prediction.}
+--- the $(n_{\max},\log_{10}P_0)$ trace over the full profile grid (the
+95\% region spans 37--142\,mol\,kg$^{-1}$ in $n_{\max}$, 3.8-fold; its
+exact endpoints lie just beyond the plotted grid points). Right: usable
+system gravimetric capacity along the same trace under the frozen
+engineering model; points inside the 95\% region are highlighted. The data
+leave the parameters loose while pinning the prediction.}
 \label{fig:ridge}
 \end{figure}
 The practical consequence is the paper's central point: a requirement stated
@@ -359,8 +380,9 @@ appropriate to dependent inputs~\cite{song2016,owen2014}
 (Fig.~\ref{fig:shapley}) --- rank the
 internal heat-exchanger structure (\vShOneShare{} of variance), insulation
 conductivity (\vShTwoShare) and heat-leak budget ahead of everything else,
-with the correlated material block contributing only \vShMat{} of the
-variance. Material-parameter uncertainty, once its correlations are
+with the correlated material block contributing only
+\vShMat{}\,$\pm$\,\vShMatSE{} of the variance --- indistinguishable from
+zero at the estimator's resolution. Material-parameter uncertainty, once its correlations are
 respected, is a minor contributor; the engineering description dominates.
 Design-leverage elasticities are reported separately from variance shares,
 since a large variance share reflects declared ignorance, not improvement
@@ -384,10 +406,14 @@ shares.}
 
 The requirement map uses deliverable \emph{excess} uptake between the
 stated full and empty states, together with packing density, as axes ---
-quantities measurable without inverting an isotherm model, as in the HSECoE
-envelope~\cite{hardy2018} and the Argonne Level-1
-targets~\cite{ahluwalia2015} (120\,g\,kg$^{-1}$ excess at 100\,bar/155\,K
-and 420\,kg\,m$^{-3}$ bulk density for the 40\,g\,L$^{-1}$ system target).
+quantities measurable without inverting an isotherm model. This follows the
+practice of the Argonne Level-1 targets~\cite{ahluwalia2015}, which are
+stated in measured quantities (120\,g\,kg$^{-1}$ excess at 100\,bar/155\,K
+and 420\,kg\,m$^{-3}$ bulk density for the 40\,g\,L$^{-1}$ system target);
+the HSECoE acceptability envelope~\cite{hardy2018}, by contrast, states its
+material requirements in $(n_{\max}$, bulk density$)$ --- the former being
+precisely the ridge-conditional fitted parameter whose indeterminacy this
+paper quantifies, which is the argument for the Argonne-style axes.
 The basis matters: on the excess basis the adsorbed-phase volume $v_a$
 drops out of the bed-level inventory algebraically (the gas swing rides on
 the total void $1-\rho/\rho_{\mathrm{skel}}$), so the axis needs only the
@@ -412,11 +438,10 @@ balance-of-plant anchor, the fibre class), so the displayed shift is a
 lower bound on engineering-model dependence. AX-21's deliverable excess
 uptake at this envelope is \vAxUd\,kg\,kg$^{-1}$ (posterior median;
 \vAxUdAbs{} on the absolute basis), far from feasibility at any packing
-density, consistent with the HSECoE conclusion that
-roughly 20\,wt\% material-level capacity underlies the 5.5\,wt\% system
-target~\cite{hardy2018}. The ambient (298\,K) configuration appears only as
-a supplementary contrast: its tank sizes to \vAmbientVint\,L for 5.6\,kg
-usable.
+density. The ambient (298\,K) configuration appears only as
+a supplementary contrast: on a pure pressure swing at 298\,K
+(100\,bar\,$\to$\,5\,bar), its tank sizes to \vAmbientVint\,L internal
+volume for 5.6\,kg usable.
 
 \begin{figure}[t]
 \centering
@@ -469,21 +494,32 @@ and an externally deposited pre-registration~\cite{prereg}: it implemented
 the models and analyses, performed the dual figure digitizations as two
 isolated agent instances and their frozen-rule reconciliation, retrieved and
 DOI-verified the literature, drafted documentation and this manuscript, and
-executed the pre-registered gates. The author verified every load-bearing
-input value against its primary source, froze the pre-registered decisions
-including the held-out tolerances and fork rule, holds sole responsibility
-for all content, and reviewed and edited all AI-produced text and analysis.
-The repository's \texttt{docs/ai\_usage\_log.md} is the contemporaneous
-record. AI tools were not used to create or alter any primary data; the
-digitized datasets carry both routes' raw readings.
+executed the pre-registered gates, and three isolated AI instances ---
+given no access to the generating session's work --- independently
+re-derived every headline number, audited every reference against primary
+sources, and refereed the artifact adversarially, with their findings fixed
+or disclosed in the repository. The author froze the pre-registered
+decisions, including the held-out tolerances and fork rule, and holds sole
+responsibility for all content. Every load-bearing input value carries
+per-value provenance in the repository; the author's verification of those
+values against their primary sources and his review of all AI-produced text
+and analysis are recorded, item by item, in
+\texttt{docs/ai\_usage\_log.md} and the author sign-off checklist, whose
+completion gates submission --- this manuscript is not submitted anywhere
+until every item there is closed and signed. AI tools were not used to
+create or alter any primary data; the digitized datasets carry both routes'
+raw readings.
 
-\section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
+\section*{Declarations: generative AI in manuscript preparation}
 
 During the preparation of this work the author used Anthropic Claude in
 order to draft and revise the manuscript text and generate the figures from
 the committed analysis records. After using this tool, the author reviewed
 and edited the content as needed and takes full responsibility for the
-content of the published article.
+content of the published article. (This disclosure is written to satisfy
+both Springer Nature's AI policy for the primary venue and, verbatim in its
+recommended form, Elsevier's declaration format for the fallback venue;
+AI use in the research process itself is described in Methods.)
 
 \section*{Data availability}
 

@@ -21,8 +21,11 @@ the loose single-isotherm region nonetheless pins system-level predictions
 to a few per cent. The model is sloppy in the sense of Gutenkunst et al., so
 requirements stated as isotherm parameters are conditional on a ridge the
 data do not resolve, and we argue they belong in observable axes
-(deliverable uptake and packing density), following the practice of the
-HSECoE acceptability envelope and the Argonne sorbent targets.
+(deliverable excess uptake and packing density), following the Argonne
+sorbent targets' practice of stating requirements in measured quantities —
+the HSECoE acceptability envelope, by contrast, states its requirements
+partly in the fitted n_max itself, which is exactly the ridge-conditional
+parameter.
 
 Three aspects may interest your referees in particular:
 
@@ -43,7 +46,8 @@ Three aspects may interest your referees in particular:
 
 Generative AI was used in both the research process and manuscript
 preparation, described in detail in the Methods section and declared per
-Elsevier policy; the author takes full responsibility for all content.
+the journal's policy on AI use; the author takes full responsibility for
+all content.
 
 This manuscript is not under consideration elsewhere. A preprint will be
 posted on ChemRxiv.

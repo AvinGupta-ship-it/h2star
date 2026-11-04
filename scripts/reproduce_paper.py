@@ -17,6 +17,7 @@ disagrees with a regenerated one. Pass --check to compare without writing.
 
 import functools
 import json
+import math
 import os
 import sys
 
@@ -66,6 +67,10 @@ def main():
     prop77 = [r for r in ID["propagation_baseline_envelope_77K"]
               if r.get("in_frozen")]
     gcs = [r["GC"] for r in prop77]
+    # Region-wide spread: ridge trace plus the exact n_max interval
+    # endpoints (referee R2, M2). The 77 K optimum sits on the ridge trace.
+    gcs_full = gcs + [r["GC"]
+                      for r in ID["propagation_77K_interval_endpoints"]]
     sh = SE["shapley"]
     var = sh["var_GC"]
     top = sorted(sh["GC"], key=lambda k: -sh["GC"][k][0])[:3]
@@ -100,7 +105,11 @@ def main():
     tex += M("vGCpropHi", f"{max(gcs):.4f}")
     tex += M("vGCpropPct",
              f"{100 * (max(gcs) - min(gcs)) / (max(gcs) + min(gcs)):.1f}")
-    tex += M("vESSmin", f"{min(MC['ess'].values()):.0f}")
+    tex += M("vGCfullPct",
+             f"{100 * (max(gcs_full) - min(gcs_full)) / (max(gcs_full) + min(gcs_full)):.1f}")
+    tex += M("vGCendLowDev",
+             f"{100 * (min(gcs_full) / max(gcs_full) - 1):.1f}")
+    tex += M("vESSmin", f"{math.floor(min(MC['ess'].values()))}")
     tex += M("vRhatMax", f"{max(MC['rhat'].values()):.4f}")
     tex += M("vObjMtwo", f"{MC['model_forms']['mda_m2']['objective']:.1f}")
     tex += M("vObjFreeM",
@@ -114,6 +123,7 @@ def main():
     tex += M("vShTwo", top[1].replace('_', '\\_'))
     tex += M("vShTwoShare", f"{sh['GC'][top[1]][0] / var:.2f}")
     tex += M("vShMat", f"{sh['GC']['material'][0] / var:.3f}")
+    tex += M("vShMatSE", f"{sh['GC']['material'][1] / var:.3f}")
     tex += M("vUreqVone",
              f"{OM['models']['v1_component']['u_required_2025'][rho_idx]:.3f}")
     tex += M("vUreqVzero",

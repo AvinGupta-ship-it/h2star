@@ -17,9 +17,11 @@ section 6 (DOI 10.5281/zenodo.23931242):
   beta [0, 50] J/(mol K), log10(P0/Pa) in [6.78, 12] (the data maximum;
   sensitivity to removing it reported), v_a [1e-5, 5e-3] m^3/kg.
 
-The primary fit set is the supercritical isotherms 60-298 K; the subcritical
-30-45 K isotherms enter only a labelled sensitivity. Raw cond(J^T J) in native
-units is never used as evidence.
+The primary fit set is the isotherms 60-298 K, clear of the near-critical
+region (hydrogen's Tc is 33.145 K: of the excluded low-T isotherms only 30 K
+is subcritical; 35-45 K are near-critical supercritical). The 35-45 K
+isotherms enter only a labelled sensitivity. Raw cond(J^T J) in native units
+is never used as evidence.
 """
 
 import csv

@@ -261,7 +261,9 @@ def f7_shapley():
     var = S["shapley"]["var_GC"]
     vals = np.array([S["shapley"]["GC"][p][0] for p in players]) / var
     errs = np.array([S["shapley"]["GC"][p][1] for p in players]) / var
-    order = np.argsort(vals)[::-1][:10]
+    # All sixteen players, so the material block is visibly near zero
+    # (referee R2, minor 3) rather than silently truncated away.
+    order = np.argsort(vals)[::-1]
     fig, axes = plt.subplots(1, 2, figsize=(7.4, 3.0))
     axes[0].barh(range(len(order)), vals[order], xerr=errs[order],
                  color="C0")

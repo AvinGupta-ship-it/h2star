@@ -8,7 +8,64 @@ Validation gates are recorded with their verdicts, including the ones that
 failed. A pre-registered FAIL is a result, and a changelog that listed only
 passes would misrepresent the project.
 
-## [Unreleased]
+## [1.0.0] — unreleased (tag and version DOI minted at release)
+
+Rebuild in response to the 2026-10-27 adversarial review, executed under the
+externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
+gate code existed; amendment A1 pre-code). API-breaking (hence the major
+version).
+
+Before release, two isolated agents verified the adjudicated state
+(2026-11-03). A re-derivation from a fresh clone reproduced every headline
+number; its seven non-numeric findings were fixed — release metadata brought
+to 1.0.0; a rounding slip and two stale docstring/prose statements corrected;
+the MATI family-check record, which was not reproducible from the repository,
+recomputed from a newly committed compacted-MOF-5 parameter file and pinned
+by a test (corrected record in docs/validation_plan.md); emcee's RNG seeded
+so the committed MCMC chain is bit-reproducible (verified by two-run md5
+agreement), with the posterior and all downstream analysis records
+regenerated from the seeded chain. A reference audit against the primary
+sources confirmed every checkable value exactly but found the ST001 16 kg
+BOP anchor mis-attributed to 100 bar (its source states it, with a 10 L
+volume, as a fixed assumption of a 150-atm analysis): the adjudicated gate
+record stands, the corrected placements are quantified in
+scripts/bop_anchor_sensitivity.py (H1 +37% to +51%; no verdict flips), and
+provenance was corrected here and in a zhou2004 citation title, a
+MOF-5 validity range, a ln-P span statement, and a Fig. 1a 30-77 K
+data-attribution footnote (Michelsen & Chahine private communication, per
+Richard 2009 Table 1).
+
+### Added
+- Component-resolved engineering model (`h2star.engineering`): netting-
+  analysis type-3 vessels, back-derived type-1 walls, liner, MLI, shell,
+  internal-HX structure, supports, component-class BOP with volume;
+  dormancy-set design pressure; usable basis throughout. Calibrated (E1) on
+  the FEDSM2017 HexCell system to +0.0% mass / -0.7% volume; held-out gate
+  E2 run once and FAILED on H1 (+41% GC at 200 bar; 3 of 4 passed) — the
+  pre-registered fork rule governs every claim.
+- Dual-digitized, frozen-rule-reconciled multi-temperature AX-21 dataset
+  (172 points, 11 isotherms, per-point uncertainties) and SWCNT dataset
+  (Panella Fig. 2b).
+- Identifiability layer: errors-in-P weighted objective, bisected profile
+  likelihoods for all parameters (77 K and 60-298 K), Fisher spectrum,
+  propagation of profile regions through the frozen engineering model.
+- MCMC posterior (ESS > 16,200 per parameter against the pre-registered
+  10,000 floor, split-chain R-hat <= 1.0031; bit-reproducible — emcee's own
+  RNG is seeded, an S8 re-derivation fix), model-form comparison
+  (m = 2 / free-m / Toth), declared input uncertainties, 20,000-sample
+  propagation, Shapley effects for dependent inputs, separate elasticities.
+- Requirement map in observable axes under two engineering models.
+- v1 figure set, archival lock file, v1 test files.
+
+### Changed
+- README, assumptions, model derivations, references and limitations
+  rewritten; process narrative moved to docs/history/.
+- DOE targets presented Ultimate-first; all capacities usable-basis.
+
+### Removed / superseded (kept in git history and docs/history/)
+- The v0.2 claims C1-C5, the lumped engineering block as a claim surface,
+  the coherence screen, the independent-box Sobol study, and the CNT system
+  case study (dropped by the pre-registered 8-point rule).
 
 ## [0.2.0] — 2026-10-09
 
@@ -313,62 +370,3 @@ Initial release: the validated forward model.
 [Unreleased]: https://github.com/AvinGupta-ship-it/h2star/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/AvinGupta-ship-it/h2star/compare/v0.1...v0.2.0
 [0.1.0]: https://github.com/AvinGupta-ship-it/h2star/releases/tag/v0.1
-
-## [1.0.0] - unreleased
-
-Rebuild in response to the 2026-10-27 adversarial review, executed under the
-externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
-gate code existed; amendment A1 pre-code). API-breaking (hence the major
-version).
-
-Before release, two isolated agents verified the adjudicated state
-(2026-11-03). A re-derivation from a fresh clone reproduced every headline
-number; its seven non-numeric findings were fixed — release metadata brought
-to 1.0.0; a rounding slip and two stale docstring/prose statements corrected;
-the MATI family-check record, which was not reproducible from the repository,
-recomputed from a newly committed compacted-MOF-5 parameter file and pinned
-by a test (corrected record in docs/validation_plan.md); emcee's RNG seeded
-so the committed MCMC chain is bit-reproducible (verified by two-run md5
-agreement), with the posterior and all downstream analysis records
-regenerated from the seeded chain. A reference audit against the primary
-sources confirmed every checkable value exactly but found the ST001 16 kg
-BOP anchor mis-attributed to 100 bar (its source states it, with a 10 L
-volume, as a fixed assumption of a 150-atm analysis): the adjudicated gate
-record stands, the corrected placements are quantified in
-scripts/bop_anchor_sensitivity.py (H1 +37% to +51%; no verdict flips), and
-provenance was corrected here and in a zhou2004 citation title, a
-MOF-5 validity range, a ln-P span statement, and a Fig. 1a 30-77 K
-data-attribution footnote (Michelsen & Chahine private communication, per
-Richard 2009 Table 1).
-
-### Added
-- Component-resolved engineering model (`h2star.engineering`): netting-
-  analysis type-3 vessels, back-derived type-1 walls, liner, MLI, shell,
-  internal-HX structure, supports, component-class BOP with volume;
-  dormancy-set design pressure; usable basis throughout. Calibrated (E1) on
-  the FEDSM2017 HexCell system to +0.0% mass / -0.7% volume; held-out gate
-  E2 run once and FAILED on H1 (+41% GC at 200 bar; 3 of 4 passed) — the
-  pre-registered fork rule governs every claim.
-- Dual-digitized, frozen-rule-reconciled multi-temperature AX-21 dataset
-  (172 points, 11 isotherms, per-point uncertainties) and SWCNT dataset
-  (Panella Fig. 2b).
-- Identifiability layer: errors-in-P weighted objective, bisected profile
-  likelihoods for all parameters (77 K and 60-298 K), Fisher spectrum,
-  propagation of profile regions through the frozen engineering model.
-- MCMC posterior (ESS > 16,200 per parameter against the pre-registered
-  10,000 floor, split-chain R-hat <= 1.0031; bit-reproducible — emcee's own
-  RNG is seeded, an S8 re-derivation fix), model-form comparison
-  (m = 2 / free-m / Toth), declared input uncertainties, 20,000-sample
-  propagation, Shapley effects for dependent inputs, separate elasticities.
-- Requirement map in observable axes under two engineering models.
-- v1 figure set, archival lock file, v1 test files.
-
-### Changed
-- README, assumptions, model derivations, references and limitations
-  rewritten; process narrative moved to docs/history/.
-- DOE targets presented Ultimate-first; all capacities usable-basis.
-
-### Removed / superseded (kept in git history and docs/history/)
-- The v0.2 claims C1-C5, the lumped engineering block as a claim surface,
-  the coherence screen, the independent-box Sobol study, and the CNT system
-  case study (dropped by the pre-registered 8-point rule).
