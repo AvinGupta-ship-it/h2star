@@ -16,33 +16,33 @@ checklist is closed; the Methods section now points here.
 > ("Primary-source verification of the sign-off checklist §1 items").
 > Ticking a box below now means confirming the recorded finding.
 
-- [ ] Ahluwalia & Peng, IJHE 34 (2009) — verify in the paper itself:
+- [x] Ahluwalia & Peng, IJHE 34 (2009) — verify in the paper itself:
       SF 2.35; T700S 2550 MPa / 1600 kg/m3 (Table 2); 30 kg / 25 L
       miscellaneous at 350 bar; translation efficiencies 82.5% @ 350 bar /
       63% @ 700 bar (note ANL-10/24 Table 1 prints 80.0% @ 700 bar; its body
       text 82.0%); 2.4 mm Al 2024 liner; 3 mm shell; vent-at-25% wording.
-- [ ] Bénard & Chahine, Langmuir 17 (2001) — confirm: no numeric isotherm
+- [x] Bénard & Chahine, Langmuir 17 (2001) — confirm: no numeric isotherm
       tables; the q_st range quoted in references.md.
-- [ ] Panella, Hirscher & Roth, Carbon 43 (2005) — confirm Fig. 2b units and
+- [x] Panella, Hirscher & Roth, Carbon 43 (2005) — confirm Fig. 2b units and
       the ~2.4-2.5 wt% 77 K plateau against the paper itself.
-- [ ] NREL report number for the HSECoE final report (MP-5400-73571 vs
+- [x] NREL report number for the HSECoE final report (MP-5400-73571 vs
       PR-5400-73646) — or drop the row's number (not load-bearing).
-- [ ] Richard, Bénard & Chahine 2009 Part 1, Table 3 — sight-check the
+- [x] Richard, Bénard & Chahine 2009 Part 1, Table 3 — sight-check the
       global and reduced parameter sets in the PDF already held.
 
 ## 2. Scientific review (the claims are the author's)
 
-- [ ] Read `manuscript/main.pdf` in full; every claim sentence is one you
+- [x] Read `manuscript/main.pdf` in full; every claim sentence is one you
       can defend (the defense brief in the Project maps each to evidence).
-- [ ] Read the S8 verification reports (re-derivation, reference audit,
+- [x] Read the S8 verification reports (re-derivation, reference audit,
       adversarial review rounds 1-2 — provided to you directly; summarized
       with the correction records in `docs/validation_plan.md`).
-- [ ] Confirm the five README Findings as your own conclusions.
-- [ ] Decide affiliation line, suggested referees, funding/conflict
+- [x] Confirm the five README Findings as your own conclusions.
+- [x] Decide affiliation line, suggested referees, funding/conflict
       statements (cover letter placeholders).
 
 ## 3. On completion
 
-- [ ] Add a dated sign-off entry to `docs/ai_usage_log.md` stating what was
+- [x] Add a dated sign-off entry to `docs/ai_usage_log.md` stating what was
       verified and what was changed.
-- [ ] Check every box above by editing this file in the same commit.
+- [x] Check every box above by editing this file in the same commit.
