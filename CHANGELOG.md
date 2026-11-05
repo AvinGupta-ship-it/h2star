@@ -10,6 +10,11 @@ passes would misrepresent the project.
 
 ## [1.0.0] — 2026-11-05
 
+Archived on Zenodo via the GitHub integration at release. Concept DOI
+[10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816) always
+resolves to the newest version; v1.0.0's own version DOI is
+[10.5281/zenodo.23986289](https://doi.org/10.5281/zenodo.23986289).
+
 Rebuild in response to the 2026-10-27 adversarial review, executed under the
 externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
 gate code existed; amendment A1 pre-code). API-breaking (hence the major

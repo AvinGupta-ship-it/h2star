@@ -28,7 +28,8 @@ version: 1.0.0
 date-released: "2026-11-05"
 # Concept DOI: always resolves to the newest version, which is what a reader
 # citing "H2STAR" means. Version DOIs for each release (v0.2.0:
-# 10.5281/zenodo.23257817) are recorded in CHANGELOG.md.
+# 10.5281/zenodo.23257817; v1.0.0: 10.5281/zenodo.23986289) are recorded
+# in CHANGELOG.md.
 doi: 10.5281/zenodo.23257816
 keywords:
   - hydrogen storage

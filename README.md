@@ -172,9 +172,9 @@ scientific responsibility for every claim.
 
 See `CITATION.cff`. Cite the concept DOI
 [10.5281/zenodo.23257816](https://doi.org/10.5281/zenodo.23257816) for the
-software; a v1.0.0 version DOI will be minted under that concept at the
-v1.0.0 GitHub release (none exists yet — CHANGELOG lists each release's
-version DOI once minted).
+software; v1.0.0's own version DOI is
+[10.5281/zenodo.23986289](https://doi.org/10.5281/zenodo.23986289)
+(CHANGELOG lists each release's version DOI).
 
 ## License
 
