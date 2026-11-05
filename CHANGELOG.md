@@ -8,7 +8,7 @@ Validation gates are recorded with their verdicts, including the ones that
 failed. A pre-registered FAIL is a result, and a changelog that listed only
 passes would misrepresent the project.
 
-## [1.0.0] — unreleased (tag and version DOI minted at release)
+## [1.0.0] — 2026-11-05
 
 Rebuild in response to the 2026-10-27 adversarial review, executed under the
 externally pre-registered plan 10.5281/zenodo.23931242 (deposited before any
